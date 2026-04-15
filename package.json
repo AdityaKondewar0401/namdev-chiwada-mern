@@ -2,6 +2,11 @@
   "name": "namdev-chiwada-mern",
   "version": "1.0.0",
   "description": "Full MERN stack app for Namdev Chiwada — Authentic Maharashtrian Snacks",
+
+  "engines": {
+    "node": "24.x"
+  },
+
   "scripts": {
     "install:all": "cd server && npm install && cd ../client && npm install",
     "dev:server": "cd server && npm run dev",
@@ -10,9 +15,11 @@
     "build": "cd client && npm run build",
     "start": "cd server && npm start"
   },
+
   "devDependencies": {
     "concurrently": "^8.2.2"
   },
+
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
