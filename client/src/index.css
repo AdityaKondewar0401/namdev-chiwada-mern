@@ -1,0 +1,137 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'DM Sans', system-ui, sans-serif;
+    background: #fffdf7;
+    color: #2d1a00;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: #fef3e0; }
+  ::-webkit-scrollbar-thumb { background: #e07000; border-radius: 3px; }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-8 py-3.5 rounded-full font-bold text-brown-dark transition-all duration-300 relative overflow-hidden;
+    background: linear-gradient(135deg, #d4af37, #f0cc5a);
+    box-shadow: 0 4px 20px rgba(212,175,55,0.4);
+  }
+  .btn-primary:hover { @apply -translate-y-0.5; box-shadow: 0 8px 30px rgba(212,175,55,0.5); }
+
+  .btn-saffron {
+    @apply px-8 py-3.5 rounded-full font-bold text-white transition-all duration-300;
+    background: linear-gradient(135deg, #e07000, #ff9010);
+    box-shadow: 0 4px 20px rgba(224,112,0,0.3);
+  }
+  .btn-saffron:hover { @apply -translate-y-0.5; box-shadow: 0 8px 30px rgba(224,112,0,0.4); }
+
+  .btn-outline {
+    @apply px-8 py-3.5 rounded-full font-semibold border-2 border-white/50 text-white transition-all duration-300 bg-transparent;
+  }
+  .btn-outline:hover { @apply bg-white/10 border-white -translate-y-0.5; }
+
+  .card {
+    @apply bg-white rounded-xl2 shadow-saffron border border-saffron/5 transition-all duration-300;
+  }
+  .card:hover { @apply shadow-saffron-lg -translate-y-1; }
+
+  .section-eyebrow {
+    @apply inline-flex items-center gap-2 text-xs font-semibold tracking-widest uppercase text-saffron mb-3;
+  }
+  .section-title {
+    @apply font-serif font-black text-brown-dark leading-tight;
+    font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+  }
+
+  .form-input {
+    @apply w-full px-4 py-3 rounded-xl border-[1.5px] border-saffron/20 bg-cream text-brown-dark text-sm transition-all duration-300 outline-none;
+  }
+  .form-input:focus { @apply border-saffron bg-white ring-2 ring-saffron/10; }
+
+  .badge {
+    @apply absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold;
+  }
+  .badge-default { @apply bg-saffron text-white; }
+  .badge-green { @apply bg-leaf text-white; }
+  .badge-red { @apply bg-red-500 text-white; }
+  .badge-gold { @apply bg-gold text-brown-dark; }
+  .badge-blue { @apply bg-blue-500 text-white; }
+}
+
+/* Hero gradient animation */
+.hero-gradient {
+  background: linear-gradient(135deg, #2a1200 0%, #3d1c00 25%, #5c2800 50%, #7a3300 75%, #3d1c00 100%);
+  background-size: 300% 300%;
+  animation: gradientShift 8s ease infinite;
+}
+
+/* Shimmer text */
+.shimmer-text {
+  background: linear-gradient(90deg, #ffd89b, #f0cc5a, #ffd89b);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3s linear infinite;
+}
+
+/* Marquee */
+.marquee-track { animation: marqueeScroll 28s linear infinite; }
+
+/* Skeleton loading */
+.skeleton {
+  background: linear-gradient(90deg, #fef3e0 25%, #fff0d6 50%, #fef3e0 75%);
+  background-size: 400px 100%;
+  animation: shimmer 1.4s ease infinite;
+  border-radius: 8px;
+}
+
+/* Reveal animation */
+.reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.7s ease, transform 0.7s ease; }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* Product detail gallery zoom */
+.gallery-zoom { cursor: zoom-in; }
+.gallery-zoom:hover img { transform: scale(1.04); }
+
+/* Nav shimmer effect */
+.nav-cta-shine::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -75%;
+  width: 50%;
+  height: 200%;
+  background: rgba(255,255,255,0.2);
+  transform: skewX(-20deg);
+  transition: left 0.5s ease;
+}
+.nav-cta-shine:hover::after { left: 125%; }
+
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@keyframes marqueeScroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-14px) rotate(2deg); }
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(28px); }
+  to { opacity: 1; transform: translateY(0); }
+}
