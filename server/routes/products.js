@@ -14,16 +14,17 @@ const { protect, admin } = require('../middleware/auth');
 
 // Public routes
 router.get('/featured', getFeaturedProducts);
-router.get('/search',   searchProducts);
-router.get('/',         getProducts);
-router.get('/:id',      getProduct);
-
-// Dev only — remove in production
+router.get('/search', searchProducts);
+router.get('/', getProducts);
 router.post('/seed', seedProducts);
 
+router.get('/:id', getProduct);
+
+// Dev only — remove in production
+
 // Admin only routes
-router.post('/',    protect, admin, createProduct);
-router.put('/:id',  protect, admin, updateProduct);
+router.post('/', protect, admin, createProduct);
+router.put('/:id', protect, admin, updateProduct);
 router.delete('/:id', protect, admin, deleteProduct);
 
 module.exports = router;
