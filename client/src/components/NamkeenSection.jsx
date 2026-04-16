@@ -226,7 +226,7 @@ export default function NamkeenSection() {
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
           }}>
-            पिढ्यानपिढ्या चव, प्रत्येक घासात आनंद
+            पिढ्यानपिढ्यांची चव, प्रत्येक घासात आनंद
           </p>
           <p className="text-brown-mid/60 text-sm italic">
             "Crafted with tradition, served with love since 1873"
