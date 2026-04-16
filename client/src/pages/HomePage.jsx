@@ -24,105 +24,103 @@ const TESTIMONIALS = [
 function HeroSection() {
   const navigate = useNavigate();
   return (
-    <section className="hero-gradient relative overflow-hidden flex items-center"
-      style={{ minHeight: 'clamp(580px, 100svh, 100vh)', paddingTop: '72px' }}>
+    <section
+      className="hero-gradient relative overflow-hidden flex items-center -mt-4 md:-mt-9"
+      style={{ minHeight: 'clamp(560px, 100svh, 100vh)' }}>
 
       <div className="absolute inset-0 opacity-5 pointer-events-none"
         style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ccircle cx='30' cy='30' r='28' fill='none' stroke='%23fff' stroke-width='0.5'/%3E%3C/svg%3E\")" }} />
       <div className="absolute bottom-0 left-0 right-0 h-24 md:h-32 bg-gradient-to-t from-cream to-transparent pointer-events-none z-10" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 md:py-8 w-full relative z-10">
-        <div className="flex flex-col md:grid md:grid-cols-2 md:gap-8 md:items-start">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-0 pb-6 md:pt-1 md:pb-8 w-full relative z-10">        <div className="flex flex-col md:grid md:grid-cols-2 md:gap-8 md:items-start">
 
-          {/* LEFT — text, always below image on mobile */}
-          <div className="text-center md:text-left order-2 md:order-1 mt-2 md:mt-0">
+        {/* LEFT — text, always below image on mobile */}
+        <div className="text-center md:text-left order-2 md:order-1 mt-2 md:mt-16 lg:mt-20">          <motion.div
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
+          className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full border border-white/25 bg-white/10 text-gold-light font-semibold tracking-widest uppercase mb-4 md:mb-6"
+          style={{ fontSize: 'clamp(0.58rem, 1.8vw, 0.75rem)' }}>
+          <span className="w-1.5 h-1.5 rounded-full bg-gold-light flex-shrink-0" />
+          Since 1873 · Solapur, Maharashtra
+        </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
-              className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full border border-white/25 bg-white/10 text-gold-light font-semibold tracking-widest uppercase mb-4 md:mb-6"
-              style={{ fontSize: 'clamp(0.58rem, 1.8vw, 0.75rem)' }}>
-              <span className="w-1.5 h-1.5 rounded-full bg-gold-light flex-shrink-0" />
-              Since 1873 · Solapur, Maharashtra
-            </motion.div>
+          <motion.h1
+            initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }}
+            className="font-serif font-black text-white leading-[1.08] mb-3"
+            style={{ fontSize: 'clamp(1.9rem, 5vw, 4rem)', textShadow: '0 2px 20px rgba(0,0,0,0.3)' }}>
+            Authentic Taste,<br />
+            <span className="shimmer-text">Timeless Tradition</span>
+          </motion.h1>
 
-            <motion.h1
-              initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }}
-              className="font-serif font-black text-white leading-[1.08] mb-3"
-              style={{ fontSize: 'clamp(1.9rem, 5vw, 4rem)', textShadow: '0 2px 20px rgba(0,0,0,0.3)' }}>
-              Authentic Taste,<br />
-              <span className="shimmer-text">Timeless Tradition</span>
-            </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }}
+            className="mb-5 md:mb-6"
+            style={{
+              fontFamily: "'Gotu', sans-serif",
+              fontSize: 'clamp(0.82rem, 2vw, 1.3rem)',
+              color: 'rgba(255,255,255,0.90)',
+              background: 'linear-gradient(90deg, #ffd89b, #f0cc5a, #ffd89b)',
+              backgroundSize: '200% auto',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              letterSpacing: '0.02em',
+            }}>
+            खमंग चिवडा — पिढ्यानपिढ्याची चव
+          </motion.p>
 
-            <motion.p
-              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }}
-              className="mb-5 md:mb-6"
-              style={{
-                fontFamily: "'Gotu', sans-serif",
-                fontSize: 'clamp(0.82rem, 2vw, 1.3rem)',
-                color: 'rgba(255,255,255,0.90)',
-                background: 'linear-gradient(90deg, #ffd89b, #f0cc5a, #ffd89b)',
-                backgroundSize: '200% auto',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-                letterSpacing: '0.02em',
-              }}>
-              खमंग चिवडा — पिढ्यानपिढ्याची चव
-            </motion.p>
-
-            {/* Buttons — stacked on mobile, side by side on sm+ */}
-            <motion.div
-              initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.4 }}
-              className="flex flex-col sm:flex-row gap-3 mb-6 md:mb-10 items-stretch sm:items-center justify-center md:justify-start">
-              <button
-                onClick={() => navigate('/products')}
-                className="btn-primary font-poppins text-sm md:text-base px-7 py-3 md:px-8 md:py-3.5 text-center">
-                Shop Now →
-              </button>
-              <button
-                onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
-                className="btn-outline font-poppins text-sm md:text-base px-7 py-3 md:px-8 md:py-3.5 text-center">
-                Our Story
-              </button>
-            </motion.div>
-
-            {/* Trust badges — 2×2 grid on mobile, row on desktop */}
-            <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}
-              className="grid grid-cols-2 gap-x-4 gap-y-2 sm:flex sm:flex-wrap sm:gap-5 justify-center md:justify-start">
-              {TRUST.map((t) => (
-                <div key={t}
-                  className="flex items-center gap-1.5 text-white/75 justify-center md:justify-start"
-                  style={{ fontSize: 'clamp(0.68rem, 1.5vw, 0.8rem)' }}>
-                  <span className="w-1.5 h-1.5 rounded-full bg-gold-light flex-shrink-0" />
-                  <span className="whitespace-nowrap">{t}</span>
-                </div>
-              ))}
-            </motion.div>
-          </div>
-
-          {/* RIGHT — image, shows above text on mobile */}
+          {/* Buttons — stacked on mobile, side by side on sm+ */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="flex items-center justify-center relative order-1 md:order-2 md:-translate-y-12">
-
-            {/* Spinning ring — desktop only */}
-            <div className="hidden md:block absolute w-[110%] h-[110%] rounded-full border-2 border-dashed border-white/15 animate-spinSlow" />
-
-            <img
-              src="https://res.cloudinary.com/dz7ykg6qr/image/upload/v1776256647/special1_sy4zxa.png"
-              alt="Namdev Chiwada — Premium Namkeen"
-              className="relative z-10 animate-float w-full"
-              style={{
-                maxWidth: 'clamp(180px, 65vw, 880px)',
-                filter: 'drop-shadow(0 16px 28px rgba(0,0,0,0.35))',
-              }}
-            />
+            initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.4 }}
+            className="flex flex-col sm:flex-row gap-3 mb-6 md:mb-10 items-stretch sm:items-center justify-center md:justify-start">
+            <button
+              onClick={() => navigate('/products')}
+              className="btn-primary font-poppins text-sm md:text-base px-7 py-3 md:px-8 md:py-3.5 text-center">
+              Shop Now →
+            </button>
+            <button
+              onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
+              className="btn-outline font-poppins text-sm md:text-base px-7 py-3 md:px-8 md:py-3.5 text-center">
+              Our Story
+            </button>
           </motion.div>
 
+          {/* Trust badges — 2×2 grid on mobile, row on desktop */}
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}
+            className="grid grid-cols-2 gap-x-4 gap-y-2 sm:flex sm:flex-wrap sm:gap-5 justify-center md:justify-start">
+            {TRUST.map((t) => (
+              <div key={t}
+                className="flex items-center gap-1.5 text-white/75 justify-center md:justify-start"
+                style={{ fontSize: 'clamp(0.68rem, 1.5vw, 0.8rem)' }}>
+                <span className="w-1.5 h-1.5 rounded-full bg-gold-light flex-shrink-0" />
+                <span className="whitespace-nowrap">{t}</span>
+              </div>
+            ))}
+          </motion.div>
         </div>
+
+        {/* RIGHT — image, shows above text on mobile */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="flex items-center justify-center relative order-1 md:order-2 md:-translate-y-20 scale-[1.65] md:scale-[1.98]">
+          {/* Spinning ring — desktop only */}
+          <div className="hidden md:block absolute w-[110%] h-[110%] rounded-full border-2 border-dashed border-white/15 animate-spinSlow" />
+
+          <img
+            src="https://res.cloudinary.com/dz7ykg6qr/image/upload/v1776256647/special1_sy4zxa.png"
+            alt="Namdev Chiwada — Premium Namkeen"
+            className="relative z-10 animate-float w-auto"
+            style={{
+              width: 'clamp(462px, 53vw, 836px)',
+              maxWidth: 'none',
+              filter: 'drop-shadow(0 22px 40px rgba(0,0,0,0.42))',
+            }}
+          />
+        </motion.div>
+
+      </div>
       </div>
     </section>
   );
@@ -220,7 +218,7 @@ function StatsSection() {
   return (
     <section className="py-10 md:py-16" style={{ background: 'linear-gradient(135deg,#3d1c00,#7a3300)' }}>
       <div ref={ref} className="reveal max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="flex flex-wrap justify-center gap-8 md:gap-16 text-center">
+        <div className="flex flex-wrap justify-center gap-12 md:gap-28 lg:gap-36 text-center">
           {STATS.map((s) => (
             <div key={s.label}>
               <div className="font-serif font-black text-white mb-1"
