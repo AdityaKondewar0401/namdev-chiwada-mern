@@ -116,8 +116,7 @@ function HeroSection() {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="flex items-center justify-center relative order-1 md:order-2 scale-[2.22] md:-translate-y-20 md:scale-[1.98]">
-          {/* Spinning ring — desktop only */}
+          className="flex items-center justify-center relative order-1 md:order-2 scale-[2.35] md:-translate-y-20 md:scale-[1.98]">
           <div className="hidden md:block absolute w-[110%] h-[110%] rounded-full border-2 border-dashed border-white/15 animate-spinSlow" />
 
           <img
@@ -125,7 +124,7 @@ function HeroSection() {
             alt="Namdev Chiwada — Premium Namkeen"
             className="relative z-10 animate-float w-auto"
             style={{
-              width: 'clamp(380px, 98vw, 836px)',
+              width: 'clamp(390px, 102vw, 836px)',
               maxWidth: 'none',
               filter: 'drop-shadow(0 22px 40px rgba(0,0,0,0.42))',
             }}
