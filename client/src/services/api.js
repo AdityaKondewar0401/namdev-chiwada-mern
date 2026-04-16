@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  baseURL: import.meta.env.VITE_API_URL ,
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -37,12 +37,12 @@ export const authAPI = {
 
 // ── Products ─────────────────────────────────────────
 export const productAPI = {
-  getAll: (params) => api.get('/products', { params }),
-  getOne: (id) => api.get(`/products/${id}`),
-  create: (data) => api.post('/products', data),
-  update: (id, data) => api.put(`/products/${id}`, data),
-  delete: (id) => api.delete(`/products/${id}`),
-  seed: () => api.post('/products/seed'),
+  getAll: (params) => api.get('api/products', { params }),
+  getOne: (id) => api.get(`api/products/${id}`),
+  create: (data) => api.post('api/products', data),
+  update: (id, data) => api.put(`api/products/${id}`, data),
+  delete: (id) => api.delete(`api/products/${id}`),
+  seed: () => api.post('api/products/seed'),
 };
 
 // ── Cart ─────────────────────────────────────────────
