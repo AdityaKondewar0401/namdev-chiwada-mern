@@ -80,7 +80,7 @@ function HeroSection() {
           >
             <button
               onClick={() => navigate('/products')}
-              className="btn-primary w-[35%] font-poppins text-sm md:text-base px-4 py-3 md:px-8 md:py-3.5 text-center"
+              className="btn-primary w-[40%] font-poppins text-sm md:text-base px-4 py-3 md:px-8 md:py-3.5 text-center"
             >
               Shop Now →
             </button>
@@ -91,7 +91,7 @@ function HeroSection() {
                   .getElementById('features')
                   ?.scrollIntoView({ behavior: 'smooth' })
               }
-              className="btn-outline w-[35%] font-poppins text-sm md:text-base px-4 py-3 md:px-8 md:py-3.5 text-center"
+              className="btn-outline w-[40%] font-poppins text-sm md:text-base px-4 py-3 md:px-8 md:py-3.5 text-center"
             >
               Our Story
             </button>
