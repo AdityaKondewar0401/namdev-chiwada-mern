@@ -35,6 +35,9 @@ app.use('/api/wishlist', require('./routes/wishlist'));
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Namdev Chiwada API running 🎉' });
 });
+app.get('/test', (req, res) => {
+  res.send('Server working');
+});
 
 // Error handler (must be last)
 app.use(errorHandler);
