@@ -233,7 +233,7 @@ export default function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -16 }}
             transition={{ duration: 0.22 }}
-            className="fixed top-[96px] left-0 right-0 z-40 bg-brown-dark/97 backdrop-blur-xl border-b-2 border-saffron px-5 py-4 flex flex-col gap-1 md:hidden"
+            className="fixed top-[112px] left-0 right-0 z-40 bg-brown-dark/97 backdrop-blur-xl border-b-2 border-saffron px-5 pt-6 pb-4 flex flex-col gap-2 md:hidden"
           >
             {NAV_LINKS.map((l) => (
               <Link key={l.to} to={l.to}

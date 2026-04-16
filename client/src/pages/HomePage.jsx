@@ -46,7 +46,10 @@ function HeroSection() {
           <motion.h1
             initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }}
             className="font-serif font-black text-white leading-[1.08] mb-3"
-            style={{ fontSize: 'clamp(1.9rem, 5vw, 4rem)', textShadow: '0 2px 20px rgba(0,0,0,0.3)' }}>
+            style={{
+              fontSize: 'clamp(2.05rem, 7vw, 4rem)',
+              textShadow: '0 2px 20px rgba(0,0,0,0.3)'
+            }}>
             Authentic Taste,<br />
             <span className="shimmer-text">Timeless Tradition</span>
           </motion.h1>
@@ -70,16 +73,26 @@ function HeroSection() {
 
           {/* Buttons — stacked on mobile, side by side on sm+ */}
           <motion.div
-            initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.4 }}
-            className="flex flex-col sm:flex-row gap-3 mb-6 md:mb-10 items-stretch sm:items-center justify-center md:justify-start">
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.4 }}
+            className="flex flex-row gap-3 mb-6 md:mb-10 items-center justify-center md:justify-start"
+          >
             <button
               onClick={() => navigate('/products')}
-              className="btn-primary font-poppins text-sm md:text-base px-7 py-3 md:px-8 md:py-3.5 text-center">
+              className="btn-primary w-[35%] font-poppins text-sm md:text-base px-4 py-3 md:px-8 md:py-3.5 text-center"
+            >
               Shop Now →
             </button>
+
             <button
-              onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
-              className="btn-outline font-poppins text-sm md:text-base px-7 py-3 md:px-8 md:py-3.5 text-center">
+              onClick={() =>
+                document
+                  .getElementById('features')
+                  ?.scrollIntoView({ behavior: 'smooth' })
+              }
+              className="btn-outline w-[35%] font-poppins text-sm md:text-base px-4 py-3 md:px-8 md:py-3.5 text-center"
+            >
               Our Story
             </button>
           </motion.div>
@@ -104,7 +117,7 @@ function HeroSection() {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="flex items-center justify-center relative order-1 md:order-2 md:-translate-y-20 scale-[1.65] md:scale-[1.98]">
+          className="flex items-center justify-center relative order-1 md:order-2 scale-[2.05] md:-translate-y-20 md:scale-[1.98]">
           {/* Spinning ring — desktop only */}
           <div className="hidden md:block absolute w-[110%] h-[110%] rounded-full border-2 border-dashed border-white/15 animate-spinSlow" />
 
@@ -113,7 +126,7 @@ function HeroSection() {
             alt="Namdev Chiwada — Premium Namkeen"
             className="relative z-10 animate-float w-auto"
             style={{
-              width: 'clamp(462px, 53vw, 836px)',
+              width: 'clamp(340px, 92vw, 836px)',
               maxWidth: 'none',
               filter: 'drop-shadow(0 22px 40px rgba(0,0,0,0.42))',
             }}
@@ -192,8 +205,10 @@ function TestimonialsSection() {
               <div className="text-amber-400 text-base md:text-lg mb-2 md:mb-3">
                 {'★'.repeat(t.rating)}
               </div>
-              <p className="text-brown-dark/80 leading-relaxed mb-3 md:mb-5 italic"
-                style={{ fontSize: 'clamp(0.82rem, 1.8vw, 1rem)' }}>
+              <p
+                className="text-brown-dark/80 leading-relaxed mb-3 md:mb-5 italic font-medium"
+                style={{ fontSize: 'clamp(0.96rem, 3.2vw, 1.1rem)' }}
+              >
                 "{t.text}"
               </p>
               <div>
