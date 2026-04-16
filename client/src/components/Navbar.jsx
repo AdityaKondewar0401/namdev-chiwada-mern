@@ -94,7 +94,7 @@ export default function Navbar() {
               src="/images/logo.png"
               alt="Namdev Chiwada"
               className="transition-transform duration-300 group-hover:scale-105"
-              style={{ height: '70px', width: '160px', objectFit: 'contain', imageRendering: '-webkit-optimize-contrast' }}
+              style={{ height: '95px', width: '160px', objectFit: 'contain', imageRendering: '-webkit-optimize-contrast' }}
             />
           </Link>
 
