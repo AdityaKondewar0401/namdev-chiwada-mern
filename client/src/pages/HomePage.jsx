@@ -30,8 +30,7 @@ function HeroSection() {
 
       <div className="absolute inset-0 opacity-5 pointer-events-none"
         style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ccircle cx='30' cy='30' r='28' fill='none' stroke='%23fff' stroke-width='0.5'/%3E%3C/svg%3E\")" }} />
-      <div className="absolute bottom-0 left-0 right-0 h-24 md:h-32 bg-gradient-to-t from-cream to-transparent pointer-events-none z-10" />
-
+      <div className="absolute bottom-0 left-0 right-0 h-24 md:h-32 bg-gradient-to-t from-brown-dark/70 to-transparent pointer-events-none z-10" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-0 pb-6 md:pt-1 md:pb-8 w-full relative z-10">        <div className="flex flex-col md:grid md:grid-cols-2 md:gap-8 md:items-start">
 
         {/* LEFT — text, always below image on mobile */}
@@ -117,7 +116,7 @@ function HeroSection() {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="flex items-center justify-center relative order-1 md:order-2 scale-[2.05] md:-translate-y-20 md:scale-[1.98]">
+          className="flex items-center justify-center relative order-1 md:order-2 scale-[2.22] md:-translate-y-20 md:scale-[1.98]">
           {/* Spinning ring — desktop only */}
           <div className="hidden md:block absolute w-[110%] h-[110%] rounded-full border-2 border-dashed border-white/15 animate-spinSlow" />
 
@@ -126,7 +125,7 @@ function HeroSection() {
             alt="Namdev Chiwada — Premium Namkeen"
             className="relative z-10 animate-float w-auto"
             style={{
-              width: 'clamp(340px, 92vw, 836px)',
+              width: 'clamp(380px, 98vw, 836px)',
               maxWidth: 'none',
               filter: 'drop-shadow(0 22px 40px rgba(0,0,0,0.42))',
             }}
