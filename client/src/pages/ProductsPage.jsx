@@ -5,11 +5,12 @@ import { useCart } from '../context/CartContext';
 import { productAPI } from '../services/api';
 import { ProductSkeleton } from '../components/Skeletons';
 
+const [error, setError] = useState(null);
 const SORTS = [
-  { value: 'popular',    label: 'Most Popular' },
-  { value: 'price-asc',  label: 'Price: Low → High' },
+  { value: 'popular', label: 'Most Popular' },
+  { value: 'price-asc', label: 'Price: Low → High' },
   { value: 'price-desc', label: 'Price: High → Low' },
-  { value: 'rating',     label: 'Highest Rated' },
+  { value: 'rating', label: 'Highest Rated' },
 ];
 
 function ProductCard({ product, index }) {
@@ -48,20 +49,20 @@ function ProductCard({ product, index }) {
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
 
         {!product.inStock && (
-  <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-10 rounded-t-3xl">
-    <span className="px-4 py-2 rounded-full text-sm font-bold text-white bg-gray-700">
-      Out of Stock
-    </span>
-  </div>
-)}
-{product.badge && product.inStock && (
-  <div className="absolute top-3 left-3">
-    <span className="px-3 py-1 rounded-full text-xs font-bold text-white"
-      style={{ background: product.badgeColor || '#e07000' }}>
-      {product.badge}
-    </span>
-  </div>
-)}
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-10 rounded-t-3xl">
+            <span className="px-4 py-2 rounded-full text-sm font-bold text-white bg-gray-700">
+              Out of Stock
+            </span>
+          </div>
+        )}
+        {product.badge && product.inStock && (
+          <div className="absolute top-3 left-3">
+            <span className="px-3 py-1 rounded-full text-xs font-bold text-white"
+              style={{ background: product.badgeColor || '#e07000' }}>
+              {product.badge}
+            </span>
+          </div>
+        )}
 
         <button onClick={(e) => { e.stopPropagation(); setWishlisted(!wishlisted); }}
           className="absolute top-3 right-3 w-9 h-9 rounded-full bg-white/90 flex items-center justify-center shadow-md hover:scale-110 transition-transform"
@@ -133,19 +134,19 @@ function ProductCard({ product, index }) {
             <div className="text-xs text-brown-mid/50">MRP incl. of all taxes</div>
           </div>
           <button
-  onClick={handleAddToCart}
-  disabled={!product.inStock}
-  className="flex-1 py-3 rounded-full font-bold text-sm text-white transition-all disabled:cursor-not-allowed"
-  style={{
-    background: !product.inStock
-      ? '#9ca3af'
-      : addedToCart
-        ? 'linear-gradient(135deg,#2d5a1b,#4a9a2e)'
-        : 'linear-gradient(135deg,#e07000,#ff9010)',
-    opacity: !product.inStock ? 0.7 : 1,
-  }}>
-  {!product.inStock ? '❌ Out of Stock' : addedToCart ? '✓ Added!' : '🛒 Add to Cart'}
-</button>
+            onClick={handleAddToCart}
+            disabled={!product.inStock}
+            className="flex-1 py-3 rounded-full font-bold text-sm text-white transition-all disabled:cursor-not-allowed"
+            style={{
+              background: !product.inStock
+                ? '#9ca3af'
+                : addedToCart
+                  ? 'linear-gradient(135deg,#2d5a1b,#4a9a2e)'
+                  : 'linear-gradient(135deg,#e07000,#ff9010)',
+              opacity: !product.inStock ? 0.7 : 1,
+            }}>
+            {!product.inStock ? '❌ Out of Stock' : addedToCart ? '✓ Added!' : '🛒 Add to Cart'}
+          </button>
         </div>
       </div>
 
@@ -165,6 +166,7 @@ export default function ProductsPage() {
 
   const fetchProducts = useCallback(() => {
     setLoading(true);
+    setError(null);
     const params = { sort };
     if (search) params.search = search;
 
@@ -173,7 +175,10 @@ export default function ProductsPage() {
         setProducts(res.data.products || []);
         setTotal(res.data.total || 0);
       })
-      .catch(() => {})
+      .catch((err) => {
+        console.error('Failed to fetch products:', err);
+        setError('Failed to load products. Please try again.');
+      })
       .finally(() => setLoading(false));
   }, [sort, search]);
 

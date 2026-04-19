@@ -61,7 +61,8 @@ export default function CartPage() {
           <div>
             <AnimatePresence>
               {items.map((item) => (
-                <motion.div key={item._id || item.id}
+                  <motion.div key={item._id}
+
                   layout
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -77,13 +78,13 @@ export default function CartPage() {
                       <div className="text-xs text-brown-mid/60 mb-3">Size: {item.size} · ₹{item.price} each</div>
                       <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2 bg-cream-mid rounded-full px-1 py-0.5">
-                          <button onClick={() => updateQty(item._id || item.id, item.qty - 1)}
+                          <button onClick={() => updateQty(item._id, item.qty - 1)}
                             className="w-7 h-7 rounded-full border border-saffron/40 text-saffron font-bold flex items-center justify-center hover:bg-saffron hover:text-white transition-all text-sm">−</button>
                           <span className="font-bold text-brown-dark w-5 text-center text-sm">{item.qty}</span>
-                          <button onClick={() => updateQty(item._id || item.id, item.qty + 1)}
+                          <button onClick={() => updateQty(item._id, item.qty + 1)}
                             className="w-7 h-7 rounded-full border border-saffron/40 text-saffron font-bold flex items-center justify-center hover:bg-saffron hover:text-white transition-all text-sm">+</button>
                         </div>
-                        <button onClick={() => removeFromCart(item._id || item.id)}
+                        <button onClick={() => removeFromCart(item._id)}
                           className="text-xs text-red-400 hover:text-red-600 font-medium transition-colors">
                           ✕ Remove
                         </button>
