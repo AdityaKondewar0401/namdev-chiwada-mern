@@ -141,7 +141,7 @@ export default function CheckoutPage() {
       });
       const dbOrder = orderRes.data.order;
 
-      const rzpRes = await api.post('/api/payment/create-order', { amount: dbOrder.total });
+      const rzpRes = await api.post('/payment/create-order', { amount: dbOrder.total });
       if (!rzpRes.data.success) throw new Error(rzpRes.data.message);
       const { order_id, amount: rzpAmount, currency } = rzpRes.data;
 
@@ -155,7 +155,7 @@ export default function CheckoutPage() {
         order_id,
         handler: async function (response) {
           try {
-            const verifyRes = await api.post('/api/payment/verify', {
+            const verifyRes = await api.post('/payment/verify', {
               razorpay_order_id:   response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature:  response.razorpay_signature,
