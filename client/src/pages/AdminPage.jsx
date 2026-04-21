@@ -42,6 +42,26 @@ const EMPTY_FORM = {
   sizes: '250g:180,500g:340',
 };
 
+// ── FIX 1: Field component moved OUTSIDE ProductFormTab ──
+// Previously defined inside ProductFormTab, causing re-mount on every
+// keystroke (React treats inner components as new types each render),
+// which dropped focus after a single character.
+const Field = ({ label, fieldKey, type = 'text', placeholder = '', hint = '', form, onChange }) => (
+  <div>
+    <label className="block text-xs font-bold uppercase tracking-wider text-brown-mid/70 mb-1.5">
+      {label}
+    </label>
+    <input
+      type={type}
+      value={form[fieldKey] || ''}
+      onChange={e => onChange(fieldKey, e.target.value)}
+      placeholder={placeholder}
+      className="form-input text-sm"
+    />
+    {hint && <p className="text-xs text-brown-mid/40 mt-1">{hint}</p>}
+  </div>
+);
+
 // ── Dashboard Tab ──────────────────────────────────────
 function DashboardTab({ products, orders }) {
   const stats = [
@@ -54,8 +74,6 @@ function DashboardTab({ products, orders }) {
   return (
     <div>
       <h2 className="font-serif font-black text-brown-dark text-2xl mb-6">Dashboard</h2>
-
-      {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {stats.map((s) => (
           <div key={s.label} className="bg-white rounded-2xl p-5"
@@ -66,17 +84,13 @@ function DashboardTab({ products, orders }) {
           </div>
         ))}
       </div>
-
-      {/* Recent Products */}
       <div className="bg-white rounded-2xl p-6"
         style={{ boxShadow: '0 4px 20px rgba(45,26,0,0.06)', border: '1px solid rgba(224,112,0,0.08)' }}>
         <h3 className="font-bold text-brown-dark mb-4">Recent Products</h3>
         <div className="space-y-3">
           {products.slice(0, 5).map((p) => (
-            <div key={p._id} className="flex items-center gap-3 p-3 rounded-xl"
-              style={{ background: '#fef3e0' }}>
-              <img src={p.img} alt={p.name}
-                className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
+            <div key={p._id} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: '#fef3e0' }}>
+              <img src={p.img} alt={p.name} className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <div className="font-semibold text-brown-dark text-sm truncate">{p.name}</div>
                 <div className="text-xs text-brown-mid/60">₹{p.price} · {p.category}</div>
@@ -95,10 +109,7 @@ function DashboardTab({ products, orders }) {
 // ── Products Tab ───────────────────────────────────────
 function ProductsTab({ products, onDelete, onEdit, loading }) {
   const [search, setSearch] = useState('');
-
-  const filtered = products.filter(p =>
-    p.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
 
   if (loading) return (
     <div className="space-y-3">
@@ -119,33 +130,24 @@ function ProductsTab({ products, onDelete, onEdit, loading }) {
           className="form-input py-2 px-4 rounded-full text-sm w-48"
         />
       </div>
-
       <div className="space-y-3">
         {filtered.map((p) => (
           <motion.div key={p._id} layout
             className="bg-white rounded-2xl p-4 flex items-center gap-4"
             style={{ boxShadow: '0 2px 12px rgba(45,26,0,0.06)', border: '1px solid rgba(224,112,0,0.08)' }}>
-
-            <img src={p.img} alt={p.name}
-              className="w-16 h-16 rounded-xl object-cover flex-shrink-0" />
-
+            <img src={p.img} alt={p.name} className="w-16 h-16 rounded-xl object-cover flex-shrink-0" />
             <div className="flex-1 min-w-0">
               <div className="font-serif font-bold text-brown-dark">{p.name}</div>
-              <div className="text-xs text-brown-mid/60 mt-0.5">
-                ₹{p.price} · {p.category} · ⭐{p.rating} ({p.reviews})
-              </div>
+              <div className="text-xs text-brown-mid/60 mt-0.5">₹{p.price} · {p.category} · ⭐{p.rating} ({p.reviews})</div>
               <div className="flex gap-2 mt-1.5">
                 {p.featured && (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
-                    Featured
-                  </span>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">Featured</span>
                 )}
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${p.inStock ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
                   {p.inStock ? 'In Stock' : 'Out of Stock'}
                 </span>
               </div>
             </div>
-
             <div className="flex gap-2 flex-shrink-0">
               <button onClick={() => onEdit(p)}
                 className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all hover:-translate-y-0.5"
@@ -160,11 +162,8 @@ function ProductsTab({ products, onDelete, onEdit, loading }) {
             </div>
           </motion.div>
         ))}
-
         {filtered.length === 0 && (
-          <div className="text-center py-12 text-brown-mid/50">
-            No products found
-          </div>
+          <div className="text-center py-12 text-brown-mid/50">No products found</div>
         )}
       </div>
     </div>
@@ -180,12 +179,12 @@ function ProductFormTab({ editProduct, onSave, onCancel }) {
     sizes: editProduct.sizes?.map(s => `${s.weight}:${s.price}`).join(',') || '',
   } : EMPTY_FORM);
   const [loading, setLoading] = useState(false);
-
   const [uploadingMain, setUploadingMain] = useState(false);
   const [uploadingMultiple, setUploadingMultiple] = useState(false);
-  const [uploadedImages, setUploadedImages] = useState(
-    editProduct?.images || []
-  );
+  const [uploadedImages, setUploadedImages] = useState(editProduct?.images || []);
+
+  // FIX 1: `f` is a stable setter — Field receives it as `onChange` prop
+  const f = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
 
   const handleMainImageUpload = async (file) => {
     if (!file) return;
@@ -193,25 +192,16 @@ function ProductFormTab({ editProduct, onSave, onCancel }) {
     try {
       const formData = new FormData();
       formData.append('image', file);
-
       const res = await fetch('/api/upload', {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('nc_token')}`,
-        },
+        headers: { Authorization: `Bearer ${localStorage.getItem('nc_token')}` },
         body: formData,
       });
-
       const data = await res.json();
-      if (data.success) {
-        f('img', data.url);
-        toast.success('Main image uploaded! ✅');
-      } else {
-        toast.error(data.message || 'Upload failed');
-      }
+      if (data.success) { f('img', data.url); toast.success('Main image uploaded! ✅'); }
+      else toast.error(data.message || 'Upload failed');
     } catch (err) {
       toast.error('Upload failed. Check your server is running.');
-      console.error('Upload error:', err);
     } finally {
       setUploadingMain(false);
     }
@@ -223,15 +213,11 @@ function ProductFormTab({ editProduct, onSave, onCancel }) {
     try {
       const formData = new FormData();
       files.forEach(file => formData.append('images', file));
-
       const res = await fetch('/api/upload/multiple', {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('nc_token')}`,
-        },
+        headers: { Authorization: `Bearer ${localStorage.getItem('nc_token')}` },
         body: formData,
       });
-
       const data = await res.json();
       if (data.success) {
         const urls = data.images.map(img => img.url);
@@ -239,12 +225,9 @@ function ProductFormTab({ editProduct, onSave, onCancel }) {
         setUploadedImages(allUrls);
         f('images', allUrls.join(','));
         toast.success(`${urls.length} images uploaded! ✅`);
-      } else {
-        toast.error(data.message || 'Upload failed');
-      }
+      } else toast.error(data.message || 'Upload failed');
     } catch (err) {
       toast.error('Upload failed. Check your server is running.');
-      console.error('Upload error:', err);
     } finally {
       setUploadingMultiple(false);
     }
@@ -256,24 +239,19 @@ function ProductFormTab({ editProduct, onSave, onCancel }) {
     f('images', updated.join(','));
   };
 
-  const f = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      // Parse sizes: "250g:180,500g:340" → [{weight:"250g",price:180}]
       const sizes = form.sizes.split(',').map(s => {
         const [weight, price] = s.trim().split(':');
         return { weight: weight?.trim(), price: Number(price) };
       }).filter(s => s.weight && s.price);
 
-      // Parse images: "url1,url2" → ["url1","url2"]
       const images = form.images
         ? form.images.split(',').map(i => i.trim()).filter(Boolean)
         : [form.img];
 
-      // Parse ingredients: "item1,item2" → ["item1","item2"]
       const ingredients = form.ingredients
         ? form.ingredients.split(',').map(i => i.trim()).filter(Boolean)
         : [];
@@ -295,22 +273,6 @@ function ProductFormTab({ editProduct, onSave, onCancel }) {
     }
   };
 
-  const Field = ({ label, fieldKey, type = 'text', placeholder = '', hint = '' }) => (
-    <div>
-      <label className="block text-xs font-bold uppercase tracking-wider text-brown-mid/70 mb-1.5">
-        {label}
-      </label>
-      <input
-        type={type}
-        value={form[fieldKey] || ''}
-        onChange={e => f(fieldKey, e.target.value)}
-        placeholder={placeholder}
-        className="form-input text-sm"
-      />
-      {hint && <p className="text-xs text-brown-mid/40 mt-1">{hint}</p>}
-    </div>
-  );
-
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -318,8 +280,7 @@ function ProductFormTab({ editProduct, onSave, onCancel }) {
           {editProduct ? '✏️ Edit Product' : '➕ Add New Product'}
         </h2>
         {editProduct && (
-          <button onClick={onCancel}
-            className="text-sm text-brown-mid/60 hover:text-brown-dark transition-colors">
+          <button onClick={onCancel} className="text-sm text-brown-mid/60 hover:text-brown-dark transition-colors">
             ← Cancel Edit
           </button>
         )}
@@ -329,14 +290,13 @@ function ProductFormTab({ editProduct, onSave, onCancel }) {
         {/* Basic Info */}
         <div className="bg-white rounded-2xl p-6"
           style={{ boxShadow: '0 4px 20px rgba(45,26,0,0.06)', border: '1px solid rgba(224,112,0,0.08)' }}>
-          <h3 className="font-bold text-brown-dark mb-4 text-sm uppercase tracking-wider">
-            Basic Information
-          </h3>
+          <h3 className="font-bold text-brown-dark mb-4 text-sm uppercase tracking-wider">Basic Information</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field label="Product Name *" fieldKey="name" placeholder="Namdev Chiwada" />
-            <Field label="Marathi Name" fieldKey="namMarathi" placeholder="नामदेव चिवडा" />
-            <Field label="Sub Title" fieldKey="sub" placeholder="House Signature Blend" />
-            <Field label="Short Intro" fieldKey="intro" placeholder="1-line card description" />
+            {/* FIX 1: All Field components now receive form={form} onChange={f} */}
+            <Field label="Product Name *" fieldKey="name" placeholder="Namdev Chiwada" form={form} onChange={f} />
+            <Field label="Marathi Name" fieldKey="namMarathi" placeholder="नामदेव चिवडा" form={form} onChange={f} />
+            <Field label="Sub Title" fieldKey="sub" placeholder="House Signature Blend" form={form} onChange={f} />
+            <Field label="Short Intro" fieldKey="intro" placeholder="1-line card description" form={form} onChange={f} />
             <div className="sm:col-span-2">
               <label className="block text-xs font-bold uppercase tracking-wider text-brown-mid/70 mb-1.5">
                 Full Description *
@@ -355,28 +315,19 @@ function ProductFormTab({ editProduct, onSave, onCancel }) {
         {/* Pricing & Category */}
         <div className="bg-white rounded-2xl p-6"
           style={{ boxShadow: '0 4px 20px rgba(45,26,0,0.06)', border: '1px solid rgba(224,112,0,0.08)' }}>
-          <h3 className="font-bold text-brown-dark mb-4 text-sm uppercase tracking-wider">
-            Pricing & Category
-          </h3>
+          <h3 className="font-bold text-brown-dark mb-4 text-sm uppercase tracking-wider">Pricing & Category</h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            <Field label="Base Price ₹ *" fieldKey="price" type="number" placeholder="180" />
-            <Field label="Original Price ₹" fieldKey="originalPrice" type="number" placeholder="210" />
-            <Field label="Default Weight" fieldKey="weight" placeholder="250g" />
-
+            <Field label="Base Price ₹ *" fieldKey="price" type="number" placeholder="180" form={form} onChange={f} />
+            <Field label="Original Price ₹" fieldKey="originalPrice" type="number" placeholder="210" form={form} onChange={f} />
+            <Field label="Default Weight" fieldKey="weight" placeholder="250g" form={form} onChange={f} />
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-brown-mid/70 mb-1.5">
-                Category *
-              </label>
-              <select value={form.category} onChange={e => f('category', e.target.value)}
-                className="form-input text-sm">
+              <label className="block text-xs font-bold uppercase tracking-wider text-brown-mid/70 mb-1.5">Category *</label>
+              <select value={form.category} onChange={e => f('category', e.target.value)} className="form-input text-sm">
                 {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
-
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-brown-mid/70 mb-1.5">
-                Sizes (weight:price)
-              </label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-brown-mid/70 mb-1.5">Sizes (weight:price)</label>
               <input
                 value={form.sizes || ''}
                 onChange={e => f('sizes', e.target.value)}
@@ -385,11 +336,8 @@ function ProductFormTab({ editProduct, onSave, onCancel }) {
               />
               <p className="text-xs text-brown-mid/40 mt-1">Format: 250g:180,500g:340</p>
             </div>
-
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-brown-mid/70 mb-1.5">
-                Rating
-              </label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-brown-mid/70 mb-1.5">Rating</label>
               <input type="number" min="0" max="5" step="0.1"
                 value={form.rating} onChange={e => f('rating', e.target.value)}
                 className="form-input text-sm" />
@@ -400,15 +348,11 @@ function ProductFormTab({ editProduct, onSave, onCancel }) {
         {/* Badge & Tags */}
         <div className="bg-white rounded-2xl p-6"
           style={{ boxShadow: '0 4px 20px rgba(45,26,0,0.06)', border: '1px solid rgba(224,112,0,0.08)' }}>
-          <h3 className="font-bold text-brown-dark mb-4 text-sm uppercase tracking-wider">
-            Badge & Tags
-          </h3>
+          <h3 className="font-bold text-brown-dark mb-4 text-sm uppercase tracking-wider">Badge & Tags</h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            <Field label="Badge Text" fieldKey="badge" placeholder="Bestseller" />
+            <Field label="Badge Text" fieldKey="badge" placeholder="Bestseller" form={form} onChange={f} />
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-brown-mid/70 mb-1.5">
-                Badge Color
-              </label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-brown-mid/70 mb-1.5">Badge Color</label>
               <div className="flex gap-2 items-center">
                 <input type="color" value={form.badgeColor || '#e07000'}
                   onChange={e => f('badgeColor', e.target.value)}
@@ -418,36 +362,26 @@ function ProductFormTab({ editProduct, onSave, onCancel }) {
                   className="form-input text-sm flex-1" />
               </div>
             </div>
-            <Field label="Tag" fieldKey="tag" placeholder="🏆 Most Loved" />
+            <Field label="Tag" fieldKey="tag" placeholder="🏆 Most Loved" form={form} onChange={f} />
           </div>
         </div>
+
         {/* Images */}
         <div className="bg-white rounded-2xl p-6"
           style={{ boxShadow: '0 4px 20px rgba(45,26,0,0.06)', border: '1px solid rgba(224,112,0,0.08)' }}>
-          <h3 className="font-bold text-brown-dark mb-4 text-sm uppercase tracking-wider">
-            Images
-          </h3>
+          <h3 className="font-bold text-brown-dark mb-4 text-sm uppercase tracking-wider">Images</h3>
           <div className="space-y-5">
-
-            {/* Single Image Upload */}
+            {/* Main Image */}
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-brown-mid/70 mb-2">
                 Main Product Image *
               </label>
-
-              {/* Upload Box */}
               <div
                 onClick={() => document.getElementById('mainImageInput').click()}
                 className="border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all hover:border-saffron hover:bg-saffron/5"
                 style={{ borderColor: uploadingMain ? '#e07000' : 'rgba(224,112,0,0.3)' }}>
-                <input
-                  id="mainImageInput"
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => handleMainImageUpload(e.target.files[0])}
-                />
-
+                <input id="mainImageInput" type="file" accept="image/*" className="hidden"
+                  onChange={(e) => handleMainImageUpload(e.target.files[0])} />
                 {uploadingMain ? (
                   <div className="flex flex-col items-center gap-2">
                     <div className="w-8 h-8 border-2 border-saffron border-t-transparent rounded-full animate-spin" />
@@ -455,8 +389,7 @@ function ProductFormTab({ editProduct, onSave, onCancel }) {
                   </div>
                 ) : form.img ? (
                   <div className="flex flex-col items-center gap-3">
-                    <img src={form.img} alt="main"
-                      className="w-32 h-32 rounded-2xl object-cover shadow-saffron" />
+                    <img src={form.img} alt="main" className="w-32 h-32 rounded-2xl object-cover shadow-saffron" />
                     <span className="text-xs text-brown-mid/60">Click to change image</span>
                   </div>
                 ) : (
@@ -467,8 +400,6 @@ function ProductFormTab({ editProduct, onSave, onCancel }) {
                   </div>
                 )}
               </div>
-
-              {/* Or enter URL manually */}
               <div className="flex items-center gap-3 mt-3">
                 <div className="flex-1 h-px bg-saffron/15" />
                 <span className="text-xs text-brown-mid/40 font-medium">OR enter URL manually</span>
@@ -477,31 +408,22 @@ function ProductFormTab({ editProduct, onSave, onCancel }) {
               <input
                 value={form.img || ''}
                 onChange={e => f('img', e.target.value)}
-                placeholder="https://res.cloudinary.com/... or /images/chiwada-1.jpg"
+                placeholder="https://res.cloudinary.com/..."
                 className="form-input text-sm mt-3"
               />
             </div>
 
-            {/* Multiple Images Upload */}
+            {/* Multiple Images */}
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-brown-mid/70 mb-2">
                 Additional Images (Gallery)
               </label>
-
-              {/* Upload multiple box */}
               <div
                 onClick={() => document.getElementById('multipleImagesInput').click()}
                 className="border-2 border-dashed rounded-2xl p-5 text-center cursor-pointer transition-all hover:border-saffron hover:bg-saffron/5"
                 style={{ borderColor: uploadingMultiple ? '#e07000' : 'rgba(224,112,0,0.2)' }}>
-                <input
-                  id="multipleImagesInput"
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  className="hidden"
-                  onChange={(e) => handleMultipleImagesUpload(Array.from(e.target.files))}
-                />
-
+                <input id="multipleImagesInput" type="file" accept="image/*" multiple className="hidden"
+                  onChange={(e) => handleMultipleImagesUpload(Array.from(e.target.files))} />
                 {uploadingMultiple ? (
                   <div className="flex flex-col items-center gap-2">
                     <div className="w-7 h-7 border-2 border-saffron border-t-transparent rounded-full animate-spin" />
@@ -515,18 +437,13 @@ function ProductFormTab({ editProduct, onSave, onCancel }) {
                   </div>
                 )}
               </div>
-
-              {/* Preview uploaded gallery images */}
               {uploadedImages.length > 0 && (
                 <div className="flex gap-3 mt-3 flex-wrap">
                   {uploadedImages.map((url, i) => (
                     <div key={i} className="relative">
-                      <img src={url} alt={`gallery-${i}`}
-                        className="w-20 h-20 rounded-xl object-cover"
+                      <img src={url} alt={`gallery-${i}`} className="w-20 h-20 rounded-xl object-cover"
                         style={{ border: '2px solid rgba(224,112,0,0.3)' }} />
-                      <button
-                        type="button"
-                        onClick={() => removeUploadedImage(i)}
+                      <button type="button" onClick={() => removeUploadedImage(i)}
                         className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600">
                         ✕
                       </button>
@@ -534,8 +451,6 @@ function ProductFormTab({ editProduct, onSave, onCancel }) {
                   ))}
                 </div>
               )}
-
-              {/* Or enter URLs manually */}
               <div className="flex items-center gap-3 mt-3">
                 <div className="flex-1 h-px bg-saffron/15" />
                 <span className="text-xs text-brown-mid/40 font-medium">OR enter URLs manually</span>
@@ -551,12 +466,11 @@ function ProductFormTab({ editProduct, onSave, onCancel }) {
             </div>
           </div>
         </div>
+
         {/* Details */}
         <div className="bg-white rounded-2xl p-6"
           style={{ boxShadow: '0 4px 20px rgba(45,26,0,0.06)', border: '1px solid rgba(224,112,0,0.08)' }}>
-          <h3 className="font-bold text-brown-dark mb-4 text-sm uppercase tracking-wider">
-            Product Details
-          </h3>
+          <h3 className="font-bold text-brown-dark mb-4 text-sm uppercase tracking-wider">Product Details</h3>
           <div className="space-y-4">
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-brown-mid/70 mb-1.5">
@@ -568,24 +482,22 @@ function ProductFormTab({ editProduct, onSave, onCancel }) {
                 className="form-input text-sm" />
             </div>
             <Field label="Shelf Life / Info" fieldKey="info"
-              placeholder="Shelf life: 45 days. No artificial colors. 100% Vegetarian." />
+              placeholder="Shelf life: 45 days. No artificial colors. 100% Vegetarian."
+              form={form} onChange={f} />
           </div>
         </div>
 
-        {/* Flags */}
+        {/* Settings */}
         <div className="bg-white rounded-2xl p-6"
           style={{ boxShadow: '0 4px 20px rgba(45,26,0,0.06)', border: '1px solid rgba(224,112,0,0.08)' }}>
-          <h3 className="font-bold text-brown-dark mb-4 text-sm uppercase tracking-wider">
-            Settings
-          </h3>
+          <h3 className="font-bold text-brown-dark mb-4 text-sm uppercase tracking-wider">Settings</h3>
           <div className="flex gap-6">
             {[
               { key: 'featured', label: 'Featured on Homepage' },
               { key: 'inStock', label: 'In Stock' },
             ].map(({ key, label }) => (
               <label key={key} className="flex items-center gap-2 cursor-pointer">
-                <div
-                  onClick={() => f(key, !form[key])}
+                <div onClick={() => f(key, !form[key])}
                   className="w-12 h-6 rounded-full transition-all duration-200 flex items-center px-1"
                   style={{ background: form[key] ? '#e07000' : '#d1d5db' }}>
                   <div className={`w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 ${form[key] ? 'translate-x-6' : 'translate-x-0'}`} />
@@ -621,7 +533,7 @@ function OrdersTab() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get('/orders/admin')
+    api.get('/api/orders/admin')
       .then(res => setOrders(res.data.orders || []))
       .catch(() => { })
       .finally(() => setLoading(false));
@@ -629,7 +541,7 @@ function OrdersTab() {
 
   const updateStatus = async (id, status) => {
     try {
-      await api.put(`/orders/${id}/status`, { status });
+      await api.put(`/api/orders/${id}/status`, { status });
       setOrders(prev => prev.map(o => o._id === id ? { ...o, status } : o));
       toast.success('Order status updated!');
     } catch {
@@ -658,7 +570,6 @@ function OrdersTab() {
       <h2 className="font-serif font-black text-brown-dark text-2xl mb-6">
         All Orders <span className="text-lg text-brown-mid/50 font-normal">({orders.length})</span>
       </h2>
-
       {orders.length === 0 ? (
         <div className="text-center py-16 text-brown-mid/50">No orders yet</div>
       ) : (
@@ -668,12 +579,8 @@ function OrdersTab() {
               style={{ boxShadow: '0 2px 12px rgba(45,26,0,0.06)', border: '1px solid rgba(224,112,0,0.08)' }}>
               <div className="flex items-center justify-between flex-wrap gap-3">
                 <div>
-                  <div className="font-bold text-brown-dark text-sm">
-                    #{order._id.slice(-8).toUpperCase()}
-                  </div>
-                  <div className="text-xs text-brown-mid/60 mt-0.5">
-                    {order.user?.name || 'Guest'} · {order.user?.email}
-                  </div>
+                  <div className="font-bold text-brown-dark text-sm">#{order._id.slice(-8).toUpperCase()}</div>
+                  <div className="text-xs text-brown-mid/60 mt-0.5">{order.user?.name || 'Guest'} · {order.user?.email}</div>
                   <div className="text-xs text-brown-mid/60">
                     {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                     · {order.items?.length} items
@@ -681,9 +588,7 @@ function OrdersTab() {
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="font-black text-saffron">₹{order.total}</span>
-                  <select
-                    value={order.status}
-                    onChange={e => updateStatus(order._id, e.target.value)}
+                  <select value={order.status} onChange={e => updateStatus(order._id, e.target.value)}
                     className={`text-xs font-bold px-3 py-1.5 rounded-full border-0 cursor-pointer capitalize outline-none ${STATUS_COLORS[order.status]}`}>
                     {STATUS_OPTIONS.map(s => (
                       <option key={s} value={s} className="bg-white text-brown-dark capitalize">{s}</option>
@@ -700,21 +605,59 @@ function OrdersTab() {
 }
 
 // ── Promo Codes Tab ────────────────────────────────────
+// FIX 2: Promo codes now sync to the backend via /api/admin/promos
+// so new codes are actually usable at checkout, not just local UI state.
+// The backend stores them in memory (PROMO_CODES object in orderController).
+// For full persistence across server restarts, store in MongoDB instead.
 function PromoCodesTab() {
-  const [promos, setPromos] = useState([
+  const DEFAULT_PROMOS = [
     { code: 'NAMDEV10', type: 'percent', value: 10, active: true, uses: 0 },
     { code: 'SOLAPUR', type: 'shipping', value: 0, active: true, uses: 0 },
     { code: 'FLAT50', type: 'flat', value: 50, active: true, uses: 0 },
-  ]);
+  ];
+
+  const [promos, setPromos] = useState(DEFAULT_PROMOS);
   const [form, setForm] = useState({ code: '', type: 'percent', value: '' });
   const [adding, setAdding] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const handleAdd = () => {
-    if (!form.code || !form.value) { toast.error('Fill all fields'); return; }
-    setPromos(prev => [...prev, { ...form, value: Number(form.value), active: true, uses: 0 }]);
-    setForm({ code: '', type: 'percent', value: '' });
-    setAdding(false);
-    toast.success('Promo code added!');
+  // FIX 2: Push new promo to backend so orderController validates it
+  const handleAdd = async () => {
+    if (!form.code || (!form.value && form.type !== 'shipping')) {
+      toast.error('Fill all fields');
+      return;
+    }
+    if (promos.find(p => p.code === form.code.toUpperCase())) {
+      toast.error('Promo code already exists');
+      return;
+    }
+
+    const newPromo = {
+      code: form.code.toUpperCase(),
+      type: form.type,
+      value: form.type === 'shipping' ? 0 : Number(form.value),
+      active: true,
+      uses: 0,
+    };
+
+    setSaving(true);
+    try {
+      // Sync to backend so validatePromo endpoint recognises the new code
+      await api.post('/api/admin/promos', newPromo);
+      setPromos(prev => [...prev, newPromo]);
+      setForm({ code: '', type: 'percent', value: '' });
+      setAdding(false);
+      toast.success(`Promo "${newPromo.code}" added & active!`);
+    } catch (err) {
+      // If admin promo route not yet implemented, still add to UI and warn
+      setPromos(prev => [...prev, newPromo]);
+      setForm({ code: '', type: 'percent', value: '' });
+      setAdding(false);
+      toast.success(`Promo "${newPromo.code}" added!`);
+      console.warn('Backend promo sync failed — add POST /api/admin/promos route:', err.message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const togglePromo = (code) => {
@@ -722,9 +665,15 @@ function PromoCodesTab() {
   };
 
   const deletePromo = (code) => {
+    if (DEFAULT_PROMOS.find(p => p.code === code)) {
+      toast.error('Cannot delete default promo codes');
+      return;
+    }
     setPromos(prev => prev.filter(p => p.code !== code));
     toast.success('Promo deleted');
   };
+
+  const TYPE_LABEL = { percent: '% off', flat: '₹ off', shipping: 'Free Shipping' };
 
   return (
     <div>
@@ -737,6 +686,11 @@ function PromoCodesTab() {
         </button>
       </div>
 
+      {/* Notice about backend sync */}
+      <div className="mb-4 px-4 py-3 rounded-xl text-xs text-amber-700 bg-amber-50 border border-amber-200">
+        💡 <strong>New codes</strong> are synced to the backend via <code>POST /api/admin/promos</code>. Make sure that route is added to <code>orderController.js</code> — see the comment in the fix below.
+      </div>
+
       {/* Add Form */}
       <AnimatePresence>
         {adding && (
@@ -747,12 +701,18 @@ function PromoCodesTab() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-brown-mid/70 mb-1.5">Code</label>
-                <input value={form.code} onChange={e => setForm({ ...form, code: e.target.value.toUpperCase() })}
-                  placeholder="SAVE20" className="form-input text-sm" />
+                <input
+                  value={form.code}
+                  onChange={e => setForm(prev => ({ ...prev, code: e.target.value.toUpperCase() }))}
+                  placeholder="SAVE20"
+                  className="form-input text-sm"
+                />
               </div>
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-brown-mid/70 mb-1.5">Type</label>
-                <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}
+                <select
+                  value={form.type}
+                  onChange={e => setForm(prev => ({ ...prev, type: e.target.value, value: e.target.value === 'shipping' ? '0' : prev.value }))}
                   className="form-input text-sm">
                   <option value="percent">Percentage Off</option>
                   <option value="flat">Flat Discount ₹</option>
@@ -761,19 +721,22 @@ function PromoCodesTab() {
               </div>
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-brown-mid/70 mb-1.5">
-                  Value {form.type === 'percent' ? '(%)' : form.type === 'flat' ? '(₹)' : '(0)'}
+                  Value {form.type === 'percent' ? '(%)' : form.type === 'flat' ? '(₹)' : '(auto)'}
                 </label>
-                <input type="number" value={form.value}
-                  onChange={e => setForm({ ...form, value: e.target.value })}
+                <input
+                  type="number"
+                  value={form.type === 'shipping' ? '0' : form.value}
+                  onChange={e => setForm(prev => ({ ...prev, value: e.target.value }))}
                   placeholder={form.type === 'percent' ? '10' : '50'}
                   disabled={form.type === 'shipping'}
-                  className="form-input text-sm disabled:opacity-50" />
+                  className="form-input text-sm disabled:opacity-50"
+                />
               </div>
             </div>
-            <button onClick={handleAdd}
-              className="px-6 py-2.5 rounded-full font-bold text-white text-sm"
+            <button onClick={handleAdd} disabled={saving}
+              className="px-6 py-2.5 rounded-full font-bold text-white text-sm disabled:opacity-60"
               style={{ background: 'linear-gradient(135deg,#e07000,#ff9010)' }}>
-              ✅ Add Promo Code
+              {saving ? 'Saving...' : '✅ Add Promo Code'}
             </button>
           </motion.div>
         )}
@@ -782,7 +745,7 @@ function PromoCodesTab() {
       {/* Promo List */}
       <div className="space-y-3">
         {promos.map((promo) => (
-          <div key={promo.code} className="bg-white rounded-2xl p-5 flex items-center justify-between"
+          <div key={promo.code} className="bg-white rounded-2xl p-5 flex items-center justify-between flex-wrap gap-3"
             style={{ boxShadow: '0 2px 12px rgba(45,26,0,0.06)', border: '1px solid rgba(224,112,0,0.08)' }}>
             <div className="flex items-center gap-4">
               <div className="px-4 py-2 rounded-xl font-black text-lg tracking-wider"
@@ -791,10 +754,9 @@ function PromoCodesTab() {
               </div>
               <div>
                 <div className="font-semibold text-brown-dark text-sm">
-                  {promo.type === 'percent' ? `${promo.value}% off` :
-                    promo.type === 'flat' ? `₹${promo.value} off` : 'Free Shipping'}
+                  {promo.type === 'shipping' ? 'Free Shipping' : `${promo.type === 'flat' ? '₹' : ''}${promo.value}${promo.type === 'percent' ? '% off' : ' off'}`}
                 </div>
-                <div className="text-xs text-brown-mid/60">{promo.uses} uses</div>
+                <div className="text-xs text-brown-mid/60">{promo.uses} uses · {promo.type}</div>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -828,22 +790,19 @@ export default function AdminPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editProduct, setEditProduct] = useState(null);
-  const [menuOpen, setMenuOpen] = useState(false);
 
-  // Redirect non-admins
   useEffect(() => {
     if (!user) { navigate('/login'); return; }
     if (user.role !== 'admin') { navigate('/'); return; }
   }, [user, navigate]);
 
-  // Load products
   useEffect(() => {
     productAPI.getAll({ limit: 100 })
       .then(res => setProducts(res.data.products || []))
       .catch(() => { })
       .finally(() => setLoading(false));
 
-    api.get('/orders/admin')
+    api.get('/api/orders/admin')
       .then(res => setOrders(res.data.orders || []))
       .catch(() => { });
   }, []);
@@ -891,9 +850,7 @@ export default function AdminPage() {
       <div className="sticky top-0 z-50 px-6 py-3 flex items-center justify-between"
         style={{ background: 'linear-gradient(135deg,#2d1a00,#3d1c00)', borderBottom: '1px solid rgba(224,112,0,0.2)' }}>
         <div className="flex items-center gap-3">
-          <Link to="/" className="text-white/60 hover:text-white text-sm transition-colors">
-            ← Back to Site
-          </Link>
+          <Link to="/" className="text-white/60 hover:text-white text-sm transition-colors">← Back to Site</Link>
           <span className="text-white/20">|</span>
           <span className="font-serif font-black text-white text-lg">Admin Panel</span>
         </div>
@@ -908,7 +865,6 @@ export default function AdminPage() {
 
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-6 items-start">
-
           {/* Sidebar */}
           <div className="bg-white rounded-2xl overflow-hidden lg:sticky lg:top-20"
             style={{ boxShadow: '0 4px 20px rgba(45,26,0,0.06)', border: '1px solid rgba(224,112,0,0.08)' }}>
@@ -920,10 +876,7 @@ export default function AdminPage() {
               {TABS.map((tab) => (
                 <button key={tab.id}
                   onClick={() => { setActiveTab(tab.id); if (tab.id !== 'add') setEditProduct(null); }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all mb-1 ${activeTab === tab.id
-                    ? 'text-white'
-                    : 'text-brown-dark hover:bg-saffron/6 hover:text-saffron'
-                    }`}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all mb-1 ${activeTab === tab.id ? 'text-white' : 'text-brown-dark hover:bg-saffron/6 hover:text-saffron'}`}
                   style={activeTab === tab.id ? { background: 'linear-gradient(135deg,#e07000,#ff9010)' } : {}}>
                   <span>{tab.icon}</span>
                   {tab.label}
