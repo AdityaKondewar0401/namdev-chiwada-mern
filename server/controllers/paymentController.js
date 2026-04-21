@@ -2,20 +2,19 @@ const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const Order = require('../models/Order');
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
-
 // POST /api/payment/create-order
 exports.createPaymentOrder = async (req, res) => {
   try {
-    const { amount } = req.body;
+    // Initialize inside function so env vars are guaranteed to be loaded
+    const razorpay = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
+    });
 
+    const { amount } = req.body;
     if (!amount || amount < 1) {
       return res.status(400).json({ success: false, message: 'Amount must be at least ₹1' });
     }
-
     const amountInPaise = Math.round(amount * 100);
     if (amountInPaise < 100) {
       return res.status(400).json({ success: false, message: 'Minimum amount is ₹1 (100 paise)' });
@@ -28,7 +27,6 @@ exports.createPaymentOrder = async (req, res) => {
     };
 
     const order = await razorpay.orders.create(options);
-
     res.json({
       success: true,
       order_id: order.id,
@@ -63,7 +61,6 @@ exports.verifyPayment = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Payment signature mismatch' });
     }
 
-    // Update order in DB if orderId provided
     if (orderId) {
       await Order.findByIdAndUpdate(orderId, {
         paymentStatus: 'paid',
