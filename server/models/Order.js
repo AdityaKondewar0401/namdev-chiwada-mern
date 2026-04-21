@@ -10,19 +10,22 @@ const orderItemSchema = new mongoose.Schema({
 });
 
 const shippingAddressSchema = new mongoose.Schema({
-  fullName: { type: String, required: true },
-  phone:    { type: String, required: true },
-  line1:    { type: String, required: true },
+  fullName: { type: String },
+  name:     { type: String }, // fallback for older checkout versions
+  phone:    { type: String },
+  line1:    { type: String },
+  street:   { type: String }, // fallback
   line2:    { type: String },
-  city:     { type: String, required: true },
-  state:    { type: String, required: true },
-  pincode:  { type: String, required: true },
+  city:     { type: String },
+  state:    { type: String },
+  pincode:  { type: String },
+  zip:      { type: String }, // fallback
 }, { _id: false });
 
 const orderSchema = new mongoose.Schema({
   user:            { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   items:           [orderItemSchema],
-  shippingAddress: { type: shippingAddressSchema, required: true },
+  shippingAddress: { type: shippingAddressSchema },
 
   subtotal:       { type: Number, required: true },
   shippingCharge: { type: Number, default: 0 },
@@ -38,7 +41,7 @@ const orderSchema = new mongoose.Schema({
   },
 
   // ── Razorpay payment fields ──
-  paymentMethod:     { type: String, enum: ['COD', 'ONLINE'], default: 'COD' },
+  paymentMethod:     { type: String, default: 'COD' },
   paymentStatus:     { type: String, enum: ['pending', 'paid', 'failed'], default: 'pending' },
   razorpayOrderId:   { type: String },
   razorpayPaymentId: { type: String },
