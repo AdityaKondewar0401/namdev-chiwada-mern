@@ -66,7 +66,7 @@ function ProductCard({ product, index }) {
           {wishlisted ? '♥' : '♡'}
         </button>
 
-        {/* Primary Image — always use product.img */}
+        {/* Primary Image */}
         <img
           src={product.img}
           alt={product.name}
@@ -174,6 +174,7 @@ function ProductCard({ product, index }) {
 export default function NamkeenSection() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate(); // FIX: added here for the View All Products button
 
   useEffect(() => {
     productAPI.getAll({ featured: 'true', limit: 4, sort: 'popular' })
@@ -271,14 +272,17 @@ export default function NamkeenSection() {
           <p className="text-brown-mid/60 text-sm mb-5">
             Explore our full range of authentic Maharashtrian snacks
           </p>
-          <a href="/products"
+          {/* FIX: was <a href="/products"> which caused a full page reload.
+              Now uses navigate('/products') for proper React Router navigation. */}
+          <button
+            onClick={() => navigate('/products')}
             className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-bold text-white text-base transition-all duration-300 hover:-translate-y-1"
             style={{
               background: 'linear-gradient(135deg,#e07000,#ff9010)',
               boxShadow: '0 8px 24px rgba(224,112,0,0.35)',
             }}>
             View All Products →
-          </a>
+          </button>
         </motion.div>
       </div>
 
