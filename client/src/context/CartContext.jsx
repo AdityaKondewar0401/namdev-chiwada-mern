@@ -11,32 +11,46 @@ const loadLocal = () => {
   catch { return []; }
 };
 
-// Single helper — always call this to update both state and localStorage together.
-// Never call saveLocal separately — that was the source of timing bugs.
 const saveLocal = (items) => {
   localStorage.setItem(LOCAL_KEY, JSON.stringify(items));
 };
+
+// ── Normalize DB items so _id is always a plain string ──────────────
+// MongoDB subdocument _id can come back as an object { $oid: '...' }
+// or as a plain string depending on how Mongoose serializes it.
+// This ensures every item in state always has a reliable string _id
+// that can be passed directly to removeFromCart / updateQty.
+const normalizeItems = (items = []) =>
+  items.map((item) => ({
+    ...item,
+    _id: item._id?.$oid || item._id?.toString?.() || item._id || item.id || '',
+    product:
+      item.product?._id?.$oid ||
+      item.product?._id?.toString?.() ||
+      item.product?._id ||
+      item.product?.toString?.() ||
+      item.product ||
+      '',
+  }));
 
 export const CartProvider = ({ children }) => {
   const { user } = useAuth();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // ── Sync helper: update state + localStorage atomically ──
-  // All operations must go through this instead of calling
-  // setItems and saveLocal separately at different times.
-  const syncItems = useCallback((newItems) => {
-    setItems(newItems);
-    saveLocal(newItems);
+  // ── Sync helper: normalize + update state + localStorage atomically ─
+  const syncItems = useCallback((rawItems) => {
+    const normalized = normalizeItems(rawItems);
+    setItems(normalized);
+    saveLocal(normalized);
   }, []);
 
-  // ── Load cart on mount / user change ────────────────────
+  // ── Load cart on mount / user change ────────────────────────────────
   useEffect(() => {
-    let cancelled = false; // prevent state update if component unmounts mid-fetch
+    let cancelled = false;
 
     const initCart = async () => {
       if (!user) {
-        // Guest — localStorage only, nothing to fetch
         syncItems(loadLocal());
         return;
       }
@@ -49,15 +63,10 @@ export const CartProvider = ({ children }) => {
         const dbItems = res.data.cart?.items || [];
 
         if (dbItems.length > 0) {
-          // DB has items — DB is source of truth. Use it directly.
-          // FIX: previously this branch also checked localStorage, which
-          // caused ghost items to reappear after a remove-then-refresh cycle.
           syncItems(dbItems);
         } else {
-          // DB cart is empty — check if we have unsynced guest items to push
           const localItems = loadLocal();
           if (localItems.length > 0) {
-            // Push guest cart to DB
             await Promise.all(
               localItems.map(item =>
                 cartAPI.add({
@@ -67,22 +76,18 @@ export const CartProvider = ({ children }) => {
                   price: item.price,
                   size: item.size,
                   qty: item.qty,
-                }).catch(() => null) // individual item failures are non-fatal
+                }).catch(() => null)
               )
             );
-            // Fetch the confirmed DB state after push
             const synced = await cartAPI.get();
             if (cancelled) return;
-            const syncedItems = synced.data.cart?.items || [];
-            syncItems(syncedItems);
+            syncItems(synced.data.cart?.items || []);
           } else {
-            // Both DB and local are empty — clean slate
             syncItems([]);
           }
         }
       } catch {
         if (cancelled) return;
-        // DB unreachable — fall back to localStorage so user isn't blocked
         syncItems(loadLocal());
       } finally {
         if (!cancelled) setLoading(false);
@@ -92,11 +97,8 @@ export const CartProvider = ({ children }) => {
     initCart();
     return () => { cancelled = true; };
   }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
-  // syncItems is stable (no deps) so it's safe to omit from the dep array here.
-  // Adding it would cause an infinite loop because useCallback re-creates it
-  // each render when user changes.
 
-  // ── Add to Cart ─────────────────────────────────────────
+  // ── Add to Cart ──────────────────────────────────────────────────────
   const addToCart = useCallback(async (product, size, price, qty = 1) => {
     const newItem = {
       product: product._id,
@@ -108,7 +110,6 @@ export const CartProvider = ({ children }) => {
       _id: `local_${Date.now()}`,
     };
 
-    // Optimistic update so UI feels instant
     setItems((prev) => {
       const idx = prev.findIndex(
         (i) => (i.product === product._id || i._id === product._id) && i.size === size
@@ -131,33 +132,27 @@ export const CartProvider = ({ children }) => {
           size,
           qty,
         });
-        // Overwrite optimistic state with confirmed DB response
-        const dbItems = res.data.cart?.items || [];
-        syncItems(dbItems);
+        syncItems(res.data.cart?.items || []);
       } catch {
-        // Optimistic state stays — item is at least in localStorage
-        // so it will attempt to sync next time user logs in
         toast.error('Could not sync cart. Item saved locally.');
-        saveLocal(items); // persist current optimistic state
+        setItems((current) => { saveLocal(current); return current; });
       }
     } else {
-      // Guest — persist optimistic state to localStorage immediately
       setItems((current) => { saveLocal(current); return current; });
     }
 
     toast.success(`${product.name} added to cart! 🛒`);
-  }, [user, items, syncItems]);
+  }, [user, syncItems]);
 
-  // ── Update Quantity ──────────────────────────────────────
+  // ── Update Quantity ──────────────────────────────────────────────────
   const updateQty = useCallback(async (itemId, qty) => {
-    // Take a snapshot before optimistic update for rollback
     const snapshot = [...items];
 
     setItems((prev) => {
       const updated = qty <= 0
-        ? prev.filter((i) => (i._id || i.id) !== itemId)
-        : prev.map((i) => (i._id || i.id) === itemId ? { ...i, qty } : i);
-      saveLocal(updated); // keep localStorage in sync immediately
+        ? prev.filter((i) => i._id !== itemId)
+        : prev.map((i) => i._id === itemId ? { ...i, qty } : i);
+      saveLocal(updated);
       return updated;
     });
 
@@ -166,49 +161,46 @@ export const CartProvider = ({ children }) => {
         const res = qty <= 0
           ? await cartAPI.remove(itemId)
           : await cartAPI.update(itemId, qty);
-
-        const dbItems = res.data.cart?.items || [];
-        // Always trust the DB response — it may differ from our optimistic update
-        syncItems(dbItems);
+        syncItems(res.data.cart?.items || []);
       } catch {
-        // Rollback to pre-update state on any server failure
         syncItems(snapshot);
         toast.error('Failed to update quantity. Please try again.');
       }
     }
   }, [user, items, syncItems]);
 
-  // ── Remove Item ──────────────────────────────────────────
+  // ── Remove Item ──────────────────────────────────────────────────────
   const removeFromCart = useCallback(async (itemId) => {
-    // Snapshot for rollback in case the server call fails
-    const snapshot = [...items];
+    // Debug logs — remove these once the fix is confirmed working
+    console.log('[Cart] removeFromCart called with itemId:', itemId);
+    console.log('[Cart] current items:', items.map(i => ({ _id: i._id, name: i.name })));
 
-    // Optimistic: remove from UI immediately
-    const optimistic = items.filter((i) => (i._id || i.id) !== itemId);
-    syncItems(optimistic); // update state + localStorage together
+    if (!itemId) {
+      toast.error('Cannot remove item: missing ID. Check console.');
+      console.error('[Cart] removeFromCart received undefined/null itemId.');
+      return;
+    }
+
+    const snapshot = [...items];
+    const optimistic = items.filter((i) => i._id !== itemId);
+    syncItems(optimistic);
 
     if (user) {
       try {
         const res = await cartAPI.remove(itemId);
-        // FIX: was previously an empty catch — silent failures left DB untouched,
-        // causing ghost items to reappear on next page load.
-        const dbItems = res.data.cart?.items || [];
-        // Confirm with actual DB response so we're never out of sync
-        syncItems(dbItems);
+        syncItems(res.data.cart?.items || []);
         toast.success('Item removed');
       } catch (err) {
-        // Server call failed — roll back the optimistic remove
         syncItems(snapshot);
         toast.error('Failed to remove item. Please try again.');
         console.error('[Cart] removeFromCart failed:', err?.response?.status, err?.response?.data);
       }
     } else {
-      // Guest — localStorage already updated by syncItems above
       toast.success('Item removed');
     }
   }, [user, items, syncItems]);
 
-  // ── Clear Cart ───────────────────────────────────────────
+  // ── Clear Cart ───────────────────────────────────────────────────────
   const clearCart = useCallback(async () => {
     const snapshot = [...items];
     syncItems([]);
@@ -217,7 +209,6 @@ export const CartProvider = ({ children }) => {
       try {
         await cartAPI.clear();
       } catch {
-        // Rollback if server clear fails
         syncItems(snapshot);
         toast.error('Failed to clear cart. Please try again.');
       }
