@@ -8,6 +8,9 @@ router.post('/', placeOrder);
 router.get('/', getUserOrders);
 router.post('/validate-promo', validatePromo);
 router.get('/admin', admin, getAllOrders);
+// routes/orders.js — add this line (protected by admin middleware)
+router.post('/validate-promo', protect, orderController.validatePromo);
+router.post('/admin/promos', protect, admin, orderController.addPromo); // ← add this
 router.get('/:id', getOrder);
 router.put('/:id/status', admin, updateOrderStatus);
 

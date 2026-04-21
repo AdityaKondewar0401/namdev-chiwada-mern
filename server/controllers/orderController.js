@@ -112,3 +112,11 @@ exports.validatePromo = async (req, res, next) => {
     res.json({ success: true, discount, freeShipping, message: `Promo "${code.toUpperCase()}" applied!` });
   } catch (err) { next(err); }
 };
+
+// orderController.js — add this export
+exports.addPromo = (req, res) => {
+  const { code, type, value } = req.body;
+  if (!code || !type) return res.status(400).json({ success: false, message: 'Invalid promo' });
+  PROMO_CODES[code.toUpperCase()] = { type, value: Number(value) };
+  res.json({ success: true, message: `Promo ${code} added` });
+};
