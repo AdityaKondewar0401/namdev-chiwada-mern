@@ -4,6 +4,7 @@ import {
   useState,
   useEffect,
   useCallback,
+  useRef,
 } from 'react';
 import { cartAPI } from '../services/api';
 import { useAuth } from './AuthContext';
@@ -54,9 +55,15 @@ export const CartProvider = ({
 }) => {
   const { user } = useAuth();
 
-  const [items, setItems] = useState([]);
+  const [items, setItems] =
+    useState([]);
+
   const [loading, setLoading] =
     useState(false);
+
+  // debounce timers
+  const pendingTimers =
+    useRef({});
 
   const syncItems = useCallback(
     (rawItems) => {
@@ -165,26 +172,20 @@ export const CartProvider = ({
 
       if (user) {
         try {
-          const res =
-            await cartAPI.add({
-              productId:
-                product._id,
-              name:
-                product.name,
-              img: product.img,
-              price,
-              size,
-              qty,
-            });
-
-          syncItems(
-            res.data.cart
-              ?.items || []
-          );
+          await cartAPI.add({
+            productId:
+              product._id,
+            name:
+              product.name,
+            img: product.img,
+            price,
+            size,
+            qty,
+          });
         } catch {
           syncItems(snapshot);
           toast.error(
-            'Failed to add item.'
+            'Failed to add item'
           );
           return;
         }
@@ -198,19 +199,19 @@ export const CartProvider = ({
   );
 
   /* ===============================
-     FIXED: Update Quantity
-     productId + size + qty
+     PRODUCTION DEBOUNCED UPDATE
+     Instant UI + delayed API sync
   =============================== */
   const updateQuantity =
     useCallback(
-      async (
+      (
         productId,
         size,
         qty
       ) => {
-        const snapshot = [
-          ...items,
-        ];
+        const key = `${productId}_${size}`;
+
+        const snapshot = [...items];
 
         const updated =
           qty <= 0
@@ -236,93 +237,99 @@ export const CartProvider = ({
                     : i
               );
 
+        // instant update
         setItems(updated);
         saveLocal(updated);
 
-        if (user) {
-          try {
-            const res =
+        if (!user) return;
+
+        // clear previous timer
+        if (
+          pendingTimers.current[
+            key
+          ]
+        ) {
+          clearTimeout(
+            pendingTimers.current[
+              key
+            ]
+          );
+        }
+
+        // debounce request
+        pendingTimers.current[
+          key
+        ] = setTimeout(
+          async () => {
+            try {
               await cartAPI.update(
                 productId,
                 size,
                 qty
               );
-
-            syncItems(
-              res.data.cart
-                ?.items || []
-            );
-          } catch {
-            syncItems(
-              snapshot
-            );
-            toast.error(
-              'Failed to update quantity'
-            );
-          }
-        }
+            } catch {
+              syncItems(
+                snapshot
+              );
+              toast.error(
+                'Failed to update quantity'
+              );
+            }
+          },
+          400
+        );
       },
       [items, user, syncItems]
     );
 
   /* ===============================
-     FIXED Remove
-     accepts itemId OR productId+size
+     Remove
   =============================== */
   const removeFromCart =
     useCallback(
-      async (
+      (
         id,
         size = null
       ) => {
-        const snapshot = [
-          ...items,
-        ];
+        if (size) {
+          updateQuantity(
+            id,
+            size,
+            0
+          );
+          return;
+        }
+
+        const snapshot = [...items];
 
         const updated =
-          size
-            ? items.filter(
-                (i) =>
-                  !(
-                    i.product ===
-                      id &&
-                    i.size ===
-                      size
-                  )
-              )
-            : items.filter(
-                (i) =>
-                  i._id !==
-                  id
-              );
+          items.filter(
+            (i) =>
+              i._id !== id
+          );
 
         setItems(updated);
         saveLocal(updated);
 
         if (user) {
-          try {
-            if (size) {
-              await cartAPI.update(
-                id,
-                size,
-                0
+          cartAPI
+            .remove(id)
+            .catch(() => {
+              syncItems(
+                snapshot
               );
-            } else {
-              await cartAPI.remove(
-                id
+              toast.error(
+                'Failed to remove item'
               );
-            }
-          } catch {
-            syncItems(
-              snapshot
-            );
-            toast.error(
-              'Failed to remove item'
-            );
-          }
+            });
         }
       },
-      [items, user, syncItems]
+      [
+        items,
+        user,
+        syncItems,
+        updateQuantity,
+      ]
     );
 
   /* ===============================
@@ -331,9 +338,7 @@ export const CartProvider = ({
   const clearCart =
     useCallback(
       async () => {
-        const snapshot = [
-          ...items,
-        ];
+        const snapshot = [...items];
 
         setItems([]);
         saveLocal([]);
@@ -352,7 +357,7 @@ export const CartProvider = ({
     );
 
   /* ===============================
-     Helper
+     Helpers
   =============================== */
   const getItemQuantity =
     useCallback(
@@ -378,17 +383,17 @@ export const CartProvider = ({
 
   const totalItems =
     items.reduce(
-      (s, i) =>
-        s + i.qty,
+      (sum, item) =>
+        sum + item.qty,
       0
     );
 
   const subtotal =
     items.reduce(
-      (s, i) =>
-        s +
-        i.price *
-          i.qty,
+      (sum, item) =>
+        sum +
+        item.price *
+          item.qty,
       0
     );
 
