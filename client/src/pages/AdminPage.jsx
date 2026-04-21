@@ -64,39 +64,133 @@ const Field = ({ label, fieldKey, type = 'text', placeholder = '', hint = '', fo
 
 // ── Dashboard Tab ──────────────────────────────────────
 function DashboardTab({ products, orders }) {
+  // Only delivered orders count as revenue
+  const deliveredRevenue = orders
+    .filter(
+      (order) =>
+        order.status?.toLowerCase() === 'delivered'
+    )
+    .reduce(
+      (sum, order) =>
+        sum + (order.total || 0),
+      0
+    );
+
   const stats = [
-    { icon: '🍛', label: 'Total Products', value: products.length, color: '#e07000' },
-    { icon: '📦', label: 'Total Orders', value: orders.length, color: '#d4af37' },
-    { icon: '💰', label: 'Total Revenue', value: `₹${orders.reduce((s, o) => s + (o.total || 0), 0).toLocaleString()}`, color: '#2d5a1b' },
-    { icon: '⭐', label: 'Featured Products', value: products.filter(p => p.featured).length, color: '#7c3aed' },
+    {
+      icon: '🍛',
+      label: 'Total Products',
+      value: products.length,
+      color: '#e07000',
+    },
+    {
+      icon: '📦',
+      label: 'Total Orders',
+      value: orders.length,
+      color: '#d4af37',
+    },
+    {
+      icon: '💰',
+      label: 'Total Revenue',
+      value: `₹${deliveredRevenue.toLocaleString()}`,
+      color: '#2d5a1b',
+    },
+    {
+      icon: '⭐',
+      label: 'Featured Products',
+      value: products.filter(
+        (p) => p.featured
+      ).length,
+      color: '#7c3aed',
+    },
   ];
 
   return (
     <div>
-      <h2 className="font-serif font-black text-brown-dark text-2xl mb-6">Dashboard</h2>
+      <h2 className="font-serif font-black text-brown-dark text-2xl mb-6">
+        Dashboard
+      </h2>
+
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {stats.map((s) => (
-          <div key={s.label} className="bg-white rounded-2xl p-5"
-            style={{ boxShadow: '0 4px 20px rgba(45,26,0,0.06)', border: '1px solid rgba(224,112,0,0.08)' }}>
-            <div className="text-3xl mb-3">{s.icon}</div>
-            <div className="font-black text-2xl mb-1" style={{ color: s.color }}>{s.value}</div>
-            <div className="text-xs text-brown-mid/60 font-medium">{s.label}</div>
+          <div
+            key={s.label}
+            className="bg-white rounded-2xl p-5"
+            style={{
+              boxShadow:
+                '0 4px 20px rgba(45,26,0,0.06)',
+              border:
+                '1px solid rgba(224,112,0,0.08)',
+            }}
+          >
+            <div className="text-3xl mb-3">
+              {s.icon}
+            </div>
+
+            <div
+              className="font-black text-2xl mb-1"
+              style={{
+                color: s.color,
+              }}
+            >
+              {s.value}
+            </div>
+
+            <div className="text-xs text-brown-mid/60 font-medium">
+              {s.label}
+            </div>
           </div>
         ))}
       </div>
-      <div className="bg-white rounded-2xl p-6"
-        style={{ boxShadow: '0 4px 20px rgba(45,26,0,0.06)', border: '1px solid rgba(224,112,0,0.08)' }}>
-        <h3 className="font-bold text-brown-dark mb-4">Recent Products</h3>
+
+      <div
+        className="bg-white rounded-2xl p-6"
+        style={{
+          boxShadow:
+            '0 4px 20px rgba(45,26,0,0.06)',
+          border:
+            '1px solid rgba(224,112,0,0.08)',
+        }}
+      >
+        <h3 className="font-bold text-brown-dark mb-4">
+          Recent Products
+        </h3>
+
         <div className="space-y-3">
           {products.slice(0, 5).map((p) => (
-            <div key={p._id} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: '#fef3e0' }}>
-              <img src={p.img} alt={p.name} className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
+            <div
+              key={p._id}
+              className="flex items-center gap-3 p-3 rounded-xl"
+              style={{
+                background: '#fef3e0',
+              }}
+            >
+              <img
+                src={p.img}
+                alt={p.name}
+                className="w-12 h-12 rounded-xl object-cover flex-shrink-0"
+              />
+
               <div className="flex-1 min-w-0">
-                <div className="font-semibold text-brown-dark text-sm truncate">{p.name}</div>
-                <div className="text-xs text-brown-mid/60">₹{p.price} · {p.category}</div>
+                <div className="font-semibold text-brown-dark text-sm truncate">
+                  {p.name}
+                </div>
+
+                <div className="text-xs text-brown-mid/60">
+                  ₹{p.price} · {p.category}
+                </div>
               </div>
-              <span className={`text-xs font-bold px-2 py-1 rounded-full ${p.inStock ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
-                {p.inStock ? 'In Stock' : 'Out'}
+
+              <span
+                className={`text-xs font-bold px-2 py-1 rounded-full ${
+                  p.inStock
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-red-100 text-red-600'
+                }`}
+              >
+                {p.inStock
+                  ? 'In Stock'
+                  : 'Out'}
               </span>
             </div>
           ))}
