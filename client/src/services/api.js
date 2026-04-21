@@ -27,34 +27,40 @@ export default api;
 
 // Auth
 export const authAPI = {
-  register: (data) => api.post('/api/auth/register', data),
-  login: (data) => api.post('/api/auth/login', data),
-  getMe: () => api.get('/api/auth/me'),
+  register:      (data) => api.post('/api/auth/register', data),
+  login:         (data) => api.post('/api/auth/login', data),
+  getMe:         ()     => api.get('/api/auth/me'),
   updateProfile: (data) => api.put('/api/auth/profile', data),
 };
 
 // Products
 export const productAPI = {
   getAll: (params) => api.get('/api/products', { params }),
-  getOne: (id) => api.get(`/api/products/${id}`),
-  create: (data) => api.post('/api/products', data),
+  getOne: (id)     => api.get(`/api/products/${id}`),
+  create: (data)   => api.post('/api/products', data),
   update: (id, data) => api.put(`/api/products/${id}`, data),
-  delete: (id) => api.delete(`/api/products/${id}`),
+  delete: (id)     => api.delete(`/api/products/${id}`),
 };
 
 // Cart
 export const cartAPI = {
-  get: () => api.get('/api/cart'),
-  add: (data) => api.post('/api/cart', data),
+  get:    ()                => api.get('/api/cart'),
+  add:    (data)            => api.post('/api/cart', data),
+  update: (itemId, qty)     => api.put(`/api/cart/${itemId}`, { qty }),
+  remove: (itemId)          => api.delete(`/api/cart/${itemId}`),
+  clear:  ()                => api.delete('/api/cart'),
 };
 
 // Orders
 export const orderAPI = {
-  place: (data) => api.post('/api/orders', data),
-  getAll: () => api.get('/api/orders'),
+  place:         (data)             => api.post('/api/orders', data),
+  getAll:        ()                 => api.get('/api/orders'),
+  getOne:        (id)               => api.get(`/api/orders/${id}`),
+  validatePromo: (code, subtotal)   => api.post('/api/orders/validate-promo', { code, subtotal }),
 };
 
 // Wishlist
 export const wishlistAPI = {
-  get: () => api.get('/api/wishlist'),
+  get:    ()   => api.get('/api/wishlist'),
+  toggle: (id) => api.post(`/api/wishlist/${id}`),
 };
