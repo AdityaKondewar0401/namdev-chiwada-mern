@@ -56,7 +56,7 @@ export const orderAPI = {
   place:         (data)             => api.post('/api/orders', data),
   getAll:        ()                 => api.get('/api/orders'),
   getOne:        (id)               => api.get(`/api/orders/${id}`),
-  validatePromo: (code, subtotal)   => api.post('/api/orders/validate-promo', { code, subtotal }),
+  validatePromo: (data) => api.post('/api/orders/validate-promo', data),
 };
 
 // Wishlist
