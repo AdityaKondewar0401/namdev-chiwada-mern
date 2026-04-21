@@ -1,11 +1,10 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { orderAPI } from '../services/api';
 import api from '../services/api';
 
-// ── Load Razorpay script dynamically ──────────────────
 function loadRazorpayScript() {
   return new Promise((resolve) => {
     if (window.Razorpay) return resolve(true);
@@ -25,6 +24,28 @@ const STATES = [
   'Uttarakhand','West Bengal','Delhi','Jammu & Kashmir','Ladakh',
 ];
 
+// Field is a pure uncontrolled-style component — no state, no context, just props
+function Field({ label, name, type = 'text', placeholder, half, value, onChange, error }) {
+  return (
+    <div className={half ? 'flex-1 min-w-0' : 'w-full'}>
+      <label className="block text-xs font-bold uppercase tracking-wider text-brown-dark mb-1.5">
+        {label}
+      </label>
+      <input
+        type={type}
+        name={name}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        autoComplete="off"
+        className={`w-full px-4 py-3 rounded-xl border text-sm bg-white text-brown-dark placeholder-brown-mid/40 outline-none transition-all
+          ${error ? 'border-red-400 bg-red-50' : 'border-saffron/20 focus:border-saffron focus:ring-2 focus:ring-saffron/10'}`}
+      />
+      {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
+    </div>
+  );
+}
+
 export default function CheckoutPage() {
   const navigate = useNavigate();
   const { items: cart = [], subtotal: cartTotal = 0, clearCart } = useCart();
@@ -41,21 +62,24 @@ export default function CheckoutPage() {
   });
 
   const [promoCode, setPromoCode]       = useState('');
-  const [promoApplied, setPromoApplied] = useState(null); // { discount, message }
+  const [promoApplied, setPromoApplied] = useState(null);
   const [promoLoading, setPromoLoading] = useState(false);
   const [promoError, setPromoError]     = useState('');
-
-  const [paymentMethod, setPaymentMethod] = useState('razorpay'); // 'razorpay' | 'cod'
+  const [paymentMethod, setPaymentMethod] = useState('razorpay');
   const [processing, setProcessing]       = useState(false);
   const [errors, setErrors]               = useState({});
 
-  // ── Derived totals ─────────────────────────────────
+  // Single stable handler for ALL address fields — uses input's name attribute
+  const handleAddressChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setAddress(prev => ({ ...prev, [name]: value }));
+  }, []);
+
   const subtotal = cartTotal;
   const discount = promoApplied?.discount || 0;
   const shipping  = subtotal >= 499 ? 0 : 49;
   const total     = Math.max(0, subtotal - discount + shipping);
 
-  // ── Validation ─────────────────────────────────────
   function validate() {
     const e = {};
     if (!address.fullName.trim()) e.fullName = 'Name is required';
@@ -68,7 +92,6 @@ export default function CheckoutPage() {
     return Object.keys(e).length === 0;
   }
 
-  // ── Promo code ─────────────────────────────────────
   async function applyPromo() {
     if (!promoCode.trim()) return;
     setPromoLoading(true);
@@ -84,7 +107,6 @@ export default function CheckoutPage() {
     }
   }
 
-  // ── Place COD order ────────────────────────────────
   async function placeCODOrder() {
     setProcessing(true);
     try {
@@ -102,11 +124,9 @@ export default function CheckoutPage() {
     }
   }
 
-  // ── Razorpay checkout flow ─────────────────────────
   async function handleRazorpayPayment() {
     setProcessing(true);
     try {
-      // 1. Load Razorpay SDK
       const loaded = await loadRazorpayScript();
       if (!loaded) {
         alert('Failed to load payment gateway. Check your internet connection.');
@@ -114,7 +134,6 @@ export default function CheckoutPage() {
         return;
       }
 
-      // 2. Create order in your DB (status: pending, paymentStatus: pending)
       const orderRes = await orderAPI.place({
         shippingAddress: address,
         paymentMethod: 'ONLINE',
@@ -122,12 +141,10 @@ export default function CheckoutPage() {
       });
       const dbOrder = orderRes.data.order;
 
-      // 3. Create Razorpay order via your backend (amount comes from DB, not frontend)
       const rzpRes = await api.post('/payment/create-order', { amount: dbOrder.total });
       if (!rzpRes.data.success) throw new Error(rzpRes.data.message);
       const { order_id, amount: rzpAmount, currency } = rzpRes.data;
 
-      // 4. Open Razorpay modal
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID,
         amount: rzpAmount,
@@ -136,9 +153,7 @@ export default function CheckoutPage() {
         description: `Order #${dbOrder._id}`,
         image: '/logo.png',
         order_id,
-
         handler: async function (response) {
-          // 5. Verify signature on backend
           try {
             const verifyRes = await api.post('/payment/verify', {
               razorpay_order_id:   response.razorpay_order_id,
@@ -146,86 +161,47 @@ export default function CheckoutPage() {
               razorpay_signature:  response.razorpay_signature,
               orderId: dbOrder._id,
             });
-
             if (verifyRes.data.success) {
               clearCart();
               navigate(`/orders/${dbOrder._id}`, { state: { success: true, paid: true } });
             } else {
-              alert('Payment verification failed. Contact support with your payment ID: ' + response.razorpay_payment_id);
+              alert('Payment verification failed. Contact support with ID: ' + response.razorpay_payment_id);
             }
           } catch {
             alert('Verification error. Please contact support.');
           }
         },
-
-        prefill: {
-          name:    address.fullName,
-          contact: address.phone,
-          email:   user?.email || '',
-        },
-
-        notes: {
-          order_id: dbOrder._id,
-          address:  `${address.line1}, ${address.city}`,
-        },
-
+        prefill: { name: address.fullName, contact: address.phone, email: user?.email || '' },
+        notes: { order_id: dbOrder._id, address: `${address.line1}, ${address.city}` },
         theme: { color: '#e07000' },
-
         modal: {
           ondismiss: function () {
             setProcessing(false);
-            alert('Payment cancelled. Your order is saved — you can retry from Orders page.');
+            alert('Payment cancelled. Your order is saved — retry from Orders page.');
           },
         },
       };
 
       const rzp = new window.Razorpay(options);
-
       rzp.on('payment.failed', function (response) {
-        console.error('Payment failed:', response.error);
         alert(`Payment failed: ${response.error.description}. Please try again.`);
         setProcessing(false);
       });
-
       rzp.open();
 
     } catch (err) {
-      console.error('Checkout error:', err);
       alert(err.response?.data?.message || 'Something went wrong. Please try again.');
       setProcessing(false);
     }
   }
 
-  // ── Main submit ────────────────────────────────────
   async function handleSubmit(e) {
     e.preventDefault();
     if (!validate()) return;
     if (cart.length === 0) { alert('Your cart is empty.'); return; }
-
-    if (paymentMethod === 'cod') {
-      await placeCODOrder();
-    } else {
-      await handleRazorpayPayment();
-    }
+    if (paymentMethod === 'cod') await placeCODOrder();
+    else await handleRazorpayPayment();
   }
-
-  // ── Field helper ───────────────────────────────────
-  const Field = ({ label, name, type = 'text', placeholder, half }) => (
-    <div className={half ? 'flex-1 min-w-0' : 'w-full'}>
-      <label className="block text-xs font-bold uppercase tracking-wider text-brown-dark mb-1.5">
-        {label}
-      </label>
-      <input
-        type={type}
-        value={address[name]}
-        onChange={e => setAddress(p => ({ ...p, [name]: e.target.value }))}
-        placeholder={placeholder}
-        className={`w-full px-4 py-3 rounded-xl border text-sm bg-white text-brown-dark placeholder-brown-mid/40 outline-none transition-all
-          ${errors[name] ? 'border-red-400 bg-red-50' : 'border-saffron/20 focus:border-saffron focus:ring-2 focus:ring-saffron/10'}`}
-      />
-      {errors[name] && <p className="text-red-500 text-xs mt-1">{errors[name]}</p>}
-    </div>
-  );
 
   if (cart.length === 0) {
     return (
@@ -253,36 +229,50 @@ export default function CheckoutPage() {
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
 
-            {/* ── Left: Address + Payment ── */}
             <div className="lg:col-span-3 space-y-6">
 
-              {/* Delivery Address */}
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-saffron/8">
                 <h2 className="font-serif font-bold text-brown-dark text-lg mb-5">
                   📍 Delivery Address
                 </h2>
                 <div className="space-y-4">
+
                   <div className="flex gap-3">
-                    <Field label="Full Name" name="fullName" placeholder="Aditya Kondewar" half />
-                    <Field label="Phone" name="phone" type="tel" placeholder="9876543210" half />
+                    <Field label="Full Name" name="fullName" half
+                      value={address.fullName} onChange={handleAddressChange}
+                      placeholder="Aditya Kondewar" error={errors.fullName} />
+                    <Field label="Phone" name="phone" type="tel" half
+                      value={address.phone} onChange={handleAddressChange}
+                      placeholder="9876543210" error={errors.phone} />
                   </div>
-                  <Field label="Address Line 1" name="line1" placeholder="House no, Street, Area" />
-                  <Field label="Address Line 2 (optional)" name="line2" placeholder="Landmark, Colony" />
+
+                  <Field label="Address Line 1" name="line1"
+                    value={address.line1} onChange={handleAddressChange}
+                    placeholder="House no, Street, Area" error={errors.line1} />
+
+                  <Field label="Address Line 2 (optional)" name="line2"
+                    value={address.line2} onChange={handleAddressChange}
+                    placeholder="Landmark, Colony" />
+
                   <div className="flex gap-3">
-                    <Field label="City" name="city" placeholder="Solapur" half />
-                    <Field label="Pincode" name="pincode" placeholder="413001" half />
+                    <Field label="City" name="city" half
+                      value={address.city} onChange={handleAddressChange}
+                      placeholder="Solapur" error={errors.city} />
+                    <Field label="Pincode" name="pincode" half
+                      value={address.pincode} onChange={handleAddressChange}
+                      placeholder="413001" error={errors.pincode} />
                   </div>
+
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-wider text-brown-dark mb-1.5">
                       State
                     </label>
-                    <select
-                      value={address.state}
-                      onChange={e => setAddress(p => ({ ...p, state: e.target.value }))}
+                    <select name="state" value={address.state} onChange={handleAddressChange}
                       className="w-full px-4 py-3 rounded-xl border border-saffron/20 text-sm bg-white text-brown-dark outline-none focus:border-saffron focus:ring-2 focus:ring-saffron/10 transition-all">
                       {STATES.map(s => <option key={s}>{s}</option>)}
                     </select>
                   </div>
+
                 </div>
               </div>
 
@@ -293,7 +283,6 @@ export default function CheckoutPage() {
                 </h2>
                 <div className="space-y-3">
 
-                  {/* Razorpay — Pay Online */}
                   <label className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all
                     ${paymentMethod === 'razorpay' ? 'border-saffron bg-saffron/5' : 'border-saffron/15 hover:border-saffron/30'}`}>
                     <input type="radio" name="payment" value="razorpay"
@@ -315,7 +304,6 @@ export default function CheckoutPage() {
                     </div>
                   </label>
 
-                  {/* COD */}
                   <label className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all
                     ${paymentMethod === 'cod' ? 'border-saffron bg-saffron/5' : 'border-saffron/15 hover:border-saffron/30'}`}>
                     <input type="radio" name="payment" value="cod"
@@ -333,14 +321,13 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            {/* ── Right: Order Summary ── */}
+            {/* Order Summary */}
             <div className="lg:col-span-2">
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-saffron/8 lg:sticky lg:top-24">
                 <h2 className="font-serif font-bold text-brown-dark text-lg mb-5">
                   🧾 Order Summary
                 </h2>
 
-                {/* Cart Items */}
                 <div className="space-y-3 mb-5 max-h-56 overflow-y-auto pr-1">
                   {cart.map((item, i) => (
                     <div key={i} className="flex items-center gap-3">
@@ -359,17 +346,10 @@ export default function CheckoutPage() {
 
                 <div className="border-t border-saffron/10 pt-4 mb-4" />
 
-                {/* Promo Code */}
                 <div className="mb-5">
                   <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={promoCode}
-                      onChange={e => {
-                        setPromoCode(e.target.value.toUpperCase());
-                        setPromoError('');
-                        setPromoApplied(null);
-                      }}
+                    <input type="text" value={promoCode}
+                      onChange={e => { setPromoCode(e.target.value.toUpperCase()); setPromoError(''); setPromoApplied(null); }}
                       placeholder="Promo code"
                       className="flex-1 px-3 py-2.5 rounded-xl border border-saffron/20 text-sm bg-white text-brown-dark outline-none focus:border-saffron transition-all" />
                     <button type="button" onClick={applyPromo} disabled={promoLoading}
@@ -386,39 +366,26 @@ export default function CheckoutPage() {
                   {promoError && <p className="text-red-500 text-xs mt-1.5">{promoError}</p>}
                 </div>
 
-                {/* Totals */}
                 <div className="space-y-2 text-sm mb-6">
                   <div className="flex justify-between text-brown-mid/70">
-                    <span>Subtotal</span>
-                    <span>₹{subtotal.toLocaleString()}</span>
+                    <span>Subtotal</span><span>₹{subtotal.toLocaleString()}</span>
                   </div>
                   {discount > 0 && (
                     <div className="flex justify-between text-green-600 font-medium">
-                      <span>Discount</span>
-                      <span>−₹{discount.toLocaleString()}</span>
+                      <span>Discount</span><span>−₹{discount.toLocaleString()}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-brown-mid/70">
                     <span>Shipping</span>
-                    <span>
-                      {shipping === 0
-                        ? <span className="text-green-600 font-medium">FREE</span>
-                        : `₹${shipping}`}
-                    </span>
+                    <span>{shipping === 0 ? <span className="text-green-600 font-medium">FREE</span> : `₹${shipping}`}</span>
                   </div>
-                  {shipping > 0 && (
-                    <p className="text-xs text-brown-mid/50">Free shipping on orders above ₹499</p>
-                  )}
+                  {shipping > 0 && <p className="text-xs text-brown-mid/50">Free shipping on orders above ₹499</p>}
                   <div className="border-t border-saffron/10 pt-2 flex justify-between font-black text-brown-dark text-base">
-                    <span>Total</span>
-                    <span>₹{total.toLocaleString()}</span>
+                    <span>Total</span><span>₹{total.toLocaleString()}</span>
                   </div>
                 </div>
 
-                {/* Submit Button */}
-                <button
-                  type="submit"
-                  disabled={processing}
+                <button type="submit" disabled={processing}
                   className="w-full py-4 rounded-full font-bold text-white text-base transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   style={{
                     background: processing ? '#9ca3af' : 'linear-gradient(135deg,#e07000,#ff9010)',
@@ -432,11 +399,10 @@ export default function CheckoutPage() {
                       </svg>
                       Processing...
                     </>
-                  ) : paymentMethod === 'razorpay' ? (
-                    '🔒 Pay ₹' + total.toLocaleString()
-                  ) : (
-                    '📦 Place Order ₹' + total.toLocaleString()
-                  )}
+                  ) : paymentMethod === 'razorpay'
+                    ? '🔒 Pay ₹' + total.toLocaleString()
+                    : '📦 Place Order ₹' + total.toLocaleString()
+                  }
                 </button>
 
                 <p className="text-center text-xs text-brown-mid/40 mt-3">
