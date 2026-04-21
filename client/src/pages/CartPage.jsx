@@ -61,21 +61,38 @@ export default function CartPage() {
           <div>
             <AnimatePresence>
               {items.map((item) => (
-                  <motion.div key={item._id}
-
+                <motion.div key={item._id}
                   layout
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20, height: 0 }}
                   transition={{ duration: 0.3 }}
                   className="bg-white rounded-xl shadow-saffron border border-saffron/6 p-4 mb-4 hover:shadow-saffron-lg transition-all">
-                  <div className="grid grid-cols-[80px_1fr_auto] gap-4 items-center">
+
+                  {/* FIX: switched from grid grid-cols-[80px_1fr_auto] to flex
+                      so price stays inside the card on mobile instead of
+                      overflowing to the right edge of the screen */}
+                  <div className="flex gap-4 items-start">
+
+                    {/* Product image */}
                     <div className="w-20 h-24 rounded-xl overflow-hidden flex-shrink-0">
                       <img src={item.img} alt={item.name} className="w-full h-full object-cover" />
                     </div>
-                    <div>
-                      <div className="font-serif font-bold text-brown-dark mb-0.5">{item.name}</div>
-                      <div className="text-xs text-brown-mid/60 mb-3">Size: {item.size} · ₹{item.price} each</div>
+
+                    {/* Details + price in one column, price top-right */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2 mb-0.5">
+                        <div className="font-serif font-bold text-brown-dark truncate">{item.name}</div>
+                        {/* Price moved here — always inside card, never overflows */}
+                        <div className="font-bold text-saffron text-lg flex-shrink-0">
+                          ₹{item.price * item.qty}
+                        </div>
+                      </div>
+
+                      <div className="text-xs text-brown-mid/60 mb-3">
+                        Size: {item.size} · ₹{item.price} each
+                      </div>
+
                       <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2 bg-cream-mid rounded-full px-1 py-0.5">
                           <button onClick={() => updateQty(item._id, item.qty - 1)}
@@ -90,9 +107,7 @@ export default function CartPage() {
                         </button>
                       </div>
                     </div>
-                    <div className="font-bold text-saffron text-lg">
-                      ₹{item.price * item.qty}
-                    </div>
+
                   </div>
                 </motion.div>
               ))}
