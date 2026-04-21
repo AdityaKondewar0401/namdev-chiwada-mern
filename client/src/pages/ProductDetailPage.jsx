@@ -52,7 +52,9 @@ export default function ProductDetailPage() {
 
   const currentSize = product.sizes?.[selectedSizeIdx] || { weight: product.weight, price: product.price };
   const wishlisted = isWishlisted(product._id);
-  const thumbs = [product.img, ...(product.images || [])];
+  // Primary image first, then additional images
+// Never duplicate — img is always first, images[] are extras
+const thumbs = [product.img, ...(product.images || [])];
 
   const handleAddToCart = () => {
     addToCart(product, currentSize.weight, currentSize.price, qty);
@@ -84,14 +86,14 @@ export default function ProductDetailPage() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3 }}
               className="rounded-xl2 overflow-hidden shadow-saffron mb-3 gallery-zoom"
-              style={{ aspectRatio: '1/1', background: '#f9f5f0' }}>
-              <img src={mainImg} alt={product.name} className="w-full h-full object-contain transition-transform duration-300" />
+              style={{ aspectRatio: '3/4' }}>
+              <img src={mainImg} alt={product.name} className="w-full h-full object-cover transition-transform duration-300" />
             </motion.div>
             <div className="flex gap-2.5 overflow-x-auto pb-1">
               {thumbs.map((img, i) => (
                 <button key={i} onClick={() => setMainImg(img)}
-                  className={`flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-all ${mainImg === img ? 'border-saffron shadow-saffron' : 'border-transparent opacity-70 hover:opacity-100'}`}>
-                  <img src={img} alt="" className="w-full h-full object-contain bg-cream" />
+                  className={`flex-shrink-0 w-16 h-20 rounded-xl overflow-hidden border-2 transition-all ${mainImg === img ? 'border-saffron shadow-saffron' : 'border-transparent opacity-70 hover:opacity-100'}`}>
+                  <img src={img} alt="" className="w-full h-full object-cover" />
                 </button>
               ))}
             </div>
@@ -157,16 +159,16 @@ export default function ProductDetailPage() {
             {/* Action Buttons */}
             <div className="flex gap-3 mb-8 flex-wrap">
               <button
-                onClick={handleAddToCart}
-                disabled={!product.inStock}
-                className="flex-1 min-w-44 py-4 rounded-full font-bold text-white transition-all disabled:cursor-not-allowed"
-                style={{
-                  background: !product.inStock ? '#9ca3af' : 'linear-gradient(135deg,#e07000,#ff9010)',
-                  opacity: !product.inStock ? 0.7 : 1,
-                  boxShadow: product.inStock ? '0 4px 16px rgba(224,112,0,0.3)' : 'none',
-                }}>
-                {!product.inStock ? '❌ Out of Stock' : '🛒 Add to Cart'}
-              </button>
+  onClick={handleAddToCart}
+  disabled={!product.inStock}
+  className="flex-1 min-w-44 py-4 rounded-full font-bold text-white transition-all disabled:cursor-not-allowed"
+  style={{
+    background: !product.inStock ? '#9ca3af' : 'linear-gradient(135deg,#e07000,#ff9010)',
+    opacity: !product.inStock ? 0.7 : 1,
+    boxShadow: product.inStock ? '0 4px 16px rgba(224,112,0,0.3)' : 'none',
+  }}>
+  {!product.inStock ? '❌ Out of Stock' : '🛒 Add to Cart'}
+</button>
               <button onClick={() => toggle(product._id)}
                 className={`px-5 py-4 rounded-full border-2 text-xl transition-all ${
                   wishlisted
