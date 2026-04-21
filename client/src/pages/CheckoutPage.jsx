@@ -27,7 +27,7 @@ const STATES = [
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
-  const { cart, cartTotal, clearCart } = useCart();
+  const { items: cart = [], subtotal: cartTotal = 0, clearCart } = useCart();
   const { user } = useAuth();
 
   const [address, setAddress] = useState({
