@@ -16,7 +16,8 @@ export default function CartPage() {
   const handlePromo = async () => {
     if (!promoCode) return;
     try {
-      const res = await orderAPI.validatePromo(promoCode, subtotal);
+      // ✅
+      const res = await orderAPI.validatePromo({ code: promoCode, subtotal });
       setPromoDiscount(res.data.discount || 0);
       setFreeShipping(res.data.freeShipping || false);
       setPromoApplied(true);
