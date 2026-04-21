@@ -1,15 +1,15 @@
 const mongoose = require('mongoose');
 
 const orderItemSchema = new mongoose.Schema({
-  product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
-  name:    { type: String, required: true },
+  product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
+  name:    { type: String },
   img:     { type: String },
   weight:  { type: String },
   price:   { type: Number, required: true },
   qty:     { type: Number, required: true, min: 1 },
 });
 
-const addressSchema = new mongoose.Schema({
+const shippingAddressSchema = new mongoose.Schema({
   fullName: { type: String, required: true },
   phone:    { type: String, required: true },
   line1:    { type: String, required: true },
@@ -20,14 +20,16 @@ const addressSchema = new mongoose.Schema({
 }, { _id: false });
 
 const orderSchema = new mongoose.Schema({
-  user:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  items:   [orderItemSchema],
-  address: { type: addressSchema, required: true },
+  user:            { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  items:           [orderItemSchema],
+  shippingAddress: { type: shippingAddressSchema, required: true },
 
-  subtotal:   { type: Number, required: true },
-  discount:   { type: Number, default: 0 },
-  total:      { type: Number, required: true },
-  promoCode:  { type: String },
+  subtotal:       { type: Number, required: true },
+  shippingCharge: { type: Number, default: 0 },
+  discount:       { type: Number, default: 0 },
+  total:          { type: Number, required: true },
+  promoCode:      { type: String },
+  notes:          { type: String },
 
   status: {
     type: String,
@@ -36,10 +38,10 @@ const orderSchema = new mongoose.Schema({
   },
 
   // ── Razorpay payment fields ──
-  paymentMethod:    { type: String, enum: ['razorpay', 'cod'], default: 'razorpay' },
-  paymentStatus:    { type: String, enum: ['pending', 'paid', 'failed'], default: 'pending' },
-  razorpayOrderId:  { type: String },
-  razorpayPaymentId:{ type: String },
+  paymentMethod:     { type: String, enum: ['COD', 'ONLINE'], default: 'COD' },
+  paymentStatus:     { type: String, enum: ['pending', 'paid', 'failed'], default: 'pending' },
+  razorpayOrderId:   { type: String },
+  razorpayPaymentId: { type: String },
 
 }, { timestamps: true });
 

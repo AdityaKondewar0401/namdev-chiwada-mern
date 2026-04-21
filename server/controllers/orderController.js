@@ -3,8 +3,8 @@ const Cart = require('../models/Cart');
 
 const PROMO_CODES = {
   NAMDEV10: { type: 'percent', value: 10 },
-  SOLAPUR: { type: 'shipping', value: 0 },
-  FLAT50: { type: 'flat', value: 50 },
+  SOLAPUR:  { type: 'shipping', value: 0 },
+  FLAT50:   { type: 'flat', value: 50 },
 };
 
 // @desc  Place new order
@@ -12,6 +12,10 @@ const PROMO_CODES = {
 exports.placeOrder = async (req, res, next) => {
   try {
     const { shippingAddress, paymentMethod, promoCode, notes } = req.body;
+
+    if (!shippingAddress) {
+      return res.status(400).json({ success: false, message: 'Shipping address is required' });
+    }
 
     const cart = await Cart.findOne({ user: req.user._id });
     if (!cart || cart.items.length === 0)
@@ -35,6 +39,7 @@ exports.placeOrder = async (req, res, next) => {
       items: cart.items,
       shippingAddress,
       paymentMethod: paymentMethod || 'COD',
+      paymentStatus: paymentMethod === 'ONLINE' ? 'pending' : 'pending',
       subtotal,
       shippingCharge,
       discount,
