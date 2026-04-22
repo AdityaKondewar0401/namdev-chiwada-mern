@@ -6,6 +6,7 @@ import ProductCard from '../components/ProductCard';
 import { ProductSkeleton } from '../components/Skeletons';
 import useReveal from '../hooks/useReveal';
 import NamkeenSection from '../components/NamkeenSection';
+import PageWrapper from '../components/PageWrapper';
 
 const MARQUEE_ITEMS = ['Dagdi-Poha Chiwada', 'Maka Chiwada', 'Bakarwadi', 'Lasun Sev', 'Shengdana Chutney', 'Special Farsan', 'Authentic Taste'];
 const TRUST = ['150+ Years Legacy', 'No Artificial Colors', 'FSSAI Licensed', 'Pan-India Delivery'];
@@ -277,7 +278,7 @@ function CTASection() {
 
 export default function HomePage() {
   return (
-    <div>
+    <PageWrapper>
       <HeroSection />
       <MarqueeSection />
       <FeaturesSection />
@@ -285,6 +286,6 @@ export default function HomePage() {
       <StatsSection />
       <TestimonialsSection />
       <CTASection />
-    </div>
+    </PageWrapper>
   );
 }

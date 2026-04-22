@@ -55,6 +55,16 @@ export default {
         'xl2': '18px',
         'xl3': '28px',
       },
+
+      // ── Smooth animation additions ──
+      transitionTimingFunction: {
+        'smooth':       'cubic-bezier(0.32, 0.72, 0, 1)',
+        'spring':       'cubic-bezier(0.34, 1.56, 0.64, 1)',
+        'ease-out-expo':'cubic-bezier(0.16, 1, 0.3, 1)',
+      },
+      transitionDuration: {
+        '400': '400ms',
+      },
     },
   },
   plugins: [],

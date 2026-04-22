@@ -135,3 +135,52 @@
   from { opacity: 0; transform: translateY(28px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* ───────────────────────────────────────────
+   GPU ACCELERATION & SMOOTH ANIMATION LAYER
+   ─────────────────────────────────────────── */
+
+/* GPU-accelerate specific animated elements only (safer than *) */
+nav,
+.marquee-track,
+.drawer,
+.reveal,
+.card,
+.btn-primary,
+.btn-saffron,
+.btn-outline,
+.skeleton,
+.gallery-zoom img {
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Upgrade reveal transition to use smooth cubic-bezier */
+.reveal {
+  transition: opacity 0.6s cubic-bezier(0.32, 0.72, 0, 1),
+              transform 0.6s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Upgrade card hover to smooth easing */
+.card {
+  transition: box-shadow 0.3s cubic-bezier(0.32, 0.72, 0, 1),
+              transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Upgrade button transitions */
+.btn-primary,
+.btn-saffron,
+.btn-outline {
+  transition: transform 0.25s cubic-bezier(0.32, 0.72, 0, 1),
+              box-shadow 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Respect reduced motion — accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

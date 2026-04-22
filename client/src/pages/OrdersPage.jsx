@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { orderAPI } from '../services/api';
+import PageWrapper from '../components/PageWrapper';
 
 // ── Constants ──────────────────────────────────────────
 const WHATSAPP_NUMBER = '919975333427'; // ← Replace with your actual WhatsApp number (with country code, no +)
@@ -533,26 +534,28 @@ function OrdersList() {
 export default function OrdersPage() {
   const { id } = useParams();
   return (
-    <div className="min-h-screen bg-cream pb-20">
-      <div className="pt-12 pb-8 px-6" style={{ background: 'linear-gradient(135deg,#3d1c00,#7a3300 60%,#e07000)' }}>
-        <div className="max-w-3xl mx-auto">
-          <nav className="flex items-center gap-2 text-xs text-white/50 mb-3">
-            <Link to="/" className="hover:text-white transition-colors">Home</Link>
-            <span>›</span>
-            {id && <><Link to="/orders" className="hover:text-white transition-colors">My Orders</Link><span>›</span></>}
-            <span className="text-white">{id ? 'Order Details' : 'My Orders'}</span>
-          </nav>
-          <h1 className="font-serif font-black text-white text-3xl">{id ? 'Order Details' : 'My Orders'}</h1>
-          {id && (
-            <Link to="/orders" className="text-white/60 text-sm hover:text-white mt-1 inline-block transition-colors">
-              ← All Orders
-            </Link>
-          )}
+    <PageWrapper>
+      <div className="min-h-screen bg-cream pb-20">
+        <div className="pt-12 pb-8 px-6" style={{ background: 'linear-gradient(135deg,#3d1c00,#7a3300 60%,#e07000)' }}>
+          <div className="max-w-3xl mx-auto">
+            <nav className="flex items-center gap-2 text-xs text-white/50 mb-3">
+              <Link to="/" className="hover:text-white transition-colors">Home</Link>
+              <span>›</span>
+              {id && <><Link to="/orders" className="hover:text-white transition-colors">My Orders</Link><span>›</span></>}
+              <span className="text-white">{id ? 'Order Details' : 'My Orders'}</span>
+            </nav>
+            <h1 className="font-serif font-black text-white text-3xl">{id ? 'Order Details' : 'My Orders'}</h1>
+            {id && (
+              <Link to="/orders" className="text-white/60 text-sm hover:text-white mt-1 inline-block transition-colors">
+                ← All Orders
+              </Link>
+            )}
+          </div>
+        </div>
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
+          {id ? <OrderDetail id={id} /> : <OrdersList />}
         </div>
       </div>
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
-        {id ? <OrderDetail id={id} /> : <OrdersList />}
-      </div>
-    </div>
+    </PageWrapper>
   );
 }

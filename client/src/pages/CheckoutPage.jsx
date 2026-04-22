@@ -4,6 +4,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { orderAPI } from '../services/api';
 import api from '../services/api';
+import PageWrapper from '../components/PageWrapper';
 
 function loadRazorpayScript() {
   return new Promise((resolve) => {
@@ -358,7 +359,7 @@ const styles = `
   }
 `;
 
-export default function CheckoutPage() {
+function CheckoutPage() {
   const navigate = useNavigate();
   const { items: cart = [], subtotal: cartTotal = 0, clearCart } = useCart();
   const { user } = useAuth();
@@ -503,7 +504,7 @@ export default function CheckoutPage() {
 
   if (cart.length === 0) {
     return (
-      <>
+      <PageWrapper>
         <style>{styles}</style>
         <div className="empty-cart-wrap">
           <div style={{ fontSize: 64 }}>🛒</div>
@@ -523,12 +524,12 @@ export default function CheckoutPage() {
             Browse Products
           </button>
         </div>
-      </>
+      </PageWrapper>
     );
   }
 
   return (
-    <>
+    <PageWrapper>
       <style>{styles}</style>
       <div className="checkout-bg">
         <div style={{ maxWidth: 1100, margin: '0 auto', padding: '40px 16px 0' }}>
@@ -910,6 +911,8 @@ export default function CheckoutPage() {
           </form>
         </div>
       </div>
-    </>
+    </PageWrapper>
   );
 }
+
+export default CheckoutPage;

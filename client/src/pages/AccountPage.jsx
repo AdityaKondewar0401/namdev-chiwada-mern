@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { orderAPI, wishlistAPI, authAPI } from '../services/api';
 import toast from 'react-hot-toast';
+import PageWrapper from '../components/PageWrapper';
 
 // ── Sidebar Tabs ───────────────────────────────────────
 const TABS = [
@@ -465,80 +466,82 @@ export default function AccountPage() {
   };
 
   return (
-    <div className="min-h-screen pb-16" style={{ background: '#fef3e0' }}>
-      {/* Page Header */}
-      <div className="pt-10 pb-8 px-6"
-        style={{ background: 'linear-gradient(135deg,#3d1c00,#7a3300 60%,#e07000)' }}>
-        <div className="max-w-5xl mx-auto">
-          <nav className="flex items-center gap-2 text-xs text-white/50 mb-3">
-            <Link to="/" className="hover:text-white">Home</Link>
-            <span>›</span>
-            <span className="text-white">My Account</span>
-          </nav>
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full flex items-center justify-center text-white text-2xl font-black overflow-hidden flex-shrink-0"
-              style={{ background: 'rgba(255,255,255,0.15)', border: '2px solid rgba(255,255,255,0.3)' }}>
-              {user.avatar
-                ? <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
-                : user.name?.charAt(0).toUpperCase()
-              }
-            </div>
-            <div>
-              <h1 className="font-serif font-black text-white text-2xl">Hello, {user.name?.split(' ')[0]}! 👋</h1>
-              <p className="text-white/60 text-sm">{user.email}</p>
+    <PageWrapper>
+      <div className="min-h-screen pb-16" style={{ background: '#fef3e0' }}>
+        {/* Page Header */}
+        <div className="pt-10 pb-8 px-6"
+          style={{ background: 'linear-gradient(135deg,#3d1c00,#7a3300 60%,#e07000)' }}>
+          <div className="max-w-5xl mx-auto">
+            <nav className="flex items-center gap-2 text-xs text-white/50 mb-3">
+              <Link to="/" className="hover:text-white">Home</Link>
+              <span>›</span>
+              <span className="text-white">My Account</span>
+            </nav>
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-full flex items-center justify-center text-white text-2xl font-black overflow-hidden flex-shrink-0"
+                style={{ background: 'rgba(255,255,255,0.15)', border: '2px solid rgba(255,255,255,0.3)' }}>
+                {user.avatar
+                  ? <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                  : user.name?.charAt(0).toUpperCase()
+                }
+              </div>
+              <div>
+                <h1 className="font-serif font-black text-white text-2xl">Hello, {user.name?.split(' ')[0]}! 👋</h1>
+                <p className="text-white/60 text-sm">{user.email}</p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="max-w-5xl mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-6 items-start">
+        <div className="max-w-5xl mx-auto px-6 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-6 items-start">
 
-          {/* Sidebar */}
-          <div className="bg-white rounded-2xl overflow-hidden lg:sticky lg:top-28"
-            style={{ boxShadow: '0 4px 20px rgba(45,26,0,0.06)', border: '1px solid rgba(224,112,0,0.08)' }}>
-            <div className="p-3">
-              {TABS.map((tab) => (
-                <button key={tab.id} onClick={() => setTab(tab.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 mb-1 ${
-                    activeTab === tab.id
-                      ? 'text-white'
-                      : 'text-brown-dark hover:bg-saffron/6 hover:text-saffron'
-                  }`}
-                  style={activeTab === tab.id ? { background: 'linear-gradient(135deg,#e07000,#ff9010)' } : {}}>
-                  <span className="text-base">{tab.icon}</span>
-                  {tab.label}
+            {/* Sidebar */}
+            <div className="bg-white rounded-2xl overflow-hidden lg:sticky lg:top-28"
+              style={{ boxShadow: '0 4px 20px rgba(45,26,0,0.06)', border: '1px solid rgba(224,112,0,0.08)' }}>
+              <div className="p-3">
+                {TABS.map((tab) => (
+                  <button key={tab.id} onClick={() => setTab(tab.id)}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 mb-1 ${
+                      activeTab === tab.id
+                        ? 'text-white'
+                        : 'text-brown-dark hover:bg-saffron/6 hover:text-saffron'
+                    }`}
+                    style={activeTab === tab.id ? { background: 'linear-gradient(135deg,#e07000,#ff9010)' } : {}}>
+                    <span className="text-base">{tab.icon}</span>
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Logout in sidebar */}
+              <div className="border-t p-3" style={{ borderColor: 'rgba(224,112,0,0.08)' }}>
+                <button onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-red-500 hover:bg-red-50 transition-all">
+                  <span>🚪</span> Logout
                 </button>
-              ))}
+              </div>
             </div>
 
-            {/* Logout in sidebar */}
-            <div className="border-t p-3" style={{ borderColor: 'rgba(224,112,0,0.08)' }}>
-              <button onClick={handleLogout}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-red-500 hover:bg-red-50 transition-all">
-                <span>🚪</span> Logout
-              </button>
+            {/* Main Content */}
+            <div className="bg-white rounded-2xl p-6 min-h-96"
+              style={{ boxShadow: '0 4px 20px rgba(45,26,0,0.06)', border: '1px solid rgba(224,112,0,0.08)' }}>
+              <AnimatePresence mode="wait">
+                <motion.div key={activeTab}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -12 }}
+                  transition={{ duration: 0.25 }}>
+                  {activeTab === 'profile'  && <ProfileTab user={user} onUpdate={handleUpdate} />}
+                  {activeTab === 'orders'   && <OrdersTab />}
+                  {activeTab === 'wishlist' && <WishlistTab />}
+                  {activeTab === 'address'  && <AddressTab user={user} onUpdate={handleUpdate} />}
+                </motion.div>
+              </AnimatePresence>
             </div>
-          </div>
-
-          {/* Main Content */}
-          <div className="bg-white rounded-2xl p-6 min-h-96"
-            style={{ boxShadow: '0 4px 20px rgba(45,26,0,0.06)', border: '1px solid rgba(224,112,0,0.08)' }}>
-            <AnimatePresence mode="wait">
-              <motion.div key={activeTab}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -12 }}
-                transition={{ duration: 0.25 }}>
-                {activeTab === 'profile'  && <ProfileTab user={user} onUpdate={handleUpdate} />}
-                {activeTab === 'orders'   && <OrdersTab />}
-                {activeTab === 'wishlist' && <WishlistTab />}
-                {activeTab === 'address'  && <AddressTab user={user} onUpdate={handleUpdate} />}
-              </motion.div>
-            </AnimatePresence>
           </div>
         </div>
       </div>
-    </div>
+    </PageWrapper>
   );
 }

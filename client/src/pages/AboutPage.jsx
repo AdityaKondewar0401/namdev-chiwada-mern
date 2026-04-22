@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useInView, useScroll, useTransform } from 'framer-motion';
+import PageWrapper from '../components/PageWrapper';
 
 // ── Timeline Data ──────────────────────────────────────
 const TIMELINE = [
@@ -657,13 +658,15 @@ function AboutCTA() {
 // ── Main Export ────────────────────────────────────────
 export default function AboutPage() {
   return (
-    <div>
-      <AboutHero />
-      <IntroQuote />
-      <TimelineSection />
-      <ValuesSection />
-      <FounderSection />
-      <AboutCTA />
-    </div>
+    <PageWrapper>
+      <div>
+        <AboutHero />
+        <IntroQuote />
+        <TimelineSection />
+        <ValuesSection />
+        <FounderSection />
+        <AboutCTA />
+      </div>
+    </PageWrapper>
   );
 }

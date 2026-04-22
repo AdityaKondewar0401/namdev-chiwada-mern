@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-hot-toast';
+import PageWrapper from '../components/PageWrapper';
 
 function AuthCard({ title, subtitle, children }) {
   return (
@@ -112,38 +113,40 @@ export function LoginPage() {
   };
 
   return (
-    <AuthCard title="Welcome Back" subtitle="Sign in to your Namdev Chiwada account">
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <PageWrapper>
+      <AuthCard title="Welcome Back" subtitle="Sign in to your Namdev Chiwada account">
+        <form onSubmit={handleSubmit} className="space-y-4">
 
-        <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-brown-dark mb-1.5">Email</label>
-          <input type="email" required value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
-            placeholder="you@example.com" className="form-input" />
-        </div>
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-brown-dark mb-1.5">Email</label>
+            <input type="email" required value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              placeholder="you@example.com" className="form-input" />
+          </div>
 
-        <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-brown-dark mb-1.5">Password</label>
-          <input type="password" required value={form.password}
-            onChange={(e) => setForm({ ...form, password: e.target.value })}
-            placeholder="••••••••" className="form-input" />
-        </div>
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-brown-dark mb-1.5">Password</label>
+            <input type="password" required value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              placeholder="••••••••" className="form-input" />
+          </div>
 
-        <button type="submit" disabled={loading}
-          className={`w-full btn-saffron py-3.5 font-bold text-base mt-2 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}>
-          {loading ? 'Signing in...' : 'Sign In'}
-        </button>
-      </form>
+          <button type="submit" disabled={loading}
+            className={`w-full btn-saffron py-3.5 font-bold text-base mt-2 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}>
+            {loading ? 'Signing in...' : 'Sign In'}
+          </button>
+        </form>
 
-      <GoogleLoginButton />
+        <GoogleLoginButton />
 
-      <p className="text-center text-sm text-brown-mid/60 mt-5">
-        Don't have an account?{' '}
-        <Link to="/register" className="text-saffron-DEFAULT font-semibold hover:text-saffron-light">
-          Register
-        </Link>
-      </p>
-    </AuthCard>
+        <p className="text-center text-sm text-brown-mid/60 mt-5">
+          Don't have an account?{' '}
+          <Link to="/register" className="text-saffron-DEFAULT font-semibold hover:text-saffron-light">
+            Register
+          </Link>
+        </p>
+      </AuthCard>
+    </PageWrapper>
   );
 }
 
@@ -160,41 +163,43 @@ export function RegisterPage() {
   };
 
   return (
-    <AuthCard title="Create Account" subtitle="Join Namdev Chiwada — it's free!">
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <PageWrapper>
+      <AuthCard title="Create Account" subtitle="Join Namdev Chiwada — it's free!">
+        <form onSubmit={handleSubmit} className="space-y-4">
 
-        {[
-          { name: 'name', label: 'Full Name', placeholder: 'Rahul Deshmukh', type: 'text' },
-          { name: 'email', label: 'Email', placeholder: 'you@example.com', type: 'email' },
-          { name: 'phone', label: 'Phone (optional)', placeholder: '9876543210', type: 'tel' },
-          { name: 'password', label: 'Password', placeholder: 'Min. 6 characters', type: 'password' },
-        ].map(({ name, label, placeholder, type }) => (
-          <div key={name}>
-            <label className="block text-xs font-bold uppercase tracking-wider text-brown-dark mb-1.5">{label}</label>
-            <input
-              type={type}
-              value={form[name]}
-              onChange={(e) => setForm({ ...form, [name]: e.target.value })}
-              placeholder={placeholder}
-              className="form-input"
-              required={name !== 'phone'}
-              minLength={name === 'password' ? 6 : undefined}
-            />
-          </div>
-        ))}
+          {[
+            { name: 'name', label: 'Full Name', placeholder: 'Rahul Deshmukh', type: 'text' },
+            { name: 'email', label: 'Email', placeholder: 'you@example.com', type: 'email' },
+            { name: 'phone', label: 'Phone (optional)', placeholder: '9876543210', type: 'tel' },
+            { name: 'password', label: 'Password', placeholder: 'Min. 6 characters', type: 'password' },
+          ].map(({ name, label, placeholder, type }) => (
+            <div key={name}>
+              <label className="block text-xs font-bold uppercase tracking-wider text-brown-dark mb-1.5">{label}</label>
+              <input
+                type={type}
+                value={form[name]}
+                onChange={(e) => setForm({ ...form, [name]: e.target.value })}
+                placeholder={placeholder}
+                className="form-input"
+                required={name !== 'phone'}
+                minLength={name === 'password' ? 6 : undefined}
+              />
+            </div>
+          ))}
 
-        <button type="submit" disabled={loading}
-          className={`w-full btn-saffron py-3.5 font-bold text-base mt-2 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}>
-          {loading ? 'Creating Account...' : 'Create Account'}
-        </button>
-      </form>
+          <button type="submit" disabled={loading}
+            className={`w-full btn-saffron py-3.5 font-bold text-base mt-2 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}>
+            {loading ? 'Creating Account...' : 'Create Account'}
+          </button>
+        </form>
 
-      <p className="text-center text-sm text-brown-mid/60 mt-5">
-        Already have an account?{' '}
-        <Link to="/login" className="text-saffron-DEFAULT font-semibold hover:text-saffron-light">
-          Sign In
-        </Link>
-      </p>
-    </AuthCard>
+        <p className="text-center text-sm text-brown-mid/60 mt-5">
+          Already have an account?{' '}
+          <Link to="/login" className="text-saffron-DEFAULT font-semibold hover:text-saffron-light">
+            Sign In
+          </Link>
+        </p>
+      </AuthCard>
+    </PageWrapper>
   );
 }
