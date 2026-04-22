@@ -40,7 +40,10 @@ function Layout({ children, hideFooter = false }) {
       <Navbar />
       <main>{children}</main>
       {!hideFooter && <Footer />}
-      <WhatsAppFloat />
+      <WhatsAppFloat
+        phone="919975333427"
+        message="Hi! I have a query about my order."
+      />
     </>
   );
 }
