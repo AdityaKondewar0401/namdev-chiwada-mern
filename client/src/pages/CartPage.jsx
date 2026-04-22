@@ -6,9 +6,6 @@ import { orderAPI } from '../services/api';
 import toast from 'react-hot-toast';
 
 export default function CartPage() {
-  // FIX:
-  // updateQty was old function.
-  // Using updateQuantity keeps it in sync with latest CartContext logic.
   const {
     items,
     updateQuantity,
@@ -42,20 +39,15 @@ export default function CartPage() {
       toast.success(res.data.message);
     } catch (err) {
       toast.error(
-        err.response?.data?.message ||
-          'Invalid promo code'
+        err.response?.data?.message || 'Invalid promo code'
       );
     }
   };
 
-  const effectiveShipping = freeShipping
-    ? 0
-    : shipping;
+  const effectiveShipping = freeShipping ? 0 : shipping;
 
   const finalTotal =
-    total -
-    promoDiscount -
-    (freeShipping ? shipping : 0);
+    total - promoDiscount - (freeShipping ? shipping : 0);
 
   if (items.length === 0) {
     return (
@@ -71,10 +63,7 @@ export default function CartPage() {
             Looks like you haven't added any snacks yet!
           </p>
 
-          <Link
-            to="/products"
-            className="btn-saffron px-8 py-3.5"
-          >
+          <Link to="/products" className="btn-saffron px-8 py-3.5">
             Browse Products →
           </Link>
         </div>
@@ -94,18 +83,11 @@ export default function CartPage() {
       >
         <div className="max-w-6xl mx-auto">
           <nav className="flex items-center gap-2 text-xs text-white/50 mb-3">
-            <Link
-              to="/"
-              className="hover:text-white"
-            >
+            <Link to="/" className="hover:text-white">
               Home
             </Link>
-
             <span>›</span>
-
-            <span className="text-white">
-              Cart
-            </span>
+            <span className="text-white">Cart</span>
           </nav>
 
           <h1 className="font-serif font-black text-white text-3xl">
@@ -120,6 +102,7 @@ export default function CartPage() {
 
       <div className="max-w-6xl mx-auto px-6 py-10">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 items-start">
+
           {/* Cart Items */}
           <div>
             <AnimatePresence initial={false}>
@@ -127,21 +110,10 @@ export default function CartPage() {
                 <motion.div
                   key={item._id}
                   layout={false}
-                  initial={{
-                    opacity: 0,
-                    y: 10,
-                  }}
-                  animate={{
-                    opacity: 1,
-                    y: 0,
-                  }}
-                  exit={{
-                    opacity: 0,
-                    y: -10,
-                  }}
-                  transition={{
-                    duration: 0.18,
-                  }}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.18 }}
                   className="bg-white rounded-xl shadow-saffron border border-saffron/6 p-4 mb-4"
                 >
                   <div className="flex gap-4 items-start">
@@ -160,17 +132,13 @@ export default function CartPage() {
                         <div className="font-serif font-bold text-brown-dark truncate">
                           {item.name}
                         </div>
-
                         <div className="font-bold text-saffron text-lg flex-shrink-0">
-                          ₹
-                          {item.price *
-                            item.qty}
+                          ₹{item.price * item.qty}
                         </div>
                       </div>
 
                       <div className="text-xs text-brown-mid/60 mb-3">
-                        Size: {item.size} · ₹
-                        {item.price} each
+                        Size: {item.size} · ₹{item.price} each
                       </div>
 
                       <div className="flex items-center gap-3">
@@ -179,9 +147,7 @@ export default function CartPage() {
                           <button
                             onClick={() =>
                               item.qty === 1
-                                ? removeFromCart(
-                                    item._id
-                                  )
+                                ? removeFromCart(item._id)
                                 : updateQuantity(
                                     item.product,
                                     item.size,
@@ -212,11 +178,7 @@ export default function CartPage() {
                         </div>
 
                         <button
-                          onClick={() =>
-                            removeFromCart(
-                              item._id
-                            )
-                          }
+                          onClick={() => removeFromCart(item._id)}
                           className="text-xs text-red-400 hover:text-red-600 font-medium transition-colors"
                         >
                           ✕ Remove
@@ -228,12 +190,37 @@ export default function CartPage() {
               ))}
             </AnimatePresence>
 
-            <button
-              onClick={clearCart}
-              className="mt-2 text-sm text-red-500 hover:text-red-700 font-medium"
-            >
-              Clear Cart
-            </button>
+            {/* Clear Cart — styled like Apply button but red */}
+            <div className="flex justify-end mt-2">
+              <button
+                onClick={clearCart}
+                style={{
+                  padding: '8px 20px',
+                  borderRadius: '10px',
+                  background: 'linear-gradient(135deg, #dc2626, #ef4444)',
+                  color: 'white',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  border: 'none',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 14px rgba(220,38,38,0.3)',
+                  transition: 'all 0.2s ease',
+                  whiteSpace: 'nowrap',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.filter = 'brightness(1.1)';
+                  e.currentTarget.style.boxShadow = '0 6px 18px rgba(220,38,38,0.4)';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.filter = 'brightness(1)';
+                  e.currentTarget.style.boxShadow = '0 4px 14px rgba(220,38,38,0.3)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                🗑 Clear Cart
+              </button>
+            </div>
           </div>
 
           {/* Summary */}
@@ -245,66 +232,38 @@ export default function CartPage() {
             <div className="space-y-3 text-sm mb-5">
               <div className="flex justify-between">
                 <span className="text-brown-mid/70">
-                  Subtotal (
-                  {items.reduce(
-                    (s, i) =>
-                      s + i.qty,
-                    0
-                  )}{' '}
-                  items)
+                  Subtotal ({items.reduce((s, i) => s + i.qty, 0)} items)
                 </span>
-
-                <span className="font-semibold">
-                  ₹{subtotal}
-                </span>
+                <span className="font-semibold">₹{subtotal}</span>
               </div>
 
               <div className="flex justify-between">
-                <span className="text-brown-mid/70">
-                  Delivery
-                </span>
-
+                <span className="text-brown-mid/70">Delivery</span>
                 <span
                   className={`font-semibold ${
-                    effectiveShipping === 0
-                      ? 'text-leaf'
-                      : ''
+                    effectiveShipping === 0 ? 'text-leaf' : ''
                   }`}
                 >
-                  {effectiveShipping === 0
-                    ? 'FREE'
-                    : `₹${effectiveShipping}`}
+                  {effectiveShipping === 0 ? 'FREE' : `₹${effectiveShipping}`}
                 </span>
               </div>
 
               {promoDiscount > 0 && (
                 <div className="flex justify-between text-leaf">
-                  <span>
-                    Promo Discount
-                  </span>
-
-                  <span>
-                    −₹
-                    {promoDiscount}
-                  </span>
+                  <span>Promo Discount</span>
+                  <span>−₹{promoDiscount}</span>
                 </div>
               )}
 
-              {subtotal < 500 &&
-                !freeShipping && (
-                  <div className="text-xs text-saffron bg-saffron-pale rounded-lg px-3 py-2">
-                    🎉 Add ₹
-                    {500 - subtotal}{' '}
-                    more for FREE
-                    delivery!
-                  </div>
-                )}
+              {subtotal < 500 && !freeShipping && (
+                <div className="text-xs text-saffron bg-saffron-pale rounded-lg px-3 py-2">
+                  🎉 Add ₹{500 - subtotal} more for FREE delivery!
+                </div>
+              )}
 
               <div className="border-t border-saffron/10 pt-3 flex justify-between font-black text-brown-dark text-base">
                 <span>Total</span>
-                <span>
-                  ₹{finalTotal}
-                </span>
+                <span>₹{finalTotal}</span>
               </div>
             </div>
 
@@ -314,9 +273,7 @@ export default function CartPage() {
                 <input
                   value={promoCode}
                   onChange={(e) =>
-                    setPromoCode(
-                      e.target.value.toUpperCase()
-                    )
+                    setPromoCode(e.target.value.toUpperCase())
                   }
                   placeholder="Promo code"
                   className="form-input py-2 rounded-xl text-sm flex-1"
@@ -332,21 +289,13 @@ export default function CartPage() {
             ) : (
               <div className="flex items-center gap-2 text-leaf text-sm font-semibold bg-green-50 rounded-xl px-3 py-2 mb-5">
                 <span>✅</span>
-                Promo "{promoCode}"
-                applied!
-
+                Promo "{promoCode}" applied!
                 <button
                   onClick={() => {
-                    setPromoApplied(
-                      false
-                    );
+                    setPromoApplied(false);
                     setPromoCode('');
-                    setPromoDiscount(
-                      0
-                    );
-                    setFreeShipping(
-                      false
-                    );
+                    setPromoDiscount(0);
+                    setFreeShipping(false);
                   }}
                   className="ml-auto text-xs text-brown-mid/60 hover:text-red-500"
                 >
@@ -357,20 +306,13 @@ export default function CartPage() {
 
             <button
               onClick={() =>
-                navigate(
-                  '/checkout',
-                  {
-                    state: {
-                      promoCode:
-                        promoApplied
-                          ? promoCode
-                          : '',
-                      discount:
-                        promoDiscount,
-                      freeShipping,
-                    },
-                  }
-                )
+                navigate('/checkout', {
+                  state: {
+                    promoCode: promoApplied ? promoCode : '',
+                    discount: promoDiscount,
+                    freeShipping,
+                  },
+                })
               }
               className="w-full btn-saffron py-4 font-bold text-base mb-3"
             >
@@ -378,8 +320,7 @@ export default function CartPage() {
             </button>
 
             <div className="text-center text-xs text-brown-mid/50">
-              🔒 Secure Checkout · 📦 Fast
-              Delivery
+              🔒 Secure Checkout · 📦 Fast Delivery
             </div>
 
             <div className="mt-3 text-center">
