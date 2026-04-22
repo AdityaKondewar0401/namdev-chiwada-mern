@@ -25,7 +25,7 @@ export default function Navbar() {
   return (
     <>
       {/* ── Announcement Bar ── */}
-      <div className="w-full bg-[#1a3a2a] text-white text-xs font-medium py-2 px-6 flex items-center justify-between overflow-hidden">
+      <div className={`w-full bg-[#1a3a2a] text-white text-xs font-medium py-2 px-6 flex items-center justify-between overflow-hidden transition-all duration-200 ${menuOpen ? 'invisible opacity-0' : 'visible opacity-100'}`}>
         <div className="flex-1 overflow-hidden">
           <div className="marquee-track flex gap-0 whitespace-nowrap" style={{ width: 'max-content' }}>
             {[...Array(4)].map((_, i) => (
@@ -78,7 +78,7 @@ export default function Navbar() {
       </div>
 
       {/* ── Main Navbar ── */}
-      <nav className="sticky top-0 left-0 right-0 z-50 bg-white border-b border-gray-100 shadow-sm">
+      <nav className={`sticky top-0 left-0 right-0 z-40 bg-white border-b border-gray-100 shadow-sm transition-all duration-200 ${menuOpen ? 'invisible opacity-0' : 'visible opacity-100'}`}>
         <div className="max-w-7xl mx-auto flex items-center justify-between px-8" style={{ minHeight: 80 }}>
 
           {/* Logo */}
@@ -204,12 +204,7 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* ── Mobile Menu (Slide-in drawer from right) ──
-          KEY FIX: uses fixed inset (top-0 right-0 bottom-0) so it always
-          fills the full screen height regardless of which page you're on.
-          overflow-y-auto on the inner scroll area ensures all items are
-          reachable even on small phones with many menu items.
-      ── */}
+      {/* ── Mobile Menu (Slide-in drawer from right) ── */}
       <AnimatePresence>
         {menuOpen && (
           <>
@@ -219,7 +214,7 @@ export default function Navbar() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-30 md:hidden"
+              className="fixed inset-0 z-50 md:hidden"
               style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(2px)' }}
               onClick={() => setMenuOpen(false)}
             />
@@ -230,14 +225,14 @@ export default function Navbar() {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
-              className="fixed top-0 right-0 bottom-0 z-40 md:hidden flex flex-col"
+              className="fixed top-0 right-0 bottom-0 z-[60] md:hidden flex flex-col"
               style={{
                 width: 'min(300px, 82vw)',
                 background: 'linear-gradient(160deg, #2d1a00 0%, #3d1c00 55%, #4a2200 100%)',
                 boxShadow: '-12px 0 48px rgba(0,0,0,0.45)',
               }}
             >
-              {/* Drawer header — fixed at top */}
+              {/* Drawer header */}
               <div className="flex items-center justify-between px-5 py-4 flex-shrink-0"
                 style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
                 <div className="flex items-center gap-2.5">
@@ -255,7 +250,7 @@ export default function Navbar() {
                 </button>
               </div>
 
-              {/* Scrollable content area — this is the fix */}
+              {/* Scrollable content area */}
               <div className="flex-1 overflow-y-auto px-3 py-3">
 
                 {/* Nav links */}
@@ -354,7 +349,7 @@ export default function Navbar() {
                 )}
               </div>
 
-              {/* Footer — fixed at bottom */}
+              {/* Footer */}
               <div className="flex-shrink-0 px-5 py-4"
                 style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
                 <p className="text-center text-xs" style={{ color: 'rgba(255,255,255,0.22)' }}>
