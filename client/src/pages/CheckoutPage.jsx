@@ -173,8 +173,8 @@ const styles = `
     background: linear-gradient(135deg, #e07000, #ff9010);
     box-shadow: 0 8px 24px rgba(224,112,0,0.35);
     transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    font-family: 'Playfair Display', serif;
-    letter-spacing: 0.02em;
+    font-family: 'Lora', Georgia, serif;
+    letter-spacing: 0.01em;
   }
   .submit-btn:hover:not(:disabled) {
     transform: translateY(-2px) scale(1.01);
@@ -325,6 +325,9 @@ const styles = `
 
     /* Hide desktop order summary panel on mobile */
     .checkout-right { display: none; }
+
+    /* Extra bottom padding so sticky CTA bar doesn't cover last card */
+    .checkout-bg { padding-bottom: 160px !important; }
 
     /* Show mobile sticky CTA bar */
     .mobile-cta-bar {
@@ -743,6 +746,8 @@ export default function CheckoutPage() {
                       )}
                     </div>
                   </div>
+                  {/* Extra space at bottom so COD card clears the sticky mobile CTA bar */}
+                  <div style={{ height: 8 }} />
                 </div>
               </div>
 
@@ -891,22 +896,7 @@ export default function CheckoutPage() {
                     <span style={{ fontFamily: "'Lora', serif", fontWeight: 700, fontSize: 20, color: '#e07000' }}>₹{total.toLocaleString()}</span>
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod('cod')}
-                    style={{
-                      padding: '10px 14px', borderRadius: 50, border: '1.5px solid',
-                      borderColor: paymentMethod === 'cod' ? '#1ea064' : 'rgba(180,120,50,0.25)',
-                      background: paymentMethod === 'cod' ? 'rgba(30,160,100,0.08)' : 'transparent',
-                      color: paymentMethod === 'cod' ? '#1ea064' : '#9a7c5a',
-                      fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                      fontFamily: "'Lora', serif", whiteSpace: 'nowrap',
-                    }}
-                  >
-                    💵 COD
-                  </button>
-                </div>
+
               </div>
               <button type="submit" className="submit-btn" disabled={processing}>
                 {processing
