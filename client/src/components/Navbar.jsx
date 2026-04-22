@@ -36,7 +36,6 @@ export default function Navbar() {
             ))}
           </div>
         </div>
-        {/* Social Icons */}
         <div className="hidden md:flex items-center gap-4 ml-6 flex-shrink-0">
           {[
             {
@@ -71,15 +70,9 @@ export default function Navbar() {
           ))}
           <div className="w-px h-4 bg-white/20 mx-1" />
           {user ? (
-            <button onClick={logout} title="Account"
-              className="text-white/70 hover:text-white transition-colors text-lg">
-              👤
-            </button>
+            <button onClick={logout} title="Account" className="text-white/70 hover:text-white transition-colors text-lg">👤</button>
           ) : (
-            <Link to="/login" title="Login"
-              className="text-white/70 hover:text-white transition-colors text-lg">
-              👤
-            </Link>
+            <Link to="/login" title="Login" className="text-white/70 hover:text-white transition-colors text-lg">👤</Link>
           )}
         </div>
       </div>
@@ -102,12 +95,13 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-1 mx-auto">
             {NAV_LINKS.map((l) => (
               <Link key={l.to} to={l.to}
-                className={`px-5 py-2.5 font-poppins font-semibold text-base transition-all duration-200 relative group ${isActive(l.to)
-                  ? 'text-saffron'
-                  : 'text-brown-dark hover:text-saffron'
-                  }`}>
+                className={`px-5 py-2.5 font-poppins font-semibold text-base transition-all duration-200 relative group ${
+                  isActive(l.to) ? 'text-saffron' : 'text-brown-dark hover:text-saffron'
+                }`}>
                 {l.label}
-                <span className={`absolute bottom-0 left-0 right-0 h-0.5 bg-saffron transition-all duration-300 ${isActive(l.to) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
+                <span className={`absolute bottom-0 left-0 right-0 h-0.5 bg-saffron transition-all duration-300 ${
+                  isActive(l.to) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                }`} />
               </Link>
             ))}
           </div>
@@ -210,110 +204,165 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* ── Mobile Menu ──
-          FIX: replaced bg-brown-dark/97 (custom Tailwind color that may not
-          resolve on mobile) with an inline style using a guaranteed hex value.
-          Also added shadow and ensured all text uses explicit white/saffron
-          colors that are visible regardless of any theme issues.
+      {/* ── Mobile Menu (Slide-in drawer from right) ──
+          KEY FIX: uses fixed inset (top-0 right-0 bottom-0) so it always
+          fills the full screen height regardless of which page you're on.
+          overflow-y-auto on the inner scroll area ensures all items are
+          reachable even on small phones with many menu items.
       ── */}
       <AnimatePresence>
         {menuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.22 }}
-            className="fixed top-[112px] left-0 right-0 z-40 md:hidden px-4 pt-5 pb-5 flex flex-col gap-1"
-            style={{
-              background: 'linear-gradient(160deg, #2d1a00 0%, #3d1c00 60%, #5a2800 100%)',
-              borderBottom: '2px solid #e07000',
-              boxShadow: '0 12px 40px rgba(0,0,0,0.35)',
-            }}
-          >
-            {/* Nav links */}
-            {NAV_LINKS.map((l, i) => (
-              <motion.div
-                key={l.to}
-                initial={{ opacity: 0, x: -16 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.05 }}
-              >
-                <Link
-                  to={l.to}
-                  className="flex items-center gap-3 px-4 py-3.5 rounded-xl font-semibold text-base transition-all"
-                  style={{
-                    color: isActive(l.to) ? '#ffb347' : '#fff',
-                    background: isActive(l.to) ? 'rgba(224,112,0,0.18)' : 'transparent',
-                    borderLeft: isActive(l.to) ? '3px solid #e07000' : '3px solid transparent',
-                  }}
-                  onMouseEnter={e => { if (!isActive(l.to)) e.currentTarget.style.background = 'rgba(255,255,255,0.07)'; }}
-                  onMouseLeave={e => { if (!isActive(l.to)) e.currentTarget.style.background = 'transparent'; }}
-                >
-                  {l.label}
-                </Link>
-              </motion.div>
-            ))}
+          <>
+            {/* Dark backdrop — tap to close */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-30 md:hidden"
+              style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(2px)' }}
+              onClick={() => setMenuOpen(false)}
+            />
 
-            {/* Divider */}
-            <div className="my-2 h-px" style={{ background: 'rgba(255,255,255,0.1)' }} />
-
-            {/* Auth section */}
-            <div className="flex flex-col gap-1">
-              {user ? (
-                <>
-                  {/* User info */}
-                  <div className="flex items-center gap-3 px-4 py-3 mb-1 rounded-xl"
-                    style={{ background: 'rgba(224,112,0,0.12)' }}>
-                    <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
-                      style={{ background: 'linear-gradient(135deg,#e07000,#ff9010)' }}>
-                      {user.name?.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="min-w-0">
-                      <div className="font-bold text-sm truncate" style={{ color: '#fff' }}>{user.name}</div>
-                      <div className="text-xs truncate" style={{ color: 'rgba(255,255,255,0.5)' }}>{user.email}</div>
-                    </div>
+            {/* Drawer panel */}
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
+              className="fixed top-0 right-0 bottom-0 z-40 md:hidden flex flex-col"
+              style={{
+                width: 'min(300px, 82vw)',
+                background: 'linear-gradient(160deg, #2d1a00 0%, #3d1c00 55%, #4a2200 100%)',
+                boxShadow: '-12px 0 48px rgba(0,0,0,0.45)',
+              }}
+            >
+              {/* Drawer header — fixed at top */}
+              <div className="flex items-center justify-between px-5 py-4 flex-shrink-0"
+                style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-black text-sm flex-shrink-0"
+                    style={{ background: 'linear-gradient(135deg,#e07000,#ff9010)' }}>
+                    N
                   </div>
-
-                  {user?.role === 'admin' && (
-                    <Link to="/admin"
-                      className="flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all"
-                      style={{ color: '#ffb347' }}>
-                      ⚙️ Admin Panel
-                    </Link>
-                  )}
-                  <Link to="/orders"
-                    className="flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm"
-                    style={{ color: 'rgba(255,255,255,0.85)' }}>
-                    📦 My Orders
-                  </Link>
-                  <Link to="/account"
-                    className="flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm"
-                    style={{ color: 'rgba(255,255,255,0.85)' }}>
-                    👤 My Account
-                  </Link>
-                  <button
-                    onClick={logout}
-                    className="flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm text-left transition-all"
-                    style={{ color: '#fca5a5' }}>
-                    🚪 Logout
-                  </button>
-                </>
-              ) : (
-                <div className="flex gap-3 px-2 pt-1">
-                  <Link to="/login"
-                    className="flex-1 py-3 rounded-xl font-bold text-center text-sm transition-all"
-                    style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid rgba(255,255,255,0.15)' }}>
-                    Login
-                  </Link>
-                  <Link to="/register"
-                    className="flex-1 py-3 rounded-xl font-bold text-center text-sm transition-all"
-                    style={{ background: 'linear-gradient(135deg,#e07000,#ff9010)', color: '#fff' }}>
-                    Register
-                  </Link>
+                  <span className="text-white font-serif font-bold">Namdev Chiwada</span>
                 </div>
-              )}
-            </div>
-          </motion.div>
+                <button
+                  onClick={() => setMenuOpen(false)}
+                  className="w-8 h-8 flex items-center justify-center rounded-full text-white/70 hover:text-white transition-colors"
+                  style={{ background: 'rgba(255,255,255,0.08)' }}>
+                  ✕
+                </button>
+              </div>
+
+              {/* Scrollable content area — this is the fix */}
+              <div className="flex-1 overflow-y-auto px-3 py-3">
+
+                {/* Nav links */}
+                <div className="flex flex-col gap-0.5 mb-2">
+                  {NAV_LINKS.map((l, i) => (
+                    <motion.div
+                      key={l.to}
+                      initial={{ opacity: 0, x: 24 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.04 + 0.05 }}
+                    >
+                      <Link
+                        to={l.to}
+                        className="flex items-center px-4 py-3.5 rounded-xl font-semibold text-base transition-all"
+                        style={{
+                          color: isActive(l.to) ? '#ffb347' : '#ffffff',
+                          background: isActive(l.to) ? 'rgba(224,112,0,0.2)' : 'transparent',
+                          borderLeft: `3px solid ${isActive(l.to) ? '#e07000' : 'transparent'}`,
+                        }}
+                      >
+                        {l.label}
+                      </Link>
+                    </motion.div>
+                  ))}
+                </div>
+
+                {/* Divider */}
+                <div className="h-px mx-2 my-3" style={{ background: 'rgba(255,255,255,0.1)' }} />
+
+                {/* Auth section */}
+                {user ? (
+                  <div className="flex flex-col gap-0.5">
+                    {/* User info */}
+                    <div className="flex items-center gap-3 px-4 py-3 mb-2 rounded-xl"
+                      style={{ background: 'rgba(224,112,0,0.15)', border: '1px solid rgba(224,112,0,0.25)' }}>
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-base flex-shrink-0"
+                        style={{ background: 'linear-gradient(135deg,#e07000,#ff9010)' }}>
+                        {user.name?.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="font-bold text-sm truncate text-white">{user.name}</div>
+                        <div className="text-xs truncate" style={{ color: 'rgba(255,255,255,0.45)' }}>{user.email}</div>
+                      </div>
+                    </div>
+
+                    {user?.role === 'admin' && (
+                      <Link to="/admin"
+                        className="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm transition-all"
+                        style={{ color: '#ffb347' }}>
+                        ⚙️ Admin Panel
+                      </Link>
+                    )}
+                    <Link to="/account"
+                      className="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm transition-all"
+                      style={{ color: 'rgba(255,255,255,0.9)' }}>
+                      👤 My Account
+                    </Link>
+                    <Link to="/orders"
+                      className="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm transition-all"
+                      style={{ color: 'rgba(255,255,255,0.9)' }}>
+                      📦 My Orders
+                    </Link>
+                    <Link to="/cart"
+                      className="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm transition-all"
+                      style={{ color: 'rgba(255,255,255,0.9)' }}>
+                      🛒 My Cart
+                      {totalItems > 0 && (
+                        <span className="ml-auto w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center flex-shrink-0">
+                          {totalItems}
+                        </span>
+                      )}
+                    </Link>
+
+                    <div className="h-px mx-2 my-2" style={{ background: 'rgba(255,255,255,0.08)' }} />
+
+                    <button
+                      onClick={logout}
+                      className="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm text-left w-full transition-all"
+                      style={{ color: '#fca5a5' }}>
+                      🚪 Logout
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-3 px-1 pt-1">
+                    <Link to="/login"
+                      className="py-3.5 rounded-xl font-bold text-center text-sm"
+                      style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid rgba(255,255,255,0.15)' }}>
+                      Sign In
+                    </Link>
+                    <Link to="/register"
+                      className="py-3.5 rounded-xl font-bold text-center text-sm"
+                      style={{ background: 'linear-gradient(135deg,#e07000,#ff9010)', color: '#fff', boxShadow: '0 4px 14px rgba(224,112,0,0.35)' }}>
+                      Create Account
+                    </Link>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer — fixed at bottom */}
+              <div className="flex-shrink-0 px-5 py-4"
+                style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                <p className="text-center text-xs" style={{ color: 'rgba(255,255,255,0.22)' }}>
+                  © Namdev Chiwada · Since 1873
+                </p>
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </>
