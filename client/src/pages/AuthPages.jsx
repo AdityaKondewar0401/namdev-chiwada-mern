@@ -37,6 +37,10 @@ function AuthCard({ title, subtitle, children }) {
 /* ================= GOOGLE LOGIN BUTTON ================= */
 function GoogleLoginButton() {
   const navigate = useNavigate();
+  // FIX: consume saveUser from AuthContext so React state updates immediately
+  // Previously this component wrote directly to localStorage, bypassing setUser(),
+  // which meant the Navbar and all other consumers didn't re-render until refresh.
+  const { saveUser } = useAuth();
 
   useEffect(() => {
     if (window.google) {
@@ -68,8 +72,10 @@ function GoogleLoginButton() {
       const data = await res.json();
 
       if (data.success) {
-        localStorage.setItem('nc_token', data.token);
-        localStorage.setItem('nc_user', JSON.stringify(data.user));
+        // FIX: call saveUser() instead of writing localStorage manually.
+        // saveUser() does both: persists to localStorage AND calls setUser()
+        // so every context consumer (Navbar, etc.) re-renders immediately.
+        saveUser(data.user, data.token);
         toast.success(`Welcome, ${data.user.name}! 🎉`);
         navigate('/');
       }
@@ -129,7 +135,6 @@ export function LoginPage() {
         </button>
       </form>
 
-      {/* ✅ GOOGLE LOGIN ADDED HERE */}
       <GoogleLoginButton />
 
       <p className="text-center text-sm text-brown-mid/60 mt-5">

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback } from 'react';
 import { authAPI } from '../services/api';
 import toast from 'react-hot-toast';
 
@@ -10,11 +10,14 @@ export const AuthProvider = ({ children }) => {
   });
   const [loading, setLoading] = useState(false);
 
-  const saveUser = (userData, token) => {
+  // FIX: saveUser is now exposed in context value so GoogleLoginButton
+  // (and any other component) can call it directly instead of writing
+  // to localStorage manually — which bypassed setUser() and required a refresh.
+  const saveUser = useCallback((userData, token) => {
     localStorage.setItem('nc_token', token);
     localStorage.setItem('nc_user', JSON.stringify(userData));
     setUser(userData);
-  };
+  }, []);
 
   const register = async (data) => {
     setLoading(true);
@@ -62,7 +65,16 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, register, login, logout, updateProfile, isAdmin: user?.role === 'admin' }}>
+    <AuthContext.Provider value={{
+      user,
+      loading,
+      register,
+      login,
+      logout,
+      updateProfile,
+      saveUser,           // ← exposed so Google login can use it
+      isAdmin: user?.role === 'admin',
+    }}>
       {children}
     </AuthContext.Provider>
   );
