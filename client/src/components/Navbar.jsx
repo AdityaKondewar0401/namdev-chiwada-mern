@@ -98,7 +98,7 @@ export default function Navbar() {
             />
           </Link>
 
-          {/* Desktop Nav Links — centered */}
+          {/* Desktop Nav Links */}
           <div className="hidden md:flex items-center gap-1 mx-auto">
             {NAV_LINKS.map((l) => (
               <Link key={l.to} to={l.to}
@@ -107,23 +107,19 @@ export default function Navbar() {
                   : 'text-brown-dark hover:text-saffron'
                   }`}>
                 {l.label}
-                {/* Underline effect */}
-                <span className={`absolute bottom-0 left-0 right-0 h-0.5 bg-saffron transition-all duration-300 ${isActive(l.to) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-                  }`} />
+                <span className={`absolute bottom-0 left-0 right-0 h-0.5 bg-saffron transition-all duration-300 ${isActive(l.to) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
               </Link>
             ))}
           </div>
 
-          {/* Right Actions — Search + Cart */}
+          {/* Desktop Right Actions */}
           <div className="hidden md:flex items-center gap-4 flex-shrink-0">
-            {/* Search icon */}
             <button className="text-brown-dark hover:text-saffron transition-colors p-2">
               <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
               </svg>
             </button>
 
-            {/* Cart */}
             <Link to="/cart" className="relative p-2 text-brown-dark hover:text-saffron transition-colors">
               <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0" />
@@ -135,12 +131,9 @@ export default function Navbar() {
               )}
             </Link>
 
-            {/* Login / User */}
             {user ? (
               <div className="relative group">
-                {/* User button */}
                 <button className="flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-200 hover:bg-saffron/8 border border-transparent hover:border-saffron/20">
-                  {/* Avatar circle */}
                   <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
                     style={{ background: 'linear-gradient(135deg,#e07000,#ff9010)' }}>
                     {user.avatar
@@ -148,29 +141,22 @@ export default function Navbar() {
                       : user.name?.charAt(0).toUpperCase()
                     }
                   </div>
-                  {/* Name — truncated */}
                   <span className="text-sm font-semibold text-brown-dark max-w-[90px] truncate">
                     {user.name?.split(' ')[0]}
                   </span>
-                  {/* Chevron */}
                   <svg className="w-3.5 h-3.5 text-brown-mid/60 transition-transform duration-200 group-hover:rotate-180"
                     fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
 
-                {/* Dropdown */}
                 <div className="absolute right-0 top-full mt-2 w-56 rounded-2xl overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50"
                   style={{ boxShadow: '0 16px 48px rgba(45,26,0,0.15)', border: '1px solid rgba(224,112,0,0.1)', background: '#fff' }}>
-
-                  {/* User info header */}
                   <div className="px-4 py-3 border-b border-saffron/10"
                     style={{ background: 'linear-gradient(135deg,#fff0d6,#fffdf7)' }}>
                     <div className="font-bold text-brown-dark text-sm truncate">{user.name}</div>
                     <div className="text-xs text-brown-mid/60 truncate">{user.email}</div>
                   </div>
-
-                  {/* Menu items */}
                   <div className="py-2">
                     {[
                       user?.role === 'admin' ? { icon: '⚙️', label: 'Admin Panel', to: '/admin' } : null,
@@ -185,8 +171,6 @@ export default function Navbar() {
                       </Link>
                     ))}
                   </div>
-
-                  {/* Logout */}
                   <div className="border-t border-saffron/10 py-2">
                     <button onClick={logout}
                       className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors">
@@ -215,8 +199,9 @@ export default function Navbar() {
                 </span>
               )}
             </Link>
-            <button onClick={() => setMenuOpen(!menuOpen)}
-              className={`flex flex-col gap-1.5 p-2 rounded-lg transition-colors ${menuOpen ? 'bg-saffron-pale' : ''}`}>
+            <button
+              onClick={() => setMenuOpen(!menuOpen)}
+              className={`flex flex-col gap-1.5 p-2 rounded-lg transition-colors ${menuOpen ? 'bg-saffron/10' : ''}`}>
               <span className={`block w-6 h-0.5 bg-brown-dark transition-all duration-300 ${menuOpen ? 'translate-y-2 rotate-45' : ''}`} />
               <span className={`block w-6 h-0.5 bg-brown-dark transition-all duration-300 ${menuOpen ? 'opacity-0' : ''}`} />
               <span className={`block w-6 h-0.5 bg-brown-dark transition-all duration-300 ${menuOpen ? '-translate-y-2 -rotate-45' : ''}`} />
@@ -225,36 +210,107 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Mobile Menu */}
+      {/* ── Mobile Menu ──
+          FIX: replaced bg-brown-dark/97 (custom Tailwind color that may not
+          resolve on mobile) with an inline style using a guaranteed hex value.
+          Also added shadow and ensured all text uses explicit white/saffron
+          colors that are visible regardless of any theme issues.
+      ── */}
       <AnimatePresence>
         {menuOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -16 }}
+            initial={{ opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -16 }}
+            exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.22 }}
-            className="fixed top-[112px] left-0 right-0 z-40 bg-brown-dark/97 backdrop-blur-xl border-b-2 border-saffron px-5 pt-6 pb-4 flex flex-col gap-2 md:hidden"
+            className="fixed top-[112px] left-0 right-0 z-40 md:hidden px-4 pt-5 pb-5 flex flex-col gap-1"
+            style={{
+              background: 'linear-gradient(160deg, #2d1a00 0%, #3d1c00 60%, #5a2800 100%)',
+              borderBottom: '2px solid #e07000',
+              boxShadow: '0 12px 40px rgba(0,0,0,0.35)',
+            }}
           >
-            {NAV_LINKS.map((l) => (
-              <Link key={l.to} to={l.to}
-                className={`px-4 py-3.5 rounded-xl font-medium border-l-4 transition-all ${isActive(l.to)
-                  ? 'text-gold-light bg-saffron/15 border-saffron'
-                  : 'text-white border-transparent hover:bg-saffron/10 hover:border-saffron hover:text-gold-light'
-                  }`}>
-                {l.label}
-              </Link>
+            {/* Nav links */}
+            {NAV_LINKS.map((l, i) => (
+              <motion.div
+                key={l.to}
+                initial={{ opacity: 0, x: -16 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.05 }}
+              >
+                <Link
+                  to={l.to}
+                  className="flex items-center gap-3 px-4 py-3.5 rounded-xl font-semibold text-base transition-all"
+                  style={{
+                    color: isActive(l.to) ? '#ffb347' : '#fff',
+                    background: isActive(l.to) ? 'rgba(224,112,0,0.18)' : 'transparent',
+                    borderLeft: isActive(l.to) ? '3px solid #e07000' : '3px solid transparent',
+                  }}
+                  onMouseEnter={e => { if (!isActive(l.to)) e.currentTarget.style.background = 'rgba(255,255,255,0.07)'; }}
+                  onMouseLeave={e => { if (!isActive(l.to)) e.currentTarget.style.background = 'transparent'; }}
+                >
+                  {l.label}
+                </Link>
+              </motion.div>
             ))}
-            <div className="border-t border-white/10 mt-2 pt-2 flex flex-col gap-1">
+
+            {/* Divider */}
+            <div className="my-2 h-px" style={{ background: 'rgba(255,255,255,0.1)' }} />
+
+            {/* Auth section */}
+            <div className="flex flex-col gap-1">
               {user ? (
                 <>
-                  <Link to="/orders" className="px-4 py-3 text-white/80 font-medium">My Orders</Link>
-                  <button onClick={logout} className="px-4 py-3 text-left text-white/80 font-medium">Logout</button>
+                  {/* User info */}
+                  <div className="flex items-center gap-3 px-4 py-3 mb-1 rounded-xl"
+                    style={{ background: 'rgba(224,112,0,0.12)' }}>
+                    <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
+                      style={{ background: 'linear-gradient(135deg,#e07000,#ff9010)' }}>
+                      {user.name?.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="font-bold text-sm truncate" style={{ color: '#fff' }}>{user.name}</div>
+                      <div className="text-xs truncate" style={{ color: 'rgba(255,255,255,0.5)' }}>{user.email}</div>
+                    </div>
+                  </div>
+
+                  {user?.role === 'admin' && (
+                    <Link to="/admin"
+                      className="flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all"
+                      style={{ color: '#ffb347' }}>
+                      ⚙️ Admin Panel
+                    </Link>
+                  )}
+                  <Link to="/orders"
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm"
+                    style={{ color: 'rgba(255,255,255,0.85)' }}>
+                    📦 My Orders
+                  </Link>
+                  <Link to="/account"
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm"
+                    style={{ color: 'rgba(255,255,255,0.85)' }}>
+                    👤 My Account
+                  </Link>
+                  <button
+                    onClick={logout}
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm text-left transition-all"
+                    style={{ color: '#fca5a5' }}>
+                    🚪 Logout
+                  </button>
                 </>
               ) : (
-                <>
-                  <Link to="/login" className="px-4 py-3 text-white/80 font-medium">Login</Link>
-                  <Link to="/register" className="px-4 py-3 text-white/80 font-medium">Register</Link>
-                </>
+                <div className="flex gap-3 px-2 pt-1">
+                  <Link to="/login"
+                    className="flex-1 py-3 rounded-xl font-bold text-center text-sm transition-all"
+                    style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid rgba(255,255,255,0.15)' }}>
+                    Login
+                  </Link>
+                  <Link to="/register"
+                    className="flex-1 py-3 rounded-xl font-bold text-center text-sm transition-all"
+                    style={{ background: 'linear-gradient(135deg,#e07000,#ff9010)', color: '#fff' }}>
+                    Register
+                  </Link>
+                </div>
               )}
             </div>
           </motion.div>
