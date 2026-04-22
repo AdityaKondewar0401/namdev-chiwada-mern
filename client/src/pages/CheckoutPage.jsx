@@ -76,8 +76,7 @@ function Field({
         onChange={onChange}
         placeholder={placeholder}
         autoComplete="off"
-        className={`w-full px-4 py-3 rounded-xl border text-sm bg-white text-brown-dark placeholder-brown-mid/40 outline-none transition-all
-        ${
+        className={`w-full px-4 py-3 rounded-xl border text-sm bg-white text-brown-dark placeholder-brown-mid/40 outline-none transition-all ${
           error
             ? 'border-red-400 bg-red-50'
             : 'border-saffron/20 focus:border-saffron focus:ring-2 focus:ring-saffron/10'
@@ -261,10 +260,6 @@ export default function CheckoutPage() {
     }
   }
 
-  /* ===================================
-     FIXED ONLINE PAYMENT FLOW
-     Order only after payment success
-  =================================== */
   async function handleRazorpayPayment() {
     setProcessing(true);
 
@@ -281,7 +276,7 @@ export default function CheckoutPage() {
         return;
       }
 
-      // Step 1: Create Razorpay payment order only
+      // Step 1: create payment order only
       const rzpRes =
         await api.post(
           '/api/payment/create-order',
@@ -306,16 +301,16 @@ export default function CheckoutPage() {
         description:
           'Secure Checkout',
 
-        order_id,
-
         image: '/logo.png',
+
+        order_id,
 
         handler:
           async function (
             response
           ) {
             try {
-              // Step 2: Verify payment
+              // Step 2: verify payment
               const verifyRes =
                 await api.post(
                   '/api/payment/verify',
@@ -333,7 +328,7 @@ export default function CheckoutPage() {
                 verifyRes.data
                   .success
               ) {
-                // Step 3: NOW place real order
+                // Step 3: place real order after success
                 const orderRes =
                   await orderAPI.place(
                     {
@@ -347,6 +342,8 @@ export default function CheckoutPage() {
                         promoApplied
                           ? promoCode
                           : '',
+                      razorpayOrderId:
+                        response.razorpay_order_id,
                       razorpayPaymentId:
                         response.razorpay_payment_id,
                     }
@@ -370,7 +367,7 @@ export default function CheckoutPage() {
               }
             } catch {
               alert(
-                'Verification failed.'
+                'Payment verification failed.'
               );
             } finally {
               setProcessing(
@@ -420,7 +417,7 @@ export default function CheckoutPage() {
         ) {
           alert(
             response.error
-              .description ||
+              ?.description ||
               'Payment failed'
           );
 
@@ -495,16 +492,293 @@ export default function CheckoutPage() {
   return (
     <div className="min-h-screen bg-cream pb-16">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-8">
-        <h1 className="font-serif font-black text-brown-dark mb-8 text-3xl">
+        <h1
+          className="font-serif font-black text-brown-dark mb-8"
+          style={{
+            fontSize:
+              'clamp(1.6rem,3vw,2.2rem)',
+          }}
+        >
           Checkout
         </h1>
 
-        <form
-          onSubmit={
-            handleSubmit
-          }
-        >
-          {/* KEEP YOUR EXISTING JSX BELOW */}
+        <form onSubmit={handleSubmit}>
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            <div className="lg:col-span-3 space-y-6">
+              {/* Address */}
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-saffron/8">
+                <h2 className="font-serif font-bold text-brown-dark text-lg mb-5">
+                  📍 Delivery Address
+                </h2>
+
+                <div className="space-y-4">
+                  <div className="flex gap-3">
+                    <Field
+                      label="Full Name"
+                      name="fullName"
+                      half
+                      value={
+                        address.fullName
+                      }
+                      onChange={
+                        handleAddressChange
+                      }
+                      placeholder="Aditya"
+                      error={
+                        errors.fullName
+                      }
+                    />
+
+                    <Field
+                      label="Phone"
+                      name="phone"
+                      type="tel"
+                      half
+                      value={
+                        address.phone
+                      }
+                      onChange={
+                        handleAddressChange
+                      }
+                      placeholder="9876543210"
+                      error={
+                        errors.phone
+                      }
+                    />
+                  </div>
+
+                  <Field
+                    label="Address Line 1"
+                    name="line1"
+                    value={
+                      address.line1
+                    }
+                    onChange={
+                      handleAddressChange
+                    }
+                    placeholder="House no, street"
+                    error={
+                      errors.line1
+                    }
+                  />
+
+                  <Field
+                    label="Address Line 2"
+                    name="line2"
+                    value={
+                      address.line2
+                    }
+                    onChange={
+                      handleAddressChange
+                    }
+                    placeholder="Landmark"
+                  />
+
+                  <div className="flex gap-3">
+                    <Field
+                      label="City"
+                      name="city"
+                      half
+                      value={
+                        address.city
+                      }
+                      onChange={
+                        handleAddressChange
+                      }
+                      placeholder="Solapur"
+                      error={
+                        errors.city
+                      }
+                    />
+
+                    <Field
+                      label="Pincode"
+                      name="pincode"
+                      half
+                      value={
+                        address.pincode
+                      }
+                      onChange={
+                        handleAddressChange
+                      }
+                      placeholder="413001"
+                      error={
+                        errors.pincode
+                      }
+                    />
+                  </div>
+
+                  <select
+                    name="state"
+                    value={
+                      address.state
+                    }
+                    onChange={
+                      handleAddressChange
+                    }
+                    className="w-full px-4 py-3 rounded-xl border border-saffron/20"
+                  >
+                    {STATES.map(
+                      (s) => (
+                        <option
+                          key={s}
+                        >
+                          {s}
+                        </option>
+                      )
+                    )}
+                  </select>
+                </div>
+              </div>
+
+              {/* Payment */}
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-saffron/8">
+                <h2 className="font-serif font-bold text-brown-dark text-lg mb-5">
+                  💳 Payment Method
+                </h2>
+
+                <div className="space-y-3">
+                  <label className="flex gap-3 p-4 border rounded-xl cursor-pointer">
+                    <input
+                      type="radio"
+                      checked={
+                        paymentMethod ===
+                        'razorpay'
+                      }
+                      onChange={() =>
+                        setPaymentMethod(
+                          'razorpay'
+                        )
+                      }
+                    />
+                    Pay Online
+                  </label>
+
+                  <label className="flex gap-3 p-4 border rounded-xl cursor-pointer">
+                    <input
+                      type="radio"
+                      checked={
+                        paymentMethod ===
+                        'cod'
+                      }
+                      onChange={() =>
+                        setPaymentMethod(
+                          'cod'
+                        )
+                      }
+                    />
+                    Cash on Delivery
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* Summary */}
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-saffron/8">
+                <h2 className="font-serif font-bold text-brown-dark text-lg mb-5">
+                  🧾 Order Summary
+                </h2>
+
+                <div className="space-y-3 mb-5">
+                  {cart.map(
+                    (
+                      item,
+                      i
+                    ) => (
+                      <div
+                        key={i}
+                        className="flex justify-between"
+                      >
+                        <span>
+                          {
+                            item.name
+                          }{' '}
+                          ×{' '}
+                          {
+                            item.qty
+                          }
+                        </span>
+                        <span>
+                          ₹
+                          {(
+                            item.price *
+                            item.qty
+                          ).toLocaleString()}
+                        </span>
+                      </div>
+                    )
+                  )}
+                </div>
+
+                <div className="space-y-2 text-sm mb-6">
+                  <div className="flex justify-between">
+                    <span>
+                      Subtotal
+                    </span>
+                    <span>
+                      ₹
+                      {subtotal.toLocaleString()}
+                    </span>
+                  </div>
+
+                  {discount >
+                    0 && (
+                    <div className="flex justify-between text-green-600">
+                      <span>
+                        Discount
+                      </span>
+                      <span>
+                        -₹
+                        {discount.toLocaleString()}
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="flex justify-between">
+                    <span>
+                      Shipping
+                    </span>
+                    <span>
+                      {shipping ===
+                      0
+                        ? 'FREE'
+                        : `₹${shipping}`}
+                    </span>
+                  </div>
+
+                  <div className="border-t pt-2 flex justify-between font-bold">
+                    <span>
+                      Total
+                    </span>
+                    <span>
+                      ₹
+                      {total.toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={
+                    processing
+                  }
+                  className="w-full py-4 rounded-full font-bold text-white"
+                  style={{
+                    background:
+                      'linear-gradient(135deg,#e07000,#ff9010)',
+                  }}
+                >
+                  {processing
+                    ? 'Processing...'
+                    : paymentMethod ===
+                      'razorpay'
+                    ? `Pay ₹${total.toLocaleString()}`
+                    : `Place Order ₹${total.toLocaleString()}`}
+                </button>
+              </div>
+            </div>
+          </div>
         </form>
       </div>
     </div>
