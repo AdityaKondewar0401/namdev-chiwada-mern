@@ -174,8 +174,6 @@ function FeaturesSection() {
 }
 
 // ── Legacy Glimpse Section ─────────────────────────────
-// Matches the screenshot exactly: bold white + gold headline, milestone
-// row with connecting line, and an always-visible saffron "Read more →" button.
 function LegacyGlimpseSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-60px' });
@@ -210,7 +208,6 @@ function LegacyGlimpseSection() {
             Our Story · Since 1873
           </div>
 
-          {/* Headline — bold white + gold, matches screenshot */}
           <h2
             className="font-serif font-black leading-tight mb-3"
             style={{ fontSize: 'clamp(1.6rem, 4vw, 2.4rem)', color: '#ffffff' }}
@@ -228,33 +225,34 @@ function LegacyGlimpseSection() {
               maxWidth: '400px',
             }}
           >
-            Started by one man with nothing but hard work. Six generations later,<br className="hidden sm:block" />
+            Started by one man with nothing but hard work. Six generations later,{' '}
             the same taste — unchanged.
           </p>
         </motion.div>
 
         {/* Milestones */}
         <div className="relative mt-8 mb-7">
-          {/* Connecting line */}
+
+          {/* ── Connecting line: visible on ALL screen sizes ── */}
           <div
-            className="hidden sm:block absolute"
+            className="absolute"
             style={{
               top: '19px',
-              left: '9%',
-              right: '9%',
+              left: 'calc(10% + 19px)',   /* start at centre of first icon */
+              right: 'calc(10% + 19px)',  /* end at centre of last icon */
               height: '1px',
-              background: 'rgba(212,175,55,0.22)',
+              background: 'rgba(212,175,55,0.30)',
             }}
           />
 
-          <div className="grid grid-cols-5 gap-2 sm:gap-4">
+          <div className="grid grid-cols-5 gap-1 sm:gap-4">
             {milestones.map((m, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 20 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ delay: 0.1 + i * 0.1, duration: 0.5 }}
-                className="flex flex-col items-center text-center relative z-10 gap-2"
+                className="flex flex-col items-center text-center relative z-10 gap-1 sm:gap-2"
               >
                 {/* Icon circle */}
                 <div
@@ -264,20 +262,34 @@ function LegacyGlimpseSection() {
                     height: '38px',
                     borderRadius: '50%',
                     background: '#3d1c00',
-                    border: '1px solid rgba(212,175,55,0.28)',
+                    border: '1px solid rgba(212,175,55,0.40)',
                     fontSize: '15px',
                   }}
                 >
                   {m.icon}
                 </div>
+
+                {/* Label */}
                 <div
                   className="font-semibold leading-snug"
-                  style={{ fontSize: 'clamp(0.6rem, 1.4vw, 0.72rem)', color: 'rgba(255,255,255,0.82)' }}
+                  style={{
+                    fontSize: 'clamp(0.55rem, 1.3vw, 0.72rem)',
+                    color: 'rgba(255,255,255,0.82)',
+                    wordBreak: 'break-word',
+                    hyphens: 'auto',
+                  }}
                 >
                   {m.label}
                 </div>
+
+                {/* Sub-label */}
                 <div
-                  style={{ fontSize: 'clamp(0.55rem, 1.2vw, 0.65rem)', color: 'rgba(255,255,255,0.32)', lineHeight: 1.3 }}
+                  style={{
+                    fontSize: 'clamp(0.5rem, 1.1vw, 0.65rem)',
+                    color: 'rgba(255,255,255,0.32)',
+                    lineHeight: 1.3,
+                    wordBreak: 'break-word',
+                  }}
                 >
                   {m.sub}
                 </div>
@@ -311,7 +323,6 @@ function LegacyGlimpseSection() {
             </div>
           </div>
 
-          {/* Button — always saffron/amber, visible without hover */}
           <Link
             to="/about"
             className="flex-shrink-0 flex items-center gap-2 font-semibold transition-opacity hover:opacity-80"
