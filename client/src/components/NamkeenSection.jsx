@@ -415,9 +415,46 @@ export default function NamkeenSection() {
           '#fffdf7',
       }}
     >
+      {/* Top line */}
+      <div
+        className="absolute top-0 left-0 right-0 h-px"
+        style={{
+          background:
+            'linear-gradient(90deg,transparent,#d4af37,transparent)',
+        }}
+      />
+
+      {/* Bottom line */}
+      <div
+        className="absolute bottom-0 left-0 right-0 h-px"
+        style={{
+          background:
+            'linear-gradient(90deg,transparent,#d4af37,transparent)',
+        }}
+      />
+
       <div className="max-w-7xl mx-auto px-6">
         {/* Header */}
         <div className="text-center mb-14">
+          {/* Decorative divider */}
+          <div className="flex items-center justify-center gap-4 mb-5">
+            <div
+              className="h-px w-16 sm:w-24"
+              style={{
+                background:
+                  'linear-gradient(to right,transparent,#d4af37)',
+              }}
+            />
+            <span className="text-xl">🌾</span>
+            <div
+              className="h-px w-16 sm:w-24"
+              style={{
+                background:
+                  'linear-gradient(to left,transparent,#d4af37)',
+              }}
+            />
+          </div>
+
           <div
             className="text-xs font-bold tracking-widest uppercase mb-3"
             style={{
