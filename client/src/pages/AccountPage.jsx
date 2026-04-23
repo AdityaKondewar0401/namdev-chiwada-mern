@@ -56,9 +56,10 @@ function ProfileTab({ user, onUpdate }) {
             : user?.name?.charAt(0).toUpperCase()
           }
         </div>
-        <div>
-          <div className="font-serif font-black text-brown-dark text-xl">{user?.name}</div>
-          <div className="text-sm text-brown-mid/60 mt-0.5">{user?.email}</div>
+        {/* FIX 1: min-w-0 so flex child can shrink; break-all on email */}
+        <div className="min-w-0 flex-1">
+          <div className="font-serif font-black text-brown-dark text-xl truncate">{user?.name}</div>
+          <div className="text-sm text-brown-mid/60 mt-0.5 break-all">{user?.email}</div>
           <div className="inline-flex items-center gap-1.5 mt-2 px-3 py-1 rounded-full text-xs font-bold"
             style={{ background: user?.role === 'admin' ? '#fef3c7' : '#f0fdf4', color: user?.role === 'admin' ? '#92400e' : '#166534' }}>
             <span className="w-1.5 h-1.5 rounded-full" style={{ background: user?.role === 'admin' ? '#f59e0b' : '#22c55e' }} />
@@ -101,7 +102,7 @@ function ProfileTab({ user, onUpdate }) {
                   onBlur={e => e.target.style.borderColor = 'rgba(224,112,0,0.3)'}
                 />
               ) : (
-                <div className="px-3 py-2.5 rounded-xl text-sm text-brown-dark"
+                <div className="px-3 py-2.5 rounded-xl text-sm text-brown-dark break-all"
                   style={{ background: '#fef3e0' }}>
                   {value || '—'}
                 </div>
@@ -485,9 +486,10 @@ export default function AccountPage() {
                   : user.name?.charAt(0).toUpperCase()
                 }
               </div>
-              <div>
+              {/* FIX 2: min-w-0 so flex child can shrink; break-all on email */}
+              <div className="min-w-0 flex-1">
                 <h1 className="font-serif font-black text-white text-2xl">Hello, {user.name?.split(' ')[0]}! 👋</h1>
-                <p className="text-white/60 text-sm">{user.email}</p>
+                <p className="text-white/60 text-sm break-all">{user.email}</p>
               </div>
             </div>
           </div>
