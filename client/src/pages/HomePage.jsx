@@ -81,7 +81,7 @@ function HeroSection() {
                 Shop Now →
               </button>
               <button
-                onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
+                onClick={() => navigate('/about')}
                 className="btn-outline w-[40%] font-poppins text-sm md:text-base px-4 py-3 md:px-8 md:py-3.5 text-center">
                 Our Story
               </button>
