@@ -148,10 +148,10 @@ export default function CartPage() {
                                 item.qty === 1
                                   ? removeFromCart(item._id)
                                   : updateQuantity(
-                                      item.product,
-                                      item.size,
-                                      item.qty - 1
-                                    )
+                                    item.product,
+                                    item.size,
+                                    item.qty - 1
+                                  )
                               }
                               className="w-7 h-7 rounded-full border border-saffron/40 text-saffron font-bold flex items-center justify-center hover:bg-saffron hover:text-white transition-all text-sm"
                             >
@@ -239,9 +239,8 @@ export default function CartPage() {
                 <div className="flex justify-between">
                   <span className="text-brown-mid/70">Delivery</span>
                   <span
-                    className={`font-semibold ${
-                      effectiveShipping === 0 ? 'text-leaf' : ''
-                    }`}
+                    className={`font-semibold ${effectiveShipping === 0 ? 'text-leaf' : ''
+                      }`}
                   >
                     {effectiveShipping === 0 ? 'FREE' : `₹${effectiveShipping}`}
                   </span>
@@ -316,6 +315,87 @@ export default function CartPage() {
               >
                 Proceed to Checkout →
               </button>
+              {/* Razorpay Trusted Business Badge */}
+              <div className="mt-4 rounded-2xl overflow-hidden"
+                style={{ border: '1.5px solid #c8d8f5', background: 'linear-gradient(135deg,#eef3fd,#f0f7ff)' }}>
+                <div className="flex items-center gap-4 p-4">
+
+                  {/* Left — Shield logo + text */}
+                  <div className="flex flex-col items-center flex-shrink-0 min-w-[90px]">
+                    {/* Razorpay Shield SVG */}
+                    <svg width="52" height="58" viewBox="0 0 52 58" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M26 2L4 12V28C4 40.5 13.5 52.1 26 56C38.5 52.1 48 40.5 48 28V12L26 2Z"
+                        fill="url(#shieldGrad)" />
+                      <defs>
+                        <linearGradient id="shieldGrad" x1="4" y1="2" x2="48" y2="56" gradientUnits="userSpaceOnUse">
+                          <stop offset="0%" stopColor="#34d45a" />
+                          <stop offset="100%" stopColor="#1a9e38" />
+                        </linearGradient>
+                      </defs>
+                      <path d="M26 8L8 17V29C8 39.5 16 49.2 26 52.5C36 49.2 44 39.5 44 29V17L26 8Z"
+                        fill="white" fillOpacity="0.15" />
+                      {/* Razorpay R lightning bolt */}
+                      <path d="M22 18h8l-4 8h5L20 40l3-12h-5l4-10z"
+                        fill="white" />
+                    </svg>
+
+                    <div className="mt-1 text-center">
+                      <div style={{ color: '#1a3b8f', fontWeight: 800, fontSize: '0.8rem', fontStyle: 'italic' }}>
+                        Razorpay
+                      </div>
+                      <div style={{ color: '#2770ef', fontWeight: 700, fontSize: '0.65rem' }}>
+                        Trusted Business
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="w-px self-stretch" style={{ background: '#c8d8f5' }} />
+
+                  {/* Right — Trust points */}
+                  <div className="flex flex-col gap-3 flex-1">
+
+                    {/* Verified Business */}
+                    <div className="flex items-center gap-2.5">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10" stroke="#2770ef" strokeWidth="1.8" />
+                        <path d="M8 12l3 3 5-5" stroke="#2770ef" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M12 2C8 2 5 4 4 7" stroke="#2770ef" strokeWidth="1.5" strokeLinecap="round" opacity="0.4" />
+                      </svg>
+                      <p style={{ fontSize: '0.82rem', color: '#1a1a2e' }}>
+                        <span style={{ fontWeight: 700 }}>Verified</span>
+                        <span style={{ color: '#555', fontWeight: 400 }}> Business</span>
+                      </p>
+                    </div>
+
+                    {/* Secured Payments */}
+                    <div className="flex items-center gap-2.5">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 2L4 6v6c0 5.5 3.5 10.7 8 12 4.5-1.3 8-6.5 8-12V6L12 2z"
+                          stroke="#2770ef" strokeWidth="1.8" strokeLinejoin="round" />
+                        <path d="M9 12l2 2 4-4" stroke="#2770ef" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      <p style={{ fontSize: '0.82rem', color: '#1a1a2e' }}>
+                        <span style={{ fontWeight: 700 }}>Secured</span>
+                        <span style={{ color: '#555', fontWeight: 400 }}> Payments</span>
+                      </p>
+                    </div>
+
+                    {/* Prompt Support */}
+                    <div className="flex items-center gap-2.5">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10" stroke="#2770ef" strokeWidth="1.8" />
+                        <path d="M12 6v6l4 2" stroke="#2770ef" strokeWidth="2" strokeLinecap="round" />
+                      </svg>
+                      <p style={{ fontSize: '0.82rem', color: '#1a1a2e' }}>
+                        <span style={{ fontWeight: 700 }}>Prompt</span>
+                        <span style={{ color: '#555', fontWeight: 400 }}> Support</span>
+                      </p>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
 
               <div className="text-center text-xs text-brown-mid/50">
                 🔒 Secure Checkout · 📦 Fast Delivery
