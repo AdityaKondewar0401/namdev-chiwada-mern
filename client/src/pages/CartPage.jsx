@@ -315,9 +315,12 @@ export default function CartPage() {
               >
                 Proceed to Checkout →
               </button>
+
               {/* Razorpay Trusted Business Badge */}
-              <div className="mt-4 rounded-2xl overflow-hidden"
-                style={{ border: '1.5px solid #c8d8f5', background: 'linear-gradient(135deg,#eef3fd,#f0f7ff)' }}>
+              <div
+                className="mt-4 mb-4 rounded-2xl overflow-hidden"
+                style={{ border: '1.5px solid #c8d8f5', background: 'linear-gradient(135deg,#eef3fd,#f0f7ff)' }}
+              >
                 <div className="flex items-center gap-4 p-4">
 
                   {/* Left — Shield logo + text */}
@@ -397,7 +400,8 @@ export default function CartPage() {
                 </div>
               </div>
 
-              <div className="text-center text-xs text-brown-mid/50">
+              {/* ✅ FIX: added mt-4 for breathing room above this line */}
+              <div className="mt-4 text-center text-xs text-brown-mid/50">
                 🔒 Secure Checkout · 📦 Fast Delivery
               </div>
 
