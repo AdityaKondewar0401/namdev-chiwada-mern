@@ -80,15 +80,15 @@ export default function Navbar() {
       {/* ── Main Navbar — Pill Shape ── */}
       <nav
         className={`sticky top-0 left-0 right-0 z-40 transition-all duration-200 ${menuOpen ? 'invisible opacity-0' : 'visible opacity-100'}`}
-        style={{ background: 'transparent', padding: '10px 16px' }}>
+        style={{ background: 'transparent', padding: '8px 24px' }}>
 
         <div
-          className="max-w-7xl mx-auto flex items-center justify-between px-4 md:px-8"
+          className="max-w-7xl mx-auto flex items-center justify-between px-5 md:px-8"
           style={{
-            minHeight: 70,
+            minHeight: 64,
             background: '#fff',
             borderRadius: 999,
-            boxShadow: '0 4px 24px rgba(45,26,0,0.10), 0 1px 0 rgba(255,255,255,0.9) inset',
+            boxShadow: '0 2px 16px rgba(45,26,0,0.08)',
             border: '1px solid rgba(224,112,0,0.1)',
           }}>
 
@@ -98,7 +98,7 @@ export default function Navbar() {
               src="/images/logo.png"
               alt="Namdev Chiwada"
               className="transition-transform duration-300 group-hover:scale-105"
-              style={{ height: '75px', width: '140px', objectFit: 'contain', imageRendering: '-webkit-optimize-contrast' }}
+              style={{ height: '55px', width: '120px', objectFit: 'contain', imageRendering: '-webkit-optimize-contrast' }}
             />
           </Link>
 
