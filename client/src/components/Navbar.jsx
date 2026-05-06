@@ -77,9 +77,20 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* ── Main Navbar ── */}
-      <nav className={`sticky top-0 left-0 right-0 z-40 bg-white border-b border-gray-100 shadow-sm transition-all duration-200 ${menuOpen ? 'invisible opacity-0' : 'visible opacity-100'}`}>
-        <div className="max-w-7xl mx-auto flex items-center justify-between px-8" style={{ minHeight: 80 }}>
+      {/* ── Main Navbar — Pill Shape ── */}
+      <nav
+        className={`sticky top-0 left-0 right-0 z-40 transition-all duration-200 ${menuOpen ? 'invisible opacity-0' : 'visible opacity-100'}`}
+        style={{ background: 'transparent', padding: '10px 16px' }}>
+
+        <div
+          className="max-w-7xl mx-auto flex items-center justify-between px-4 md:px-8"
+          style={{
+            minHeight: 70,
+            background: '#fff',
+            borderRadius: 999,
+            boxShadow: '0 4px 24px rgba(45,26,0,0.10), 0 1px 0 rgba(255,255,255,0.9) inset',
+            border: '1px solid rgba(224,112,0,0.1)',
+          }}>
 
           {/* Logo */}
           <Link to="/" className="flex items-center group flex-shrink-0">
@@ -87,7 +98,7 @@ export default function Navbar() {
               src="/images/logo.png"
               alt="Namdev Chiwada"
               className="transition-transform duration-300 group-hover:scale-105"
-              style={{ height: '95px', width: '160px', objectFit: 'contain', imageRendering: '-webkit-optimize-contrast' }}
+              style={{ height: '75px', width: '140px', objectFit: 'contain', imageRendering: '-webkit-optimize-contrast' }}
             />
           </Link>
 
@@ -108,12 +119,15 @@ export default function Navbar() {
 
           {/* Desktop Right Actions */}
           <div className="hidden md:flex items-center gap-4 flex-shrink-0">
+
+            {/* Search */}
             <button className="text-brown-dark hover:text-saffron transition-colors p-2">
               <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
               </svg>
             </button>
 
+            {/* Cart */}
             <Link to="/cart" className="relative p-2 text-brown-dark hover:text-saffron transition-colors">
               <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0" />
@@ -125,10 +139,11 @@ export default function Navbar() {
               )}
             </Link>
 
+            {/* User dropdown / Login */}
             {user ? (
               <div className="relative group">
                 <button className="flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-200 hover:bg-saffron/8 border border-transparent hover:border-saffron/20">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 overflow-hidden"
                     style={{ background: 'linear-gradient(135deg,#e07000,#ff9010)' }}>
                     {user.avatar
                       ? <img src={user.avatar} alt={user.name} className="w-8 h-8 rounded-full object-cover" />
@@ -144,6 +159,7 @@ export default function Navbar() {
                   </svg>
                 </button>
 
+                {/* Dropdown */}
                 <div className="absolute right-0 top-full mt-2 w-56 rounded-2xl overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50"
                   style={{ boxShadow: '0 16px 48px rgba(45,26,0,0.15)', border: '1px solid rgba(224,112,0,0.1)', background: '#fff' }}>
                   <div className="px-4 py-3 border-b border-saffron/10"
@@ -175,7 +191,9 @@ export default function Navbar() {
                 </div>
               </div>
             ) : (
-              <Link to="/login" className="text-sm font-semibold text-brown-mid hover:text-saffron transition-colors">
+              <Link to="/login"
+                className="text-sm font-semibold px-5 py-2 rounded-full transition-all hover:-translate-y-0.5"
+                style={{ background: 'linear-gradient(135deg,#e07000,#ff9010)', color: '#fff', boxShadow: '0 4px 14px rgba(224,112,0,0.3)' }}>
                 Login
               </Link>
             )}
@@ -201,6 +219,7 @@ export default function Navbar() {
               <span className={`block w-6 h-0.5 bg-brown-dark transition-all duration-300 ${menuOpen ? '-translate-y-2 -rotate-45' : ''}`} />
             </button>
           </div>
+
         </div>
       </nav>
 
@@ -208,7 +227,7 @@ export default function Navbar() {
       <AnimatePresence>
         {menuOpen && (
           <>
-            {/* Dark backdrop — tap to close */}
+            {/* Dark backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -250,7 +269,7 @@ export default function Navbar() {
                 </button>
               </div>
 
-              {/* Scrollable content area */}
+              {/* Scrollable content */}
               <div className="flex-1 overflow-y-auto px-3 py-3">
 
                 {/* Nav links */}
@@ -283,7 +302,6 @@ export default function Navbar() {
                 {/* Auth section */}
                 {user ? (
                   <div className="flex flex-col gap-0.5">
-                    {/* User info */}
                     <div className="flex items-center gap-3 px-4 py-3 mb-2 rounded-xl"
                       style={{ background: 'rgba(224,112,0,0.15)', border: '1px solid rgba(224,112,0,0.25)' }}>
                       <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-base flex-shrink-0"
@@ -303,19 +321,13 @@ export default function Navbar() {
                         ⚙️ Admin Panel
                       </Link>
                     )}
-                    <Link to="/account"
-                      className="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm transition-all"
-                      style={{ color: 'rgba(255,255,255,0.9)' }}>
+                    <Link to="/account" className="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm" style={{ color: 'rgba(255,255,255,0.9)' }}>
                       👤 My Account
                     </Link>
-                    <Link to="/orders"
-                      className="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm transition-all"
-                      style={{ color: 'rgba(255,255,255,0.9)' }}>
+                    <Link to="/orders" className="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm" style={{ color: 'rgba(255,255,255,0.9)' }}>
                       📦 My Orders
                     </Link>
-                    <Link to="/cart"
-                      className="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm transition-all"
-                      style={{ color: 'rgba(255,255,255,0.9)' }}>
+                    <Link to="/cart" className="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm" style={{ color: 'rgba(255,255,255,0.9)' }}>
                       🛒 My Cart
                       {totalItems > 0 && (
                         <span className="ml-auto w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center flex-shrink-0">
@@ -326,9 +338,8 @@ export default function Navbar() {
 
                     <div className="h-px mx-2 my-2" style={{ background: 'rgba(255,255,255,0.08)' }} />
 
-                    <button
-                      onClick={logout}
-                      className="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm text-left w-full transition-all"
+                    <button onClick={logout}
+                      className="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm text-left w-full"
                       style={{ color: '#fca5a5' }}>
                       🚪 Logout
                     </button>
