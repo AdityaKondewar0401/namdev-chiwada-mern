@@ -22,8 +22,46 @@ const TESTIMONIALS = [
   { name: 'Umesh Chakure', city: 'Latur', text: 'The Dagdi Chiwada is perfectly crispy with just the right amount of spice. Love it!', rating: 5 },
 ];
 
+const PRODUCTS = [
+  {
+    img: 'https://res.cloudinary.com/dz7ykg6qr/image/upload/v1776256647/special1_sy4zxa.png',
+    name: 'Special Chiwada',
+  },
+  {
+    img: 'https://res.cloudinary.com/dz7ykg6qr/image/upload/v1778141952/maka-chiwada-Photoroom_efq78h.png', // 👈 replace
+    name: 'Maka Chiwada',
+  },
+  {
+    img: 'https://res.cloudinary.com/dz7ykg6qr/image/upload/v1778141952/bakarwadii-Photoroom_wqk7o0.png', // 👈 replace
+    name: 'Bakarwadi',
+  },
+  {
+    img: 'https://res.cloudinary.com/dz7ykg6qr/image/upload/v1778141952/farsan_1_-Photoroom_hsdpb5.png', // 👈 replace
+    name: 'Farsan',
+  },
+];
+
 function HeroSection() {
   const navigate = useNavigate();
+  const [current, setCurrent] = useState(0);
+  const [flipping, setFlipping] = useState(false);
+  const [displayIndex, setDisplayIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setFlipping(true);
+      setTimeout(() => {
+        setCurrent((prev) => {
+          const next = (prev + 1) % PRODUCTS.length;
+          setDisplayIndex(next);
+          return next;
+        });
+        setFlipping(false);
+      }, 400);
+    }, 2800);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <section
       className="hero-gradient relative overflow-hidden flex items-center -mt-4 md:-mt-9"
@@ -32,6 +70,7 @@ function HeroSection() {
       <div className="absolute inset-0 opacity-5 pointer-events-none"
         style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ccircle cx='30' cy='30' r='28' fill='none' stroke='%23fff' stroke-width='0.5'/%3E%3C/svg%3E\")" }} />
       <div className="absolute bottom-0 left-0 right-0 h-24 md:h-32 bg-gradient-to-t from-brown-dark/70 to-transparent pointer-events-none z-10" />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-0 pb-6 md:pt-1 md:pb-8 w-full relative z-10">
         <div className="flex flex-col md:grid md:grid-cols-2 md:gap-8 md:items-start">
 
@@ -101,24 +140,101 @@ function HeroSection() {
             </motion.div>
           </div>
 
-          {/* RIGHT — image */}
+          {/* RIGHT — Flip Carousel */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="flex items-center justify-center relative order-1 md:order-2 scale-[2.35] md:-translate-y-20 md:scale-[1.98]">
-            <div className="hidden md:block absolute w-[110%] h-[110%] rounded-full border-2 border-dashed border-white/15 animate-spinSlow" />
-            <img
-              src="https://res.cloudinary.com/dz7ykg6qr/image/upload/v1776256647/special1_sy4zxa.png"
-              alt="Namdev Chiwada — Premium Namkeen"
-              className="relative z-10 animate-float w-auto"
+            className="flex flex-col items-center justify-center relative order-1 md:order-2"
+            style={{ perspective: '1200px' }}
+          >
+            {/* Spinning dashed ring */}
+            <div className="hidden md:block absolute"
               style={{
-                width: 'clamp(390px, 102vw, 836px)',
-                maxWidth: 'none',
-                filter: 'drop-shadow(0 22px 40px rgba(0,0,0,0.42))',
+                width: '420px',
+                height: '420px',
+                borderRadius: '50%',
+                border: '2px dashed rgba(255,255,255,0.15)',
+                animation: 'spinSlow 18s linear infinite',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
               }}
             />
+
+            {/* Flip card */}
+            <div
+              style={{
+                transformStyle: 'preserve-3d',
+                animation: flipping ? 'none' : 'heroFloat 3.5s ease-in-out infinite',
+                transform: flipping ? 'rotateY(90deg)' : 'rotateY(0deg)',
+                transition: 'transform 0.4s cubic-bezier(0.4,0,0.2,1)',
+                willChange: 'transform',
+              }}
+            >
+              <img
+                key={displayIndex}
+                src={PRODUCTS[displayIndex].img}
+                alt={PRODUCTS[displayIndex].name}
+                style={{
+                  width: 'clamp(280px, 55vw, 520px)',
+                  maxWidth: 'none',
+                  filter: 'drop-shadow(0 22px 40px rgba(0,0,0,0.42))',
+                  display: 'block',
+                }}
+              />
+            </div>
+
+            {/* Product name label */}
+            <motion.div
+              key={`label-${displayIndex}`}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="mt-3 md:mt-4 text-center"
+            >
+              <span
+                className="inline-block px-4 py-1.5 rounded-full font-semibold tracking-wide"
+                style={{
+                  background: 'rgba(255,255,255,0.12)',
+                  border: '1px solid rgba(255,255,255,0.22)',
+                  color: '#ffd89b',
+                  fontSize: 'clamp(0.75rem, 1.6vw, 0.9rem)',
+                  backdropFilter: 'blur(6px)',
+                }}>
+                {PRODUCTS[displayIndex].name}
+              </span>
+            </motion.div>
+
+            {/* Dot indicators */}
+            <div className="flex gap-2 mt-3">
+              {PRODUCTS.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => {
+                    setFlipping(true);
+                    setTimeout(() => {
+                      setCurrent(i);
+                      setDisplayIndex(i);
+                      setFlipping(false);
+                    }, 400);
+                  }}
+                  style={{
+                    width: i === current ? '20px' : '7px',
+                    height: '7px',
+                    borderRadius: '4px',
+                    background: i === current ? '#ffd89b' : 'rgba(255,255,255,0.35)',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: 0,
+                    transition: 'all 0.3s ease',
+                  }}
+                  aria-label={`View ${PRODUCTS[i].name}`}
+                />
+              ))}
+            </div>
           </motion.div>
+
         </div>
       </div>
     </section>
@@ -173,7 +289,6 @@ function FeaturesSection() {
   );
 }
 
-// ── Legacy Glimpse Section ─────────────────────────────
 function LegacyGlimpseSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-60px' });
@@ -194,7 +309,6 @@ function LegacyGlimpseSection() {
     >
       <div className="max-w-5xl mx-auto px-4 sm:px-6">
 
-        {/* Eyebrow */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
@@ -230,16 +344,13 @@ function LegacyGlimpseSection() {
           </p>
         </motion.div>
 
-        {/* Milestones */}
         <div className="relative mt-8 mb-7">
-
-          {/* ── Connecting line: visible on ALL screen sizes ── */}
           <div
             className="absolute"
             style={{
               top: '19px',
-              left: 'calc(10% + 19px)',   /* start at centre of first icon */
-              right: 'calc(10% + 19px)',  /* end at centre of last icon */
+              left: 'calc(10% + 19px)',
+              right: 'calc(10% + 19px)',
               height: '1px',
               background: 'rgba(212,175,55,0.30)',
             }}
@@ -254,7 +365,6 @@ function LegacyGlimpseSection() {
                 transition={{ delay: 0.1 + i * 0.1, duration: 0.5 }}
                 className="flex flex-col items-center text-center relative z-10 gap-1 sm:gap-2"
               >
-                {/* Icon circle */}
                 <div
                   className="flex items-center justify-center flex-shrink-0"
                   style={{
@@ -268,8 +378,6 @@ function LegacyGlimpseSection() {
                 >
                   {m.icon}
                 </div>
-
-                {/* Label */}
                 <div
                   className="font-semibold leading-snug"
                   style={{
@@ -281,8 +389,6 @@ function LegacyGlimpseSection() {
                 >
                   {m.label}
                 </div>
-
-                {/* Sub-label */}
                 <div
                   style={{
                     fontSize: 'clamp(0.5rem, 1.1vw, 0.65rem)',
@@ -298,7 +404,6 @@ function LegacyGlimpseSection() {
           </div>
         </div>
 
-        {/* CTA card */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
