@@ -212,7 +212,7 @@ function HeroSection() {
             className="relative order-1 md:order-2 flex flex-col items-center justify-center"
             onTouchStart={onTouchStart}
             onTouchEnd={onTouchEnd}
-            style={{ minHeight: 'clamp(320px, 55vw, 620px)' }}
+            style={{ minHeight: 'clamp(420px, 65vw, 760px)' }}
           >
             {/* Outer glow halo behind packet */}
             <div style={{
@@ -265,7 +265,7 @@ function HeroSection() {
                     src={PRODUCTS[current].img}
                     alt="Namdev Chiwada product"
                     style={{
-                      width: 'clamp(300px, 48vw, 580px)',
+                      width: 'clamp(380px, 62vw, 720px)',
                       maxWidth: 'none',
                       filter: 'drop-shadow(0 32px 60px rgba(0,0,0,0.55)) drop-shadow(0 8px 20px rgba(212,168,55,0.2))',
                       display: 'block',
