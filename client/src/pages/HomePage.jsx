@@ -135,7 +135,7 @@ function HeroSection() {
       {/* Spice decorations */}
       <SpiceDecorations />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-0 pb-6 md:pt-1 md:pb-8 w-full relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-0 pb-4 md:pt-0 md:pb-4 w-full relative z-10">
         <div className="flex flex-col md:grid md:grid-cols-2 md:gap-8 md:items-center">
 
           {/* LEFT — text */}
@@ -212,7 +212,7 @@ function HeroSection() {
             className="relative order-1 md:order-2 flex flex-col items-center justify-center"
             onTouchStart={onTouchStart}
             onTouchEnd={onTouchEnd}
-            style={{ minHeight: 'clamp(420px, 65vw, 760px)' }}
+            style={{ minHeight: 'clamp(380px, 52vw, 620px)' }}
           >
             {/* Outer glow halo behind packet */}
             <div style={{
@@ -265,7 +265,7 @@ function HeroSection() {
                     src={PRODUCTS[current].img}
                     alt="Namdev Chiwada product"
                     style={{
-                      width: 'clamp(380px, 62vw, 720px)',
+                      width: 'clamp(340px, 44vw, 600px)',
                       maxWidth: 'none',
                       filter: 'drop-shadow(0 32px 60px rgba(0,0,0,0.55)) drop-shadow(0 8px 20px rgba(212,168,55,0.2))',
                       display: 'block',
