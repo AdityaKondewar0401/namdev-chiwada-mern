@@ -143,6 +143,10 @@
   0%   { transform: translate(-50%, -50%) rotate(0deg); }
   100% { transform: translate(-50%, -50%) rotate(360deg); }
 }
+@keyframes spiceFloat {
+  0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.5; }
+  50%       { transform: translateY(-10px) rotate(20deg); opacity: 0.9; }
+}
 /* ───────────────────────────────────────────
    GPU ACCELERATION & SMOOTH ANIMATION LAYER
    ─────────────────────────────────────────── */
