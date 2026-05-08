@@ -75,8 +75,7 @@ function HeroSection() {
     <section
       className="hero-gradient relative flex items-center -mt-4 md:-mt-9"
       style={{
-        minHeight: 'clamp(560px, 100svh, 100vh)',
-        // KEY: overflow visible so packet can grow beyond section bounds
+        minHeight: '100svh',
         overflow: 'visible',
       }}>
 
@@ -134,11 +133,12 @@ function HeroSection() {
         <div className="flex flex-col md:grid md:items-center" style={{
           gridTemplateColumns: '1fr 1fr',
           gap: 0,
+          minHeight: 'calc(100svh - 120px)',
         }}>
 
           {/* ── LEFT — Text (position fixed, never moves) ── */}
-          <div className="text-center md:text-left order-2 md:order-1 pb-6 md:pb-12"
-            style={{ position: 'relative', zIndex: 20 }}>
+          <div className="text-center md:text-left order-2 md:order-1"
+            style={{ position: 'relative', zIndex: 20, paddingTop: 'clamp(40px, 8vh, 100px)', paddingBottom: 'clamp(40px, 6vh, 80px)' }}>
 
             {/* Eyebrow */}
             <motion.div
