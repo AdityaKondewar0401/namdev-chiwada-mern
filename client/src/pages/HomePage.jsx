@@ -1,9 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
-import { productAPI } from '../services/api';
-import ProductCard from '../components/ProductCard';
-import { ProductSkeleton } from '../components/Skeletons';
 import useReveal from '../hooks/useReveal';
 import NamkeenSection from '../components/NamkeenSection';
 import PageWrapper from '../components/PageWrapper';
@@ -29,52 +26,8 @@ const PRODUCTS = [
   { img: 'https://res.cloudinary.com/dz7ykg6qr/image/upload/v1778141952/farsan_1_-Photoroom_hsdpb5.png' },
 ];
 
-// Preload all images on mount so there's zero lag on swap
 function preloadImages() {
   PRODUCTS.forEach(p => { const img = new Image(); img.src = p.img; });
-}
-
-// Decorative spice SVG blobs — purely CSS animated, no JS
-function SpiceDecorations() {
-  return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 2 }}>
-      {/* Large blurred golden orb top-right */}
-      <div style={{
-        position: 'absolute', top: '-80px', right: '-60px',
-        width: '340px', height: '340px', borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(212,168,55,0.18) 0%, transparent 70%)',
-      }} />
-      {/* Medium orb bottom-left */}
-      <div style={{
-        position: 'absolute', bottom: '60px', left: '-80px',
-        width: '260px', height: '260px', borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(224,112,0,0.14) 0%, transparent 70%)',
-      }} />
-      {/* Floating spice particles */}
-      {[
-        { top: '18%', left: '54%', size: 7, delay: '0s', dur: '4.2s', emoji: '✦' },
-        { top: '72%', left: '58%', size: 5, delay: '1.1s', dur: '5s', emoji: '✦' },
-        { top: '30%', left: '88%', size: 9, delay: '0.5s', dur: '3.8s', emoji: '✦' },
-        { top: '60%', left: '82%', size: 6, delay: '2s', dur: '4.5s', emoji: '✦' },
-        { top: '12%', left: '72%', size: 8, delay: '1.6s', dur: '5.2s', emoji: '✦' },
-        { top: '80%', left: '70%', size: 5, delay: '0.8s', dur: '4s', emoji: '✦' },
-      ].map((p, i) => (
-        <div key={i} style={{
-          position: 'absolute', top: p.top, left: p.left,
-          fontSize: p.size,
-          color: 'rgba(212,175,55,0.5)',
-          animation: `spiceFloat ${p.dur} ease-in-out ${p.delay} infinite`,
-        }}>{p.emoji}</div>
-      ))}
-      {/* Thin arcing lines — decorative rings */}
-      <svg style={{ position: 'absolute', top: '50%', right: '4%', transform: 'translateY(-50%)', opacity: 0.07 }}
-        width="520" height="520" viewBox="0 0 520 520" fill="none">
-        <circle cx="260" cy="260" r="240" stroke="#d4af37" strokeWidth="1" strokeDasharray="6 10" />
-        <circle cx="260" cy="260" r="190" stroke="#d4af37" strokeWidth="0.5" />
-        <circle cx="260" cy="260" r="140" stroke="#e07000" strokeWidth="0.5" strokeDasharray="3 8" />
-      </svg>
-    </div>
-  );
 }
 
 function HeroSection() {
@@ -99,13 +52,11 @@ function HeroSection() {
     goTo((current - 1 + PRODUCTS.length) % PRODUCTS.length, -1);
   }, [current, goTo]);
 
-  // Auto-advance
   useEffect(() => {
     autoRef.current = setInterval(next, 3200);
     return () => clearInterval(autoRef.current);
   }, [next]);
 
-  // Touch swipe
   const onTouchStart = (e) => { touchStartX.current = e.touches[0].clientX; };
   const onTouchEnd = (e) => {
     if (touchStartX.current === null) return;
@@ -122,24 +73,74 @@ function HeroSection() {
 
   return (
     <section
-      className="hero-gradient relative overflow-hidden flex items-center -mt-4 md:-mt-9"
-      style={{ minHeight: 'clamp(560px, 100svh, 100vh)' }}>
+      className="hero-gradient relative flex items-center -mt-4 md:-mt-9"
+      style={{
+        minHeight: 'clamp(560px, 100svh, 100vh)',
+        // KEY: overflow visible so packet can grow beyond section bounds
+        overflow: 'visible',
+      }}>
 
-      {/* Dot-grid texture */}
-      <div className="absolute inset-0 opacity-5 pointer-events-none"
-        style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ccircle cx='30' cy='30' r='28' fill='none' stroke='%23fff' stroke-width='0.5'/%3E%3C/svg%3E\")" }} />
+      {/* Clip only the background decorations */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 0 }}>
 
-      {/* Bottom fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-24 md:h-32 bg-gradient-to-t from-brown-dark/70 to-transparent pointer-events-none z-10" />
+        {/* Dot-grid texture */}
+        <div className="absolute inset-0 opacity-5"
+          style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ccircle cx='30' cy='30' r='28' fill='none' stroke='%23fff' stroke-width='0.5'/%3E%3C/svg%3E\")" }} />
 
-      {/* Spice decorations */}
-      <SpiceDecorations />
+        {/* Bottom fade */}
+        <div className="absolute bottom-0 left-0 right-0 h-24 md:h-32 bg-gradient-to-t from-brown-dark/70 to-transparent" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-0 pb-4 md:pt-0 md:pb-4 w-full relative z-10">
-        <div className="flex flex-col md:grid md:grid-cols-2 md:gap-8 md:items-center">
+        {/* Golden orb top-right */}
+        <div style={{
+          position: 'absolute', top: '-80px', right: '-60px',
+          width: '420px', height: '420px', borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(212,168,55,0.2) 0%, transparent 70%)',
+        }} />
 
-          {/* LEFT — text */}
-          <div className="text-center md:text-left order-2 md:order-1 mt-2 md:mt-0">
+        {/* Orange orb bottom-left */}
+        <div style={{
+          position: 'absolute', bottom: '60px', left: '-80px',
+          width: '320px', height: '320px', borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(224,112,0,0.16) 0%, transparent 70%)',
+        }} />
+
+        {/* Decorative SVG rings */}
+        <svg style={{ position: 'absolute', top: '50%', right: '2%', transform: 'translateY(-50%)', opacity: 0.07 }}
+          width="600" height="600" viewBox="0 0 600 600" fill="none">
+          <circle cx="300" cy="300" r="280" stroke="#d4af37" strokeWidth="1" strokeDasharray="6 10" />
+          <circle cx="300" cy="300" r="220" stroke="#d4af37" strokeWidth="0.5" />
+          <circle cx="300" cy="300" r="160" stroke="#e07000" strokeWidth="0.5" strokeDasharray="3 8" />
+        </svg>
+
+        {/* Floating sparkles */}
+        {[
+          { top: '18%', left: '54%', size: 7, delay: '0s', dur: '4.2s' },
+          { top: '72%', left: '58%', size: 5, delay: '1.1s', dur: '5s' },
+          { top: '30%', left: '88%', size: 9, delay: '0.5s', dur: '3.8s' },
+          { top: '60%', left: '82%', size: 6, delay: '2s', dur: '4.5s' },
+          { top: '12%', left: '72%', size: 8, delay: '1.6s', dur: '5.2s' },
+          { top: '80%', left: '70%', size: 5, delay: '0.8s', dur: '4s' },
+        ].map((p, i) => (
+          <div key={i} style={{
+            position: 'absolute', top: p.top, left: p.left,
+            fontSize: p.size, color: 'rgba(212,175,55,0.5)',
+            animation: `spiceFloat ${p.dur} ease-in-out ${p.delay} infinite`,
+          }}>✦</div>
+        ))}
+      </div>
+
+      {/* ── MAIN CONTENT ── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full relative" style={{ zIndex: 10 }}>
+        <div className="flex flex-col md:grid md:items-center" style={{
+          gridTemplateColumns: '1fr 1fr',
+          gap: 0,
+        }}>
+
+          {/* ── LEFT — Text (position fixed, never moves) ── */}
+          <div className="text-center md:text-left order-2 md:order-1 pb-6 md:pb-12"
+            style={{ position: 'relative', zIndex: 20 }}>
+
+            {/* Eyebrow */}
             <motion.div
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
               className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full border border-white/25 bg-white/10 text-gold-light font-semibold tracking-widest uppercase mb-4 md:mb-6"
@@ -148,6 +149,7 @@ function HeroSection() {
               Since 1873 · Solapur, Maharashtra
             </motion.div>
 
+            {/* Heading */}
             <motion.h1
               initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }}
               className="font-serif font-black text-white leading-[1.08] mb-3"
@@ -156,6 +158,7 @@ function HeroSection() {
               <span className="shimmer-text">Timeless Tradition</span>
             </motion.h1>
 
+            {/* Marathi tagline */}
             <motion.p
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }}
               className="mb-5 md:mb-6"
@@ -173,6 +176,7 @@ function HeroSection() {
               खमंग चिवडा — पिढ्यानपिढ्याची चव
             </motion.p>
 
+            {/* Buttons */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
@@ -190,6 +194,7 @@ function HeroSection() {
               </button>
             </motion.div>
 
+            {/* Trust badges */}
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}
               className="grid grid-cols-2 gap-x-4 gap-y-2 sm:flex sm:flex-wrap sm:gap-5 justify-center md:justify-start">
@@ -204,32 +209,36 @@ function HeroSection() {
             </motion.div>
           </div>
 
-          {/* RIGHT — Premium carousel, no labels */}
+          {/* ── RIGHT — Packet image (can overflow, won't push text) ── */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.92 }}
+            initial={{ opacity: 0, scale: 0.88 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.9, delay: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="relative order-1 md:order-2 flex flex-col items-center justify-center"
+            className="order-1 md:order-2 flex flex-col items-center justify-center relative"
             onTouchStart={onTouchStart}
             onTouchEnd={onTouchEnd}
-            style={{ minHeight: 'clamp(380px, 52vw, 620px)' }}
+            style={{
+              // KEY: absolute on desktop so it doesn't affect layout height
+              position: 'relative',
+              zIndex: 15,
+            }}
           >
-            {/* Outer glow halo behind packet */}
+            {/* Glow halo behind packet */}
             <div style={{
               position: 'absolute',
               top: '50%', left: '50%',
               transform: 'translate(-50%, -50%)',
-              width: '70%', height: '70%',
+              width: '80%', height: '80%',
               borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(212,168,55,0.22) 0%, transparent 70%)',
-              filter: 'blur(24px)',
+              background: 'radial-gradient(circle, rgba(212,168,55,0.25) 0%, transparent 70%)',
+              filter: 'blur(28px)',
               pointerEvents: 'none',
               zIndex: 1,
             }} />
 
-            {/* Spinning dashed rings */}
+            {/* Spinning rings — desktop only */}
             <div className="hidden md:block absolute" style={{
-              width: '480px', height: '480px', borderRadius: '50%',
+              width: '540px', height: '540px', borderRadius: '50%',
               border: '1.5px dashed rgba(212,175,55,0.2)',
               animation: 'spinSlow 22s linear infinite',
               top: '50%', left: '50%',
@@ -237,7 +246,7 @@ function HeroSection() {
               zIndex: 1,
             }} />
             <div className="hidden md:block absolute" style={{
-              width: '360px', height: '360px', borderRadius: '50%',
+              width: '400px', height: '400px', borderRadius: '50%',
               border: '1px solid rgba(255,255,255,0.06)',
               animation: 'spinSlow 14s linear infinite reverse',
               top: '50%', left: '50%',
@@ -245,8 +254,18 @@ function HeroSection() {
               zIndex: 1,
             }} />
 
-            {/* The packet — AnimatePresence crossfade + slide */}
-            <div style={{ position: 'relative', zIndex: 3, width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            {/* Product image — BIG, overflows upward on desktop */}
+            <div style={{
+              position: 'relative',
+              zIndex: 3,
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              // On desktop: pull image UP so it overflows the hero section top
+              // without pushing the left column down
+              marginTop: 'clamp(0px, -4vw, 0px)',
+            }}>
               <AnimatePresence mode="wait" custom={direction}>
                 <motion.div
                   key={current}
@@ -259,15 +278,18 @@ function HeroSection() {
                     animation: 'heroFloat 4s ease-in-out infinite',
                     display: 'flex',
                     justifyContent: 'center',
+                    // Pull UP on desktop — key to making it big without layout shift
+                    transform: 'translateY(-40px)',
                   }}
                 >
                   <img
                     src={PRODUCTS[current].img}
                     alt="Namdev Chiwada product"
                     style={{
-                      width: 'clamp(340px, 44vw, 600px)',
+                      // BIGGER image — was 44vw, now 56vw
+                      width: 'clamp(300px, 56vw, 760px)',
                       maxWidth: 'none',
-                      filter: 'drop-shadow(0 32px 60px rgba(0,0,0,0.55)) drop-shadow(0 8px 20px rgba(212,168,55,0.2))',
+                      filter: 'drop-shadow(0 40px 70px rgba(0,0,0,0.6)) drop-shadow(0 8px 24px rgba(212,168,55,0.25))',
                       display: 'block',
                     }}
                     draggable={false}
@@ -276,8 +298,8 @@ function HeroSection() {
               </AnimatePresence>
             </div>
 
-            {/* Dot indicators only — no labels */}
-            <div className="flex gap-2 mt-4" style={{ zIndex: 4, position: 'relative' }}>
+            {/* Dot indicators */}
+            <div className="flex gap-2 mt-2" style={{ zIndex: 4, position: 'relative' }}>
               {PRODUCTS.map((_, i) => (
                 <button
                   key={i}
@@ -371,8 +393,7 @@ function LegacyGlimpseSection() {
           initial={{ opacity: 0, y: 16 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5 }}
-          className="text-center mb-4"
-        >
+          className="text-center mb-4">
           <div className="text-xs font-bold tracking-widest uppercase mb-4"
             style={{ color: '#c8902a', letterSpacing: '0.13em' }}>
             Our Story · Since 1873
