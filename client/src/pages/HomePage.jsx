@@ -73,48 +73,23 @@ function HeroSection() {
 
   return (
     <section
-      className="hero-gradient relative flex items-center -mt-4 md:-mt-9"
-      style={{
-        minHeight: '100svh',
-        overflow: 'visible',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-      }}>
-
-      {/* Clip only the background decorations */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 0 }}>
-
-        {/* Dot-grid texture */}
+      className="hero-gradient relative -mt-4 md:-mt-9"
+      style={{ minHeight: '100svh', overflow: 'hidden' }}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+    >
+      {/* ── BACKGROUND DECORATIONS ── */}
+      <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 0 }}>
         <div className="absolute inset-0 opacity-5"
           style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ccircle cx='30' cy='30' r='28' fill='none' stroke='%23fff' stroke-width='0.5'/%3E%3C/svg%3E\")" }} />
-
-        {/* Bottom fade */}
         <div className="absolute bottom-0 left-0 right-0 h-24 md:h-32 bg-gradient-to-t from-brown-dark/70 to-transparent" />
-
-        {/* Golden orb top-right */}
-        <div style={{
-          position: 'absolute', top: '-80px', right: '-60px',
-          width: '420px', height: '420px', borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(212,168,55,0.2) 0%, transparent 70%)',
-        }} />
-
-        {/* Orange orb bottom-left */}
-        <div style={{
-          position: 'absolute', bottom: '60px', left: '-80px',
-          width: '320px', height: '320px', borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(224,112,0,0.16) 0%, transparent 70%)',
-        }} />
-
-        {/* Decorative SVG rings */}
-        <svg style={{ position: 'absolute', top: '50%', right: '2%', transform: 'translateY(-50%)', opacity: 0.07 }}
-          width="600" height="600" viewBox="0 0 600 600" fill="none">
+        <div style={{ position: 'absolute', top: '-80px', right: '-60px', width: '420px', height: '420px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(212,168,55,0.2) 0%, transparent 70%)' }} />
+        <div style={{ position: 'absolute', bottom: '60px', left: '-80px', width: '320px', height: '320px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(224,112,0,0.16) 0%, transparent 70%)' }} />
+        <svg className="hidden md:block" style={{ position: 'absolute', top: '50%', right: '2%', transform: 'translateY(-50%)', opacity: 0.07 }} width="600" height="600" viewBox="0 0 600 600" fill="none">
           <circle cx="300" cy="300" r="280" stroke="#d4af37" strokeWidth="1" strokeDasharray="6 10" />
           <circle cx="300" cy="300" r="220" stroke="#d4af37" strokeWidth="0.5" />
           <circle cx="300" cy="300" r="160" stroke="#e07000" strokeWidth="0.5" strokeDasharray="3 8" />
         </svg>
-
-        {/* Floating sparkles */}
         {[
           { top: '18%', left: '54%', size: 7, delay: '0s', dur: '4.2s' },
           { top: '72%', left: '58%', size: 5, delay: '1.1s', dur: '5s' },
@@ -123,52 +98,101 @@ function HeroSection() {
           { top: '12%', left: '72%', size: 8, delay: '1.6s', dur: '5.2s' },
           { top: '80%', left: '70%', size: 5, delay: '0.8s', dur: '4s' },
         ].map((p, i) => (
-          <div key={i} style={{
-            position: 'absolute', top: p.top, left: p.left,
-            fontSize: p.size, color: 'rgba(212,175,55,0.5)',
-            animation: `spiceFloat ${p.dur} ease-in-out ${p.delay} infinite`,
-          }}>✦</div>
+          <div key={i} className="hidden md:block" style={{ position: 'absolute', top: p.top, left: p.left, fontSize: p.size, color: 'rgba(212,175,55,0.5)', animation: `spiceFloat ${p.dur} ease-in-out ${p.delay} infinite` }}>✦</div>
         ))}
       </div>
 
-      {/* ── MAIN CONTENT ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full relative" style={{ zIndex: 10 }}>
-        <div className="flex flex-col md:grid md:items-center" style={{
-          gridTemplateColumns: '1fr 1fr',
-          gap: 0,
-          minHeight: 'calc(100svh - 120px)',
-        }}>
+      {/* ════════════════════════════════
+          MOBILE LAYOUT  (flex column)
+          DESKTOP LAYOUT (grid 2-col)
+          ════════════════════════════════ */}
+      <div className="relative w-full h-full" style={{ zIndex: 10 }}>
 
-          {/* ── LEFT — Text (position fixed, never moves) ── */}
-          <div className="text-center md:text-left order-2 md:order-1"
-            style={{ position: 'relative', zIndex: 20, paddingTop: 'clamp(8px, 4vh, 100px)', paddingBottom: 'clamp(24px, 6vh, 80px)' }}>
+        {/* ── MOBILE: stacked layout ── */}
+        <div className="flex flex-col md:hidden" style={{ minHeight: '100svh' }}>
 
+          {/* Product image — top, large, no wasted space */}
+          <div
+            className="relative flex items-end justify-center flex-shrink-0"
+            style={{ height: '52vw', minHeight: '200px', maxHeight: '300px', marginTop: '0px' }}
+          >
+            {/* Glow */}
+            <div style={{ position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '70%', height: '60%', borderRadius: '50%', background: 'radial-gradient(circle, rgba(212,168,55,0.3) 0%, transparent 70%)', filter: 'blur(20px)', pointerEvents: 'none' }} />
+
+            <AnimatePresence mode="wait" custom={direction}>
+              <motion.img
+                key={current}
+                custom={direction}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                src={PRODUCTS[current].img}
+                alt="Namdev Chiwada product"
+                style={{
+                  height: '100%',
+                  width: 'auto',
+                  maxWidth: '85vw',
+                  objectFit: 'contain',
+                  filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.55)) drop-shadow(0 4px 16px rgba(212,168,55,0.2))',
+                  display: 'block',
+                  position: 'relative',
+                  zIndex: 2,
+                  animation: 'heroFloat 4s ease-in-out infinite',
+                }}
+                draggable={false}
+              />
+            </AnimatePresence>
+          </div>
+
+          {/* Dot indicators — tight below image */}
+          <div className="flex justify-center gap-2 mt-3 mb-4" style={{ zIndex: 4 }}>
+            {PRODUCTS.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => { clearInterval(autoRef.current); goTo(i, i > current ? 1 : -1); }}
+                style={{
+                  width: i === current ? '22px' : '7px',
+                  height: '7px',
+                  borderRadius: '4px',
+                  background: i === current ? '#ffd89b' : 'rgba(255,255,255,0.3)',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: 0,
+                  transition: 'all 0.35s cubic-bezier(0.25,0.46,0.45,0.94)',
+                }}
+                aria-label={`Go to product ${i + 1}`}
+              />
+            ))}
+          </div>
+
+          {/* Text content */}
+          <div className="flex flex-col items-center text-center px-5 pb-8" style={{ flex: 1 }}>
             {/* Eyebrow */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
-              className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full border border-white/25 bg-white/10 text-gold-light font-semibold tracking-widest uppercase mb-4 md:mb-6"
-              style={{ fontSize: 'clamp(0.58rem, 1.8vw, 0.75rem)' }}>
+              initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/25 bg-white/10 text-gold-light font-semibold tracking-widest uppercase mb-3"
+              style={{ fontSize: '0.6rem' }}>
               <span className="w-1.5 h-1.5 rounded-full bg-gold-light flex-shrink-0" />
               Since 1873 · Solapur, Maharashtra
             </motion.div>
 
             {/* Heading */}
             <motion.h1
-              initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }}
-              className="font-serif font-black text-white leading-[1.08] mb-3"
-              style={{ fontSize: 'clamp(1.8rem, 5vw, 3.5rem)', textShadow: '0 2px 20px rgba(0,0,0,0.3)', whiteSpace: 'nowrap' }}>
+              initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}
+              className="font-serif font-black text-white leading-tight mb-2"
+              style={{ fontSize: 'clamp(1.75rem, 8vw, 2.4rem)', textShadow: '0 2px 16px rgba(0,0,0,0.35)' }}>
               Authentic Taste,<br />
-              <span className="shimmer-text" style={{ whiteSpace: 'nowrap' }}>Timeless Tradition</span>
+              <span className="shimmer-text">Timeless Tradition</span>
             </motion.h1>
 
             {/* Marathi tagline */}
             <motion.p
-              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }}
-              className="mb-5 md:mb-6"
+              initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}
+              className="mb-5"
               style={{
                 fontFamily: "'Gotu', sans-serif",
-                fontSize: 'clamp(0.82rem, 2vw, 1.3rem)',
-                color: 'rgba(255,255,255,0.90)',
+                fontSize: 'clamp(0.85rem, 3.5vw, 1.05rem)',
                 background: 'linear-gradient(90deg, #ffd89b, #f0cc5a, #ffd89b)',
                 backgroundSize: '200% auto',
                 WebkitBackgroundClip: 'text',
@@ -181,30 +205,84 @@ function HeroSection() {
 
             {/* Buttons */}
             <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.4 }}
-              className="flex flex-row gap-3 mb-6 md:mb-10 items-center justify-center md:justify-start">
+              initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }}
+              className="flex gap-3 w-full mb-5">
               <button
                 onClick={() => navigate('/products')}
-                className="btn-primary w-[40%] font-poppins text-sm md:text-base px-4 py-3 md:px-8 md:py-3.5 text-center">
+                className="btn-primary font-poppins text-sm py-3 text-center flex-1">
                 Shop Now →
               </button>
               <button
                 onClick={() => navigate('/about')}
-                className="btn-outline w-[40%] font-poppins text-sm md:text-base px-4 py-3 md:px-8 md:py-3.5 text-center">
+                className="btn-outline font-poppins text-sm py-3 text-center flex-1">
                 Our Story
               </button>
             </motion.div>
 
             {/* Trust badges */}
             <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}
-              className="grid grid-cols-2 gap-x-4 gap-y-2 sm:flex sm:flex-wrap sm:gap-5 justify-center md:justify-start">
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
+              className="flex flex-wrap justify-center gap-x-4 gap-y-1.5">
               {TRUST.map((t) => (
-                <div key={t}
-                  className="flex items-center gap-1.5 text-white/75 justify-center md:justify-start"
-                  style={{ fontSize: 'clamp(0.68rem, 1.5vw, 0.8rem)' }}>
+                <div key={t} className="flex items-center gap-1.5 text-white/70" style={{ fontSize: '0.7rem' }}>
+                  <span className="w-1.5 h-1.5 rounded-full bg-gold-light flex-shrink-0" />
+                  <span>{t}</span>
+                </div>
+              ))}
+            </motion.div>
+          </div>
+        </div>
+
+        {/* ── DESKTOP: 2-column grid layout ── */}
+        <div className="hidden md:grid max-w-7xl mx-auto px-6 items-center"
+          style={{ gridTemplateColumns: '1fr 1fr', minHeight: '100svh', gap: 0 }}>
+
+          {/* Left — Text */}
+          <div className="text-left" style={{ position: 'relative', zIndex: 20, paddingTop: 'clamp(60px, 10vh, 120px)', paddingBottom: 'clamp(40px, 6vh, 80px)' }}>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/25 bg-white/10 text-gold-light font-semibold tracking-widest uppercase mb-6"
+              style={{ fontSize: '0.75rem' }}>
+              <span className="w-1.5 h-1.5 rounded-full bg-gold-light flex-shrink-0" />
+              Since 1873 · Solapur, Maharashtra
+            </motion.div>
+
+            <motion.h1
+              initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }}
+              className="font-serif font-black text-white leading-[1.08] mb-3"
+              style={{ fontSize: 'clamp(2.2rem, 4.5vw, 3.5rem)', textShadow: '0 2px 20px rgba(0,0,0,0.3)' }}>
+              Authentic Taste,<br />
+              <span className="shimmer-text">Timeless Tradition</span>
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }}
+              className="mb-6"
+              style={{
+                fontFamily: "'Gotu', sans-serif",
+                fontSize: 'clamp(0.9rem, 1.8vw, 1.25rem)',
+                background: 'linear-gradient(90deg, #ffd89b, #f0cc5a, #ffd89b)',
+                backgroundSize: '200% auto',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                letterSpacing: '0.02em',
+              }}>
+              खमंग चिवडा — पिढ्यानपिढ्याची चव
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.4 }}
+              className="flex gap-3 mb-10">
+              <button onClick={() => navigate('/products')} className="btn-primary font-poppins px-8 py-3.5">Shop Now →</button>
+              <button onClick={() => navigate('/about')} className="btn-outline font-poppins px-8 py-3.5">Our Story</button>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}
+              className="flex flex-wrap gap-5">
+              {TRUST.map((t) => (
+                <div key={t} className="flex items-center gap-1.5 text-white/75" style={{ fontSize: '0.8rem' }}>
                   <span className="w-1.5 h-1.5 rounded-full bg-gold-light flex-shrink-0" />
                   <span className="whitespace-nowrap">{t}</span>
                 </div>
@@ -212,62 +290,22 @@ function HeroSection() {
             </motion.div>
           </div>
 
-          {/* ── RIGHT — Packet image (can overflow, won't push text) ── */}
+          {/* Right — Product carousel */}
           <motion.div
             initial={{ opacity: 0, scale: 0.88 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.9, delay: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="order-1 md:order-2 flex flex-col items-center justify-center relative"
-            onTouchStart={onTouchStart}
-            onTouchEnd={onTouchEnd}
-            style={{
-              position: 'relative',
-              zIndex: 15,
-              paddingTop: '8px',
-              paddingBottom: '0px',
-            }}
+            className="flex flex-col items-center justify-center relative"
+            style={{ position: 'relative', zIndex: 15 }}
           >
-            {/* Glow halo behind packet */}
-            <div style={{
-              position: 'absolute',
-              top: '50%', left: '50%',
-              transform: 'translate(-50%, -50%)',
-              width: '80%', height: '80%',
-              borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(212,168,55,0.25) 0%, transparent 70%)',
-              filter: 'blur(28px)',
-              pointerEvents: 'none',
-              zIndex: 1,
-            }} />
+            {/* Glow halo */}
+            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '80%', height: '80%', borderRadius: '50%', background: 'radial-gradient(circle, rgba(212,168,55,0.25) 0%, transparent 70%)', filter: 'blur(28px)', pointerEvents: 'none', zIndex: 1 }} />
 
-            {/* Spinning rings — desktop only */}
-            <div className="hidden md:block absolute" style={{
-              width: '540px', height: '540px', borderRadius: '50%',
-              border: '1.5px dashed rgba(212,175,55,0.2)',
-              animation: 'spinSlow 22s linear infinite',
-              top: '50%', left: '50%',
-              transform: 'translate(-50%, -50%)',
-              zIndex: 1,
-            }} />
-            <div className="hidden md:block absolute" style={{
-              width: '400px', height: '400px', borderRadius: '50%',
-              border: '1px solid rgba(255,255,255,0.06)',
-              animation: 'spinSlow 14s linear infinite reverse',
-              top: '50%', left: '50%',
-              transform: 'translate(-50%, -50%)',
-              zIndex: 1,
-            }} />
+            {/* Spinning rings */}
+            <div className="absolute" style={{ width: '540px', height: '540px', borderRadius: '50%', border: '1.5px dashed rgba(212,175,55,0.2)', animation: 'spinSlow 22s linear infinite', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1 }} />
+            <div className="absolute" style={{ width: '400px', height: '400px', borderRadius: '50%', border: '1px solid rgba(255,255,255,0.06)', animation: 'spinSlow 14s linear infinite reverse', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1 }} />
 
-            {/* Product image — BIG, overflows upward on desktop */}
-            <div style={{
-              position: 'relative',
-              zIndex: 3,
-              width: '100%',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginTop: 'clamp(0px, -4vw, 0px)',
-            }}>
+            <div style={{ position: 'relative', zIndex: 3, width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
               <AnimatePresence mode="wait" custom={direction}>
                 <motion.div
                   key={current}
@@ -276,51 +314,31 @@ function HeroSection() {
                   initial="enter"
                   animate="center"
                   exit="exit"
-                  style={{
-                    animation: 'heroFloat 4s ease-in-out infinite',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    transform: window.innerWidth < 768 ? 'translateY(0px)' : 'translateY(-40px)',
-                  }}
+                  style={{ animation: 'heroFloat 4s ease-in-out infinite', display: 'flex', justifyContent: 'center', transform: 'translateY(-40px)' }}
                 >
                   <img
                     src={PRODUCTS[current].img}
                     alt="Namdev Chiwada product"
-                    style={{
-                      width: 'clamp(260px, 78vw, 760px)',
-                      maxWidth: 'none',
-                      filter: 'drop-shadow(0 40px 70px rgba(0,0,0,0.6)) drop-shadow(0 8px 24px rgba(212,168,55,0.25))',
-                      display: 'block',
-                    }}
+                    style={{ width: 'clamp(300px, 46vw, 680px)', maxWidth: 'none', filter: 'drop-shadow(0 40px 70px rgba(0,0,0,0.6)) drop-shadow(0 8px 24px rgba(212,168,55,0.25))', display: 'block' }}
                     draggable={false}
                   />
                 </motion.div>
               </AnimatePresence>
             </div>
 
-            {/* Dot indicators */}
             <div className="flex gap-2 mt-2" style={{ zIndex: 4, position: 'relative' }}>
               {PRODUCTS.map((_, i) => (
                 <button
                   key={i}
                   onClick={() => { clearInterval(autoRef.current); goTo(i, i > current ? 1 : -1); }}
-                  style={{
-                    width: i === current ? '22px' : '7px',
-                    height: '7px',
-                    borderRadius: '4px',
-                    background: i === current ? '#ffd89b' : 'rgba(255,255,255,0.3)',
-                    border: 'none',
-                    cursor: 'pointer',
-                    padding: 0,
-                    transition: 'all 0.35s cubic-bezier(0.25,0.46,0.45,0.94)',
-                  }}
+                  style={{ width: i === current ? '22px' : '7px', height: '7px', borderRadius: '4px', background: i === current ? '#ffd89b' : 'rgba(255,255,255,0.3)', border: 'none', cursor: 'pointer', padding: 0, transition: 'all 0.35s cubic-bezier(0.25,0.46,0.45,0.94)' }}
                   aria-label={`Go to product ${i + 1}`}
                 />
               ))}
             </div>
           </motion.div>
-
         </div>
+
       </div>
     </section>
   );
