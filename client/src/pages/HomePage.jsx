@@ -77,6 +77,9 @@ function HeroSection() {
       style={{
         minHeight: '100svh',
         overflow: 'visible',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
       }}>
 
       {/* Clip only the background decorations */}
@@ -138,7 +141,7 @@ function HeroSection() {
 
           {/* ── LEFT — Text (position fixed, never moves) ── */}
           <div className="text-center md:text-left order-2 md:order-1"
-            style={{ position: 'relative', zIndex: 20, paddingTop: 'clamp(40px, 8vh, 100px)', paddingBottom: 'clamp(40px, 6vh, 80px)' }}>
+            style={{ position: 'relative', zIndex: 20, paddingTop: 'clamp(8px, 4vh, 100px)', paddingBottom: 'clamp(24px, 6vh, 80px)' }}>
 
             {/* Eyebrow */}
             <motion.div
@@ -153,7 +156,7 @@ function HeroSection() {
             <motion.h1
               initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }}
               className="font-serif font-black text-white leading-[1.08] mb-3"
-              style={{ fontSize: 'clamp(2.05rem, 5vw, 3.5rem)', textShadow: '0 2px 20px rgba(0,0,0,0.3)', whiteSpace: 'nowrap' }}>
+              style={{ fontSize: 'clamp(1.8rem, 5vw, 3.5rem)', textShadow: '0 2px 20px rgba(0,0,0,0.3)', whiteSpace: 'nowrap' }}>
               Authentic Taste,<br />
               <span className="shimmer-text" style={{ whiteSpace: 'nowrap' }}>Timeless Tradition</span>
             </motion.h1>
@@ -218,9 +221,10 @@ function HeroSection() {
             onTouchStart={onTouchStart}
             onTouchEnd={onTouchEnd}
             style={{
-              // KEY: absolute on desktop so it doesn't affect layout height
               position: 'relative',
               zIndex: 15,
+              paddingTop: '8px',
+              paddingBottom: '0px',
             }}
           >
             {/* Glow halo behind packet */}
@@ -262,8 +266,6 @@ function HeroSection() {
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
-              // On desktop: pull image UP so it overflows the hero section top
-              // without pushing the left column down
               marginTop: 'clamp(0px, -4vw, 0px)',
             }}>
               <AnimatePresence mode="wait" custom={direction}>
@@ -278,16 +280,14 @@ function HeroSection() {
                     animation: 'heroFloat 4s ease-in-out infinite',
                     display: 'flex',
                     justifyContent: 'center',
-                    // Pull UP on desktop — key to making it big without layout shift
-                    transform: 'translateY(-40px)',
+                    transform: window.innerWidth < 768 ? 'translateY(0px)' : 'translateY(-40px)',
                   }}
                 >
                   <img
                     src={PRODUCTS[current].img}
                     alt="Namdev Chiwada product"
                     style={{
-                      // BIGGER image — was 44vw, now 56vw
-                      width: 'clamp(300px, 56vw, 760px)',
+                      width: 'clamp(260px, 78vw, 760px)',
                       maxWidth: 'none',
                       filter: 'drop-shadow(0 40px 70px rgba(0,0,0,0.6)) drop-shadow(0 8px 24px rgba(212,168,55,0.25))',
                       display: 'block',
