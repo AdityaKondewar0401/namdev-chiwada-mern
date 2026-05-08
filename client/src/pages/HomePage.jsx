@@ -6,7 +6,7 @@ import NamkeenSection from '../components/NamkeenSection';
 import PageWrapper from '../components/PageWrapper';
 
 const MARQUEE_ITEMS = ['Dagdi-Poha Chiwada', 'Maka Chiwada', 'Bakarwadi', 'Lasun Sev', 'Shengdana Chutney', 'Special Farsan', 'Authentic Taste'];
-const TRUST = ['150+ Years Legacy', 'No Artificial Colors', 'FSSAI Licensed', 'Pan-India Delivery'];
+const TRUST = ['150+ Years Legacy', 'No Artificial Colors', 'FSSAI Licensed'];
 const FEATURES = [
   { icon: '🔥', title: 'Perfectly Roasted Blend', desc: 'Each batch is carefully roasted and blended for that signature Namdev crunch.' },
   { icon: '🏺', title: '150 Years of Craft', desc: 'A recipe passed down through six generations of the Namdev family.' },
