@@ -153,9 +153,9 @@ function HeroSection() {
             <motion.h1
               initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }}
               className="font-serif font-black text-white leading-[1.08] mb-3"
-              style={{ fontSize: 'clamp(2.05rem, 7vw, 4rem)', textShadow: '0 2px 20px rgba(0,0,0,0.3)' }}>
+              style={{ fontSize: 'clamp(2.05rem, 5vw, 3.5rem)', textShadow: '0 2px 20px rgba(0,0,0,0.3)', whiteSpace: 'nowrap' }}>
               Authentic Taste,<br />
-              <span className="shimmer-text">Timeless Tradition</span>
+              <span className="shimmer-text" style={{ whiteSpace: 'nowrap' }}>Timeless Tradition</span>
             </motion.h1>
 
             {/* Marathi tagline */}
