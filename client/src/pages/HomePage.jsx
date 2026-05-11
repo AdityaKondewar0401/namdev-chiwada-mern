@@ -45,11 +45,12 @@ const MOBILE_STYLES = `
     align-items: center;
     justify-content: center;
     gap: 0;
+    margin-top: -12px;
   }
   .hero-mobile-img {
-    width: 82vw !important;
-    max-width: 360px !important;
-    filter: drop-shadow(0 20px 40px rgba(0,0,0,0.55)) drop-shadow(0 4px 16px rgba(212,168,55,0.2)) !important;
+    width: 96vw !important;
+    max-width: 440px !important;
+    filter: drop-shadow(0 32px 56px rgba(0,0,0,0.70)) drop-shadow(0 6px 24px rgba(212,168,55,0.40)) !important;
   }
   .hero-mobile-dots {
     display: flex;
@@ -200,9 +201,9 @@ function HeroSection() {
           <div style={{
             position: 'absolute', top: '50%', left: '50%',
             transform: 'translate(-50%,-50%)',
-            width: '70%', height: '70%', borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(212,168,55,0.22) 0%, transparent 70%)',
-            filter: 'blur(20px)', pointerEvents: 'none',
+            width: '90%', height: '90%', borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(212,168,55,0.28) 0%, transparent 70%)',
+            filter: 'blur(28px)', pointerEvents: 'none',
           }} />
 
           <AnimatePresence mode="wait" custom={direction}>
