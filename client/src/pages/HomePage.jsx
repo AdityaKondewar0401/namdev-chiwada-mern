@@ -36,8 +36,8 @@ const MOBILE_STYLES = `
   .hero-mobile-wrap {
     min-height: 100svh;
     display: grid;
-    grid-template-rows: 1fr auto;
-    padding: 12px 20px 28px;
+    grid-template-rows: 58% 42%;
+    padding: 8px 20px 24px;
   }
   .hero-mobile-top {
     display: flex;
@@ -45,48 +45,46 @@ const MOBILE_STYLES = `
     align-items: center;
     justify-content: center;
     gap: 0;
-    margin-top: -12px;
+    overflow: hidden;
   }
   .hero-mobile-img {
-    width: 96vw !important;
-    max-width: 440px !important;
-    filter: drop-shadow(0 32px 56px rgba(0,0,0,0.70)) drop-shadow(0 6px 24px rgba(212,168,55,0.40)) !important;
+    width: 95vw !important;
+    max-width: 420px !important;
+    filter: drop-shadow(0 24px 48px rgba(0,0,0,0.6)) drop-shadow(0 4px 16px rgba(212,168,55,0.25)) !important;
   }
-  .hero-mobile-dots {
-    display: flex;
-    gap: 8px;
-    justify-content: center;
-    margin-top: 10px;
-    margin-bottom: 4px;
-  }
+  .hero-mobile-dots { display: none !important; }
   .hero-mobile-text {
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0;
   }
   .hero-mobile-eyebrow {
-    font-size: 0.6rem !important;
-    margin-bottom: 10px !important;
+    font-size: 0.58rem !important;
+    margin-bottom: 8px !important;
   }
   .hero-mobile-h1 {
-    font-size: clamp(1.75rem, 7.5vw, 2.4rem) !important;
+    font-size: clamp(1.65rem, 7vw, 2.2rem) !important;
     white-space: normal !important;
-    margin-bottom: 8px !important;
+    margin-bottom: 6px !important;
     line-height: 1.1 !important;
   }
   .hero-mobile-tagline {
-    font-size: 0.82rem !important;
-    margin-bottom: 14px !important;
+    font-size: 0.78rem !important;
+    margin-bottom: 12px !important;
   }
   .hero-mobile-btns {
     display: flex;
     gap: 10px;
     justify-content: center;
-    margin-bottom: 14px;
+    margin-bottom: 10px;
   }
   .hero-mobile-btn {
     flex: 1;
-    max-width: 150px;
-    padding: 11px 12px !important;
-    font-size: 0.82rem !important;
+    max-width: 155px;
+    padding: 11px 10px !important;
+    font-size: 0.8rem !important;
     border-radius: 999px !important;
     font-weight: 700 !important;
     text-align: center !important;
@@ -94,11 +92,11 @@ const MOBILE_STYLES = `
   .hero-mobile-trust {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px 16px;
+    gap: 6px 12px;
     justify-content: center;
   }
   .hero-mobile-trust-item {
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     color: rgba(255,255,255,0.7);
     display: flex;
     align-items: center;
