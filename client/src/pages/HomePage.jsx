@@ -35,43 +35,45 @@ const MOBILE_STYLES = `
 @media (max-width: 767px) {
   .hero-mobile-wrap {
     min-height: 100svh;
-    display: grid;
-    grid-template-rows: 58% 42%;
-    padding: 8px 20px 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 12px 20px 20px;
+    gap: 0;
   }
   .hero-mobile-top {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0;
-    overflow: hidden;
+    flex: 0 0 auto;
+    position: relative;
   }
   .hero-mobile-img {
-    width: 95vw !important;
-    max-width: 420px !important;
-    filter: drop-shadow(0 24px 48px rgba(0,0,0,0.6)) drop-shadow(0 4px 16px rgba(212,168,55,0.25)) !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    margin: -20px -20px 0 -20px !important;
+    filter: drop-shadow(0 16px 40px rgba(0,0,0,0.65)) drop-shadow(0 4px 16px rgba(212,168,55,0.3)) !important;
   }
   .hero-mobile-dots { display: none !important; }
   .hero-mobile-text {
     text-align: center;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 0;
+    flex: 0 0 auto;
+    margin-top: -8px;
   }
   .hero-mobile-eyebrow {
-    font-size: 0.58rem !important;
+    font-size: 0.55rem !important;
+    padding: 5px 10px !important;
     margin-bottom: 8px !important;
   }
   .hero-mobile-h1 {
-    font-size: clamp(1.65rem, 7vw, 2.2rem) !important;
+    font-size: clamp(1.7rem, 7.5vw, 2.2rem) !important;
     white-space: normal !important;
-    margin-bottom: 6px !important;
-    line-height: 1.1 !important;
+    margin-bottom: 4px !important;
+    line-height: 1.08 !important;
   }
   .hero-mobile-tagline {
-    font-size: 0.78rem !important;
+    font-size: 0.76rem !important;
     margin-bottom: 12px !important;
   }
   .hero-mobile-btns {
@@ -82,9 +84,9 @@ const MOBILE_STYLES = `
   }
   .hero-mobile-btn {
     flex: 1;
-    max-width: 155px;
-    padding: 11px 10px !important;
-    font-size: 0.8rem !important;
+    max-width: 160px;
+    padding: 12px 10px !important;
+    font-size: 0.82rem !important;
     border-radius: 999px !important;
     font-weight: 700 !important;
     text-align: center !important;
@@ -92,15 +94,15 @@ const MOBILE_STYLES = `
   .hero-mobile-trust {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px 12px;
+    gap: 5px 12px;
     justify-content: center;
   }
   .hero-mobile-trust-item {
-    font-size: 0.68rem;
+    font-size: 0.66rem;
     color: rgba(255,255,255,0.7);
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
   }
 }
 `;
