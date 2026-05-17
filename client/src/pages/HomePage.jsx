@@ -189,89 +189,192 @@ function HeroSection() {
       <BgDecorations />
 
       {/* ══════════════════════════════════════════════════
-          MOBILE LAYOUT (< 768px)
-      ══════════════════════════════════════════════════ */}
-      <div className="hero-mobile-wrap md:hidden"
-        onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+    MOBILE LAYOUT (< 768px)
+══════════════════════════════════════════════════ */}
+      <section
+        className="md:hidden hero-gradient relative -mt-4"
+        style={{
+          minHeight: '100svh',
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'flex-end'
+        }}
+      >
+        <div
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            flex: 1,
+            justifyContent: 'flex-end',
+          }}
+        >
 
-        {/* TOP — packet fills upper 55% of screen */}
-        <div className="hero-mobile-top" style={{ position: 'relative', zIndex: 10 }}>
-
-          {/* Glow behind packet */}
+          {/* TOP — packet section */}
           <div style={{
-            position: 'absolute', top: '50%', left: '50%',
-            transform: 'translate(-50%,-50%)',
-            width: '90%', height: '90%', borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(212,168,55,0.28) 0%, transparent 70%)',
-            filter: 'blur(28px)', pointerEvents: 'none',
-          }} />
+            position: 'relative',
+            zIndex: 5,
+            height: '55svh',
+            display: 'flex',
+            alignItems: 'flex-end',
+            justifyContent: 'center',
+            flexShrink: 0,
+            paddingBottom: 0,
+          }}>
 
-          <AnimatePresence mode="wait" custom={direction}>
-            <motion.div key={current} custom={direction}
-              variants={slideVariants} initial="enter" animate="center" exit="exit"
-              style={{ animation: 'heroFloat 4s ease-in-out infinite', position: 'relative', zIndex: 2 }}>
-              <img
-                src={PRODUCTS[current].img}
-                alt="Namdev Chiwada"
-                className="hero-mobile-img"
-                draggable={false}
+            {/* Glow behind packet */}
+            <div style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%,-50%)',
+              width: '90%',
+              height: '90%',
+              borderRadius: '50%',
+              background:
+                'radial-gradient(circle, rgba(212,168,55,0.28) 0%, transparent 70%)',
+              filter: 'blur(28px)',
+              pointerEvents: 'none',
+            }} />
+
+            <AnimatePresence mode="wait" custom={direction}>
+              <motion.div
+                key={current}
+                custom={direction}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                style={{
+                  animation: 'heroFloat 4s ease-in-out infinite',
+                  position: 'relative',
+                  zIndex: 2
+                }}
+              >
+                <img
+                  src={PRODUCTS[current].img}
+                  alt="Namdev Chiwada"
+                  draggable={false}
+                  style={{
+                    width: '96vw',
+                    maxWidth: '440px',
+                    filter:
+                      'drop-shadow(0 24px 48px rgba(0,0,0,0.7)) drop-shadow(0 8px 20px rgba(212,168,55,0.3))',
+                    display: 'block',
+                  }}
+                />
+              </motion.div>
+            </AnimatePresence>
+
+            <Dots className="hero-mobile-dots" />
+          </div>
+
+          {/* BOTTOM — text content */}
+          <div style={{
+            position: 'relative',
+            zIndex: 10,
+            flex: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'flex-end',
+            padding: '12px 24px 24px',
+            gap: 0,
+          }}>
+
+            {/* Eyebrow pill */}
+            <div
+              className="hero-mobile-eyebrow inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/25 bg-white/10 text-gold-light font-semibold tracking-widest uppercase mb-3"
+              style={{
+                alignSelf: 'center',
+                fontSize: '0.55rem',
+              }}
+            >
+              <span
+                style={{
+                  width: 5,
+                  height: 5,
+                  borderRadius: '50%',
+                  background: '#f0cc5a',
+                  flexShrink: 0,
+                  display: 'inline-block'
+                }}
               />
-            </motion.div>
-          </AnimatePresence>
+              Since 1873 · Solapur, Maharashtra
+            </div>
 
-          <Dots className="hero-mobile-dots" />
+            {/* Heading */}
+            <h1
+              className="hero-mobile-h1 font-serif font-black text-white text-center"
+              style={{
+                textShadow: '0 2px 16px rgba(0,0,0,0.35)',
+                marginBottom: 4,
+                lineHeight: 1.08,
+              }}
+            >
+              Authentic Taste,<br />
+              <span className="shimmer-text">
+                Timeless Tradition
+              </span>
+            </h1>
+
+            {/* Marathi tagline */}
+            <p
+              className="hero-mobile-tagline"
+              style={{
+                fontFamily: "'Gotu', sans-serif",
+                background:
+                  'linear-gradient(90deg,#ffd89b,#f0cc5a,#ffd89b)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                letterSpacing: '0.02em',
+                textAlign: 'center',
+                marginBottom: 12,
+              }}
+            >
+              खमंग चिवडा — पिढ्यानपिढ्याची चव
+            </p>
+
+            {/* Buttons */}
+            <div className="hero-mobile-btns">
+              <button
+                onClick={() => navigate('/products')}
+                className="hero-mobile-btn btn-primary font-poppins"
+              >
+                Shop Now →
+              </button>
+
+              <button
+                onClick={() => navigate('/about')}
+                className="hero-mobile-btn btn-outline font-poppins"
+              >
+                Our Story
+              </button>
+            </div>
+
+            {/* Trust badges */}
+            <div className="hero-mobile-trust">
+              {TRUST.map((t) => (
+                <div key={t} className="hero-mobile-trust-item">
+                  <span
+                    style={{
+                      width: 5,
+                      height: 5,
+                      borderRadius: '50%',
+                      background: '#f0cc5a',
+                      flexShrink: 0,
+                      display: 'inline-block'
+                    }}
+                  />
+                  {t}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-
-        {/* BOTTOM — text content */}
-        <div className="hero-mobile-text" style={{ position: 'relative', zIndex: 10 }}>
-
-          {/* Eyebrow pill */}
-          <div className="hero-mobile-eyebrow inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/25 bg-white/10 text-gold-light font-semibold tracking-widest uppercase mb-3">
-            <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#f0cc5a', flexShrink: 0, display: 'inline-block' }} />
-            Since 1873 · Solapur, Maharashtra
-          </div>
-
-          {/* Heading */}
-          <h1 className="hero-mobile-h1 font-serif font-black text-white"
-            style={{ textShadow: '0 2px 16px rgba(0,0,0,0.35)' }}>
-            Authentic Taste,<br />
-            <span className="shimmer-text">Timeless Tradition</span>
-          </h1>
-
-          {/* Marathi tagline */}
-          <p className="hero-mobile-tagline"
-            style={{
-              fontFamily: "'Gotu', sans-serif",
-              background: 'linear-gradient(90deg,#ffd89b,#f0cc5a,#ffd89b)',
-              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text', letterSpacing: '0.02em',
-            }}>
-            खमंग चिवडा — पिढ्यानपिढ्याची चव
-          </p>
-
-          {/* Buttons */}
-          <div className="hero-mobile-btns">
-            <button onClick={() => navigate('/products')}
-              className="hero-mobile-btn btn-primary font-poppins">
-              Shop Now →
-            </button>
-            <button onClick={() => navigate('/about')}
-              className="hero-mobile-btn btn-outline font-poppins">
-              Our Story
-            </button>
-          </div>
-
-          {/* Trust badges */}
-          <div className="hero-mobile-trust">
-            {TRUST.map((t) => (
-              <div key={t} className="hero-mobile-trust-item">
-                <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#f0cc5a', flexShrink: 0, display: 'inline-block' }} />
-                {t}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      </section>
 
       {/* ══════════════════════════════════════════════════
           DESKTOP LAYOUT (≥ 768px)
