@@ -104,25 +104,42 @@ function HeroSection() {
     >
       <BgDecorations />
 
-      {/* ── MOBILE layout (< 768px): stacked — image top, text bottom ── */}
-      <div className="flex flex-col md:hidden" style={{ minHeight: '100svh', position: 'relative', zIndex: 5 }}>
-
-        {/* Packet image — top half */}
+      {/* ── MOBILE layout (< 768px) ── */}
+      <div
+        className="flex flex-col md:hidden"
+        style={{ minHeight: '100svh', position: 'relative', zIndex: 5 }}
+      >
+        {/* ── Packet fills the top ~58% — no fixed height, grows naturally ── */}
         <div style={{
           position: 'relative',
-          height: '55svh',
+          flex: '0 0 58svh',
           display: 'flex',
-          alignItems: 'flex-end',
+          alignItems: 'center',
           justifyContent: 'center',
-          flexShrink: 0,
+          overflow: 'visible',
         }}>
-          {/* Glow behind packet */}
+          {/* Large warm glow behind packet */}
           <div style={{
-            position: 'absolute', top: '50%', left: '50%',
+            position: 'absolute',
+            top: '50%', left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '110%', height: '110%',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(212,168,55,0.35) 0%, rgba(224,112,0,0.15) 45%, transparent 72%)',
+            filter: 'blur(32px)',
+            pointerEvents: 'none',
+          }} />
+
+          {/* Spinning decorative ring */}
+          <div style={{
+            position: 'absolute',
+            width: '72vw', height: '72vw',
+            borderRadius: '50%',
+            border: '1px dashed rgba(212,175,55,0.22)',
+            animation: 'spinSlow 22s linear infinite',
+            top: '50%', left: '50%',
             transform: 'translate(-50%,-50%)',
-            width: '90%', height: '90%', borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(212,168,55,0.28) 0%, transparent 70%)',
-            filter: 'blur(28px)', pointerEvents: 'none',
+            pointerEvents: 'none',
           }} />
 
           <AnimatePresence mode="wait" custom={direction}>
@@ -133,16 +150,20 @@ function HeroSection() {
               initial="enter"
               animate="center"
               exit="exit"
-              style={{ animation: 'heroFloat 4s ease-in-out infinite', position: 'relative', zIndex: 2 }}
+              style={{
+                animation: 'heroFloat 4s ease-in-out infinite',
+                position: 'relative', zIndex: 2,
+                display: 'flex', justifyContent: 'center',
+              }}
             >
               <img
                 src={PRODUCTS[current].img}
                 alt="Namdev Chiwada"
                 draggable={false}
                 style={{
-                  width: '96vw',
-                  maxWidth: '440px',
-                  filter: 'drop-shadow(0 24px 48px rgba(0,0,0,0.7)) drop-shadow(0 8px 20px rgba(212,168,55,0.3))',
+                  width: '88vw',
+                  maxWidth: '420px',
+                  filter: 'drop-shadow(0 28px 52px rgba(0,0,0,0.75)) drop-shadow(0 8px 24px rgba(212,168,55,0.4))',
                   display: 'block',
                 }}
               />
@@ -150,19 +171,21 @@ function HeroSection() {
           </AnimatePresence>
         </div>
 
-        {/* Text content — bottom half */}
+        {/* ── Text content — bottom ~42% ── */}
         <div style={{
           position: 'relative',
           zIndex: 10,
+          flex: 1,
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'flex-end',
-          padding: '12px 24px 28px',
+          justifyContent: 'center',
+          padding: '0 22px 28px',
+          gap: 0,
         }}>
           {/* Eyebrow pill */}
           <div
-            className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/10 text-gold-light font-semibold tracking-widest uppercase mb-3"
-            style={{ alignSelf: 'center', fontSize: '0.55rem', padding: '5px 10px' }}
+            className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/10 text-gold-light font-semibold tracking-widest uppercase"
+            style={{ alignSelf: 'center', fontSize: '0.52rem', padding: '4px 10px', marginBottom: 10 }}
           >
             <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#f0cc5a', flexShrink: 0, display: 'inline-block' }} />
             Since 1873 · Solapur, Maharashtra
@@ -172,10 +195,10 @@ function HeroSection() {
           <h1
             className="font-serif font-black text-white text-center"
             style={{
-              fontSize: 'clamp(1.7rem, 7.5vw, 2.2rem)',
-              textShadow: '0 2px 16px rgba(0,0,0,0.35)',
-              marginBottom: 4,
-              lineHeight: 1.08,
+              fontSize: 'clamp(1.85rem, 8vw, 2.4rem)',
+              textShadow: '0 2px 20px rgba(0,0,0,0.4)',
+              marginBottom: 6,
+              lineHeight: 1.06,
             }}
           >
             Authentic Taste,<br />
@@ -192,40 +215,40 @@ function HeroSection() {
               backgroundClip: 'text',
               letterSpacing: '0.02em',
               textAlign: 'center',
-              marginBottom: 12,
-              fontSize: '0.76rem',
+              marginBottom: 14,
+              fontSize: '0.8rem',
             }}
           >
             खमंग चिवडा — पिढ्यानपिढ्याची चव
           </p>
 
           {/* Dots */}
-          <div className="flex justify-center mb-3">
+          <div className="flex justify-center" style={{ marginBottom: 14 }}>
             <Dots />
           </div>
 
           {/* Buttons */}
-          <div className="flex gap-2.5 justify-center mb-3">
+          <div className="flex gap-3 justify-center" style={{ marginBottom: 14 }}>
             <button
               onClick={() => navigate('/products')}
               className="btn-primary font-poppins"
-              style={{ flex: 1, maxWidth: 160, padding: '12px 10px', fontSize: '0.82rem', borderRadius: '999px', fontWeight: 700, textAlign: 'center' }}
+              style={{ flex: 1, maxWidth: 165, padding: '13px 10px', fontSize: '0.85rem', borderRadius: '999px', fontWeight: 700, textAlign: 'center' }}
             >
               Shop Now →
             </button>
             <button
               onClick={() => navigate('/about')}
               className="btn-outline font-poppins"
-              style={{ flex: 1, maxWidth: 160, padding: '12px 10px', fontSize: '0.82rem', borderRadius: '999px', fontWeight: 700, textAlign: 'center' }}
+              style={{ flex: 1, maxWidth: 165, padding: '13px 10px', fontSize: '0.85rem', borderRadius: '999px', fontWeight: 700, textAlign: 'center' }}
             >
               Our Story
             </button>
           </div>
 
           {/* Trust badges */}
-          <div className="flex flex-wrap gap-x-3 gap-y-1 justify-center">
+          <div className="flex flex-wrap gap-x-4 gap-y-1 justify-center">
             {TRUST.map((t) => (
-              <div key={t} className="flex items-center gap-1" style={{ fontSize: '0.66rem', color: 'rgba(255,255,255,0.7)' }}>
+              <div key={t} className="flex items-center gap-1.5" style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.65)' }}>
                 <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#f0cc5a', flexShrink: 0, display: 'inline-block' }} />
                 {t}
               </div>
