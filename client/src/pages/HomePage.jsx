@@ -30,83 +30,6 @@ function preloadImages() {
   PRODUCTS.forEach(p => { const img = new Image(); img.src = p.img; });
 }
 
-// ── Mobile Hero CSS injected once ─────────────────────
-const MOBILE_STYLES = `
-@media (max-width: 767px) {
-  .hero-mobile-wrap {
-    min-height: 100svh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 12px 20px 20px;
-    gap: 0;
-  }
-  .hero-mobile-top {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    flex: 0 0 auto;
-    position: relative;
-  }
-  .hero-mobile-img {
-    width: 100vw !important;
-    max-width: 100vw !important;
-    margin: -20px -20px 0 -20px !important;
-    filter: drop-shadow(0 16px 40px rgba(0,0,0,0.65)) drop-shadow(0 4px 16px rgba(212,168,55,0.3)) !important;
-  }
-  .hero-mobile-dots { display: none !important; }
-  .hero-mobile-text {
-    text-align: center;
-    flex: 0 0 auto;
-    margin-top: -8px;
-  }
-  .hero-mobile-eyebrow {
-    font-size: 0.55rem !important;
-    padding: 5px 10px !important;
-    margin-bottom: 8px !important;
-  }
-  .hero-mobile-h1 {
-    font-size: clamp(1.7rem, 7.5vw, 2.2rem) !important;
-    white-space: normal !important;
-    margin-bottom: 4px !important;
-    line-height: 1.08 !important;
-  }
-  .hero-mobile-tagline {
-    font-size: 0.76rem !important;
-    margin-bottom: 12px !important;
-  }
-  .hero-mobile-btns {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-    margin-bottom: 10px;
-  }
-  .hero-mobile-btn {
-    flex: 1;
-    max-width: 160px;
-    padding: 12px 10px !important;
-    font-size: 0.82rem !important;
-    border-radius: 999px !important;
-    font-weight: 700 !important;
-    text-align: center !important;
-  }
-  .hero-mobile-trust {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px 12px;
-    justify-content: center;
-  }
-  .hero-mobile-trust-item {
-    font-size: 0.66rem;
-    color: rgba(255,255,255,0.7);
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-}
-`;
-
 function HeroSection() {
   const navigate = useNavigate();
   const [current, setCurrent] = useState(0);
@@ -116,13 +39,6 @@ function HeroSection() {
 
   useEffect(() => {
     preloadImages();
-    // Inject mobile styles once
-    if (!document.getElementById('hero-mobile-css')) {
-      const style = document.createElement('style');
-      style.id = 'hero-mobile-css';
-      style.textContent = MOBILE_STYLES;
-      document.head.appendChild(style);
-    }
   }, []);
 
   const goTo = useCallback((index, dir = 1) => {
@@ -151,7 +67,6 @@ function HeroSection() {
     exit: (dir) => ({ opacity: 0, x: dir > 0 ? -50 : 50, scale: 0.94, transition: { duration: 0.35 } }),
   };
 
-  // ── Shared background decorations ────────────────────
   const BgDecorations = () => (
     <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 0 }}>
       <div className="absolute inset-0 opacity-5"
@@ -162,7 +77,6 @@ function HeroSection() {
     </div>
   );
 
-  // ── Dot indicators ────────────────────────────────────
   const Dots = ({ className = '' }) => (
     <div className={`flex gap-2 ${className}`}>
       {PRODUCTS.map((_, i) => (
@@ -182,229 +96,177 @@ function HeroSection() {
   );
 
   return (
-    <>
-      {/* ══════════════════════════════════════════════════
-          MOBILE LAYOUT (< 768px)
-      ══════════════════════════════════════════════════ */}
-      <section
-        className="md:hidden hero-gradient relative -mt-4"
-        style={{
-          minHeight: '100svh',
-          overflow: 'hidden',
+    <section
+      className="hero-gradient relative -mt-4 md:-mt-9"
+      style={{ minHeight: '100svh', overflow: 'hidden' }}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+    >
+      <BgDecorations />
+
+      {/* ── MOBILE layout (< 768px): stacked — image top, text bottom ── */}
+      <div className="flex flex-col md:hidden" style={{ minHeight: '100svh', position: 'relative', zIndex: 5 }}>
+
+        {/* Packet image — top half */}
+        <div style={{
+          position: 'relative',
+          height: '55svh',
           display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'flex-end'
-        }}
-      >
-        <BgDecorations />
-
-        <div
-          onTouchStart={onTouchStart}
-          onTouchEnd={onTouchEnd}
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            flex: 1,
-            justifyContent: 'flex-end',
-          }}
-        >
-
-          {/* TOP — packet section */}
+          alignItems: 'flex-end',
+          justifyContent: 'center',
+          flexShrink: 0,
+        }}>
+          {/* Glow behind packet */}
           <div style={{
-            position: 'relative',
-            zIndex: 5,
-            height: '55svh',
-            display: 'flex',
-            alignItems: 'flex-end',
-            justifyContent: 'center',
-            flexShrink: 0,
-            paddingBottom: 0,
-          }}>
+            position: 'absolute', top: '50%', left: '50%',
+            transform: 'translate(-50%,-50%)',
+            width: '90%', height: '90%', borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(212,168,55,0.28) 0%, transparent 70%)',
+            filter: 'blur(28px)', pointerEvents: 'none',
+          }} />
 
-            {/* Glow behind packet */}
-            <div style={{
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%,-50%)',
-              width: '90%',
-              height: '90%',
-              borderRadius: '50%',
-              background:
-                'radial-gradient(circle, rgba(212,168,55,0.28) 0%, transparent 70%)',
-              filter: 'blur(28px)',
-              pointerEvents: 'none',
-            }} />
-
-            <AnimatePresence mode="wait" custom={direction}>
-              <motion.div
-                key={current}
-                custom={direction}
-                variants={slideVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                style={{
-                  animation: 'heroFloat 4s ease-in-out infinite',
-                  position: 'relative',
-                  zIndex: 2
-                }}
-              >
-                <img
-                  src={PRODUCTS[current].img}
-                  alt="Namdev Chiwada"
-                  draggable={false}
-                  style={{
-                    width: '96vw',
-                    maxWidth: '440px',
-                    filter:
-                      'drop-shadow(0 24px 48px rgba(0,0,0,0.7)) drop-shadow(0 8px 20px rgba(212,168,55,0.3))',
-                    display: 'block',
-                  }}
-                />
-              </motion.div>
-            </AnimatePresence>
-
-            <Dots className="hero-mobile-dots" />
-          </div>
-
-          {/* BOTTOM — text content */}
-          <div style={{
-            position: 'relative',
-            zIndex: 10,
-            flex: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'flex-end',
-            padding: '12px 24px 24px',
-            gap: 0,
-          }}>
-
-            {/* Eyebrow pill */}
-            <div
-              className="hero-mobile-eyebrow inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/25 bg-white/10 text-gold-light font-semibold tracking-widest uppercase mb-3"
-              style={{
-                alignSelf: 'center',
-                fontSize: '0.55rem',
-              }}
+          <AnimatePresence mode="wait" custom={direction}>
+            <motion.div
+              key={current}
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              style={{ animation: 'heroFloat 4s ease-in-out infinite', position: 'relative', zIndex: 2 }}
             >
-              <span
+              <img
+                src={PRODUCTS[current].img}
+                alt="Namdev Chiwada"
+                draggable={false}
                 style={{
-                  width: 5,
-                  height: 5,
-                  borderRadius: '50%',
-                  background: '#f0cc5a',
-                  flexShrink: 0,
-                  display: 'inline-block'
+                  width: '96vw',
+                  maxWidth: '440px',
+                  filter: 'drop-shadow(0 24px 48px rgba(0,0,0,0.7)) drop-shadow(0 8px 20px rgba(212,168,55,0.3))',
+                  display: 'block',
                 }}
               />
-              Since 1873 · Solapur, Maharashtra
-            </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
 
-            {/* Heading */}
-            <h1
-              className="hero-mobile-h1 font-serif font-black text-white text-center"
-              style={{
-                textShadow: '0 2px 16px rgba(0,0,0,0.35)',
-                marginBottom: 4,
-                lineHeight: 1.08,
-              }}
+        {/* Text content — bottom half */}
+        <div style={{
+          position: 'relative',
+          zIndex: 10,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'flex-end',
+          padding: '12px 24px 28px',
+        }}>
+          {/* Eyebrow pill */}
+          <div
+            className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/10 text-gold-light font-semibold tracking-widest uppercase mb-3"
+            style={{ alignSelf: 'center', fontSize: '0.55rem', padding: '5px 10px' }}
+          >
+            <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#f0cc5a', flexShrink: 0, display: 'inline-block' }} />
+            Since 1873 · Solapur, Maharashtra
+          </div>
+
+          {/* Heading */}
+          <h1
+            className="font-serif font-black text-white text-center"
+            style={{
+              fontSize: 'clamp(1.7rem, 7.5vw, 2.2rem)',
+              textShadow: '0 2px 16px rgba(0,0,0,0.35)',
+              marginBottom: 4,
+              lineHeight: 1.08,
+            }}
+          >
+            Authentic Taste,<br />
+            <span className="shimmer-text">Timeless Tradition</span>
+          </h1>
+
+          {/* Marathi tagline */}
+          <p
+            style={{
+              fontFamily: "'Gotu', sans-serif",
+              background: 'linear-gradient(90deg,#ffd89b,#f0cc5a,#ffd89b)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              letterSpacing: '0.02em',
+              textAlign: 'center',
+              marginBottom: 12,
+              fontSize: '0.76rem',
+            }}
+          >
+            खमंग चिवडा — पिढ्यानपिढ्याची चव
+          </p>
+
+          {/* Dots */}
+          <div className="flex justify-center mb-3">
+            <Dots />
+          </div>
+
+          {/* Buttons */}
+          <div className="flex gap-2.5 justify-center mb-3">
+            <button
+              onClick={() => navigate('/products')}
+              className="btn-primary font-poppins"
+              style={{ flex: 1, maxWidth: 160, padding: '12px 10px', fontSize: '0.82rem', borderRadius: '999px', fontWeight: 700, textAlign: 'center' }}
             >
-              Authentic Taste,<br />
-              <span className="shimmer-text">
-                Timeless Tradition
-              </span>
-            </h1>
-
-            {/* Marathi tagline */}
-            <p
-              className="hero-mobile-tagline"
-              style={{
-                fontFamily: "'Gotu', sans-serif",
-                background:
-                  'linear-gradient(90deg,#ffd89b,#f0cc5a,#ffd89b)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-                letterSpacing: '0.02em',
-                textAlign: 'center',
-                marginBottom: 12,
-              }}
+              Shop Now →
+            </button>
+            <button
+              onClick={() => navigate('/about')}
+              className="btn-outline font-poppins"
+              style={{ flex: 1, maxWidth: 160, padding: '12px 10px', fontSize: '0.82rem', borderRadius: '999px', fontWeight: 700, textAlign: 'center' }}
             >
-              खमंग चिवडा — पिढ्यानपिढ्याची चव
-            </p>
+              Our Story
+            </button>
+          </div>
 
-            {/* Buttons */}
-            <div className="hero-mobile-btns">
-              <button
-                onClick={() => navigate('/products')}
-                className="hero-mobile-btn btn-primary font-poppins"
-              >
-                Shop Now →
-              </button>
-
-              <button
-                onClick={() => navigate('/about')}
-                className="hero-mobile-btn btn-outline font-poppins"
-              >
-                Our Story
-              </button>
-            </div>
-
-            {/* Trust badges */}
-            <div className="hero-mobile-trust">
-              {TRUST.map((t) => (
-                <div key={t} className="hero-mobile-trust-item">
-                  <span
-                    style={{
-                      width: 5,
-                      height: 5,
-                      borderRadius: '50%',
-                      background: '#f0cc5a',
-                      flexShrink: 0,
-                      display: 'inline-block'
-                    }}
-                  />
-                  {t}
-                </div>
-              ))}
-            </div>
+          {/* Trust badges */}
+          <div className="flex flex-wrap gap-x-3 gap-y-1 justify-center">
+            {TRUST.map((t) => (
+              <div key={t} className="flex items-center gap-1" style={{ fontSize: '0.66rem', color: 'rgba(255,255,255,0.7)' }}>
+                <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#f0cc5a', flexShrink: 0, display: 'inline-block' }} />
+                {t}
+              </div>
+            ))}
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* ══════════════════════════════════════════════════
-          DESKTOP LAYOUT (≥ 768px)
-      ══════════════════════════════════════════════════ */}
-      <section
-        className="hero-gradient relative hidden md:flex items-center -mt-9"
-        style={{ minHeight: '100svh', overflow: 'visible' }}
+      {/* ── DESKTOP layout (≥ 768px): two-column side-by-side ── */}
+      <div
+        className="hidden md:flex items-center"
+        style={{ minHeight: '100svh', position: 'relative', zIndex: 5 }}
       >
-        <BgDecorations />
-
-        <div className="max-w-7xl mx-auto px-6 w-full relative"
-          style={{ zIndex: 10 }}>
+        <div className="max-w-7xl mx-auto px-6 w-full">
           <div className="grid md:grid-cols-2 w-full items-center" style={{ gap: 0 }}>
 
             {/* LEFT — Text */}
-            <div className="text-left order-1"
-              style={{ position: 'relative', zIndex: 20, paddingTop: 'clamp(40px,8vh,100px)', paddingBottom: 'clamp(40px,6vh,80px)' }}>
-
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
+            <div
+              className="text-left order-1"
+              style={{ position: 'relative', zIndex: 20, paddingTop: 'clamp(40px,8vh,100px)', paddingBottom: 'clamp(40px,6vh,80px)' }}
+            >
+              <motion.div
+                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/25 bg-white/10 text-gold-light font-semibold tracking-widest uppercase mb-6"
-                style={{ fontSize: 'clamp(0.58rem,1.8vw,0.75rem)' }}>
+                style={{ fontSize: 'clamp(0.58rem,1.8vw,0.75rem)' }}
+              >
                 <span className="w-1.5 h-1.5 rounded-full bg-gold-light flex-shrink-0" />
                 Since 1873 · Solapur, Maharashtra
               </motion.div>
 
-              <motion.h1 initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }}
+              <motion.h1
+                initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }}
                 className="font-serif font-black text-white leading-[1.08] mb-3"
-                style={{ fontSize: 'clamp(2.05rem,5vw,3.5rem)', textShadow: '0 2px 20px rgba(0,0,0,0.3)', whiteSpace: 'nowrap' }}>
+                style={{ fontSize: 'clamp(2.05rem,5vw,3.5rem)', textShadow: '0 2px 20px rgba(0,0,0,0.3)', whiteSpace: 'nowrap' }}
+              >
                 Authentic Taste,<br />
                 <span className="shimmer-text" style={{ whiteSpace: 'nowrap' }}>Timeless Tradition</span>
               </motion.h1>
 
-              <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }}
+              <motion.p
+                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }}
                 className="mb-6"
                 style={{
                   fontFamily: "'Gotu', sans-serif",
@@ -413,21 +275,25 @@ function HeroSection() {
                   backgroundSize: '200% auto',
                   WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
                   backgroundClip: 'text', letterSpacing: '0.02em',
-                }}>
+                }}
+              >
                 खमंग चिवडा — पिढ्यानपिढ्याची चव
               </motion.p>
 
-              <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.4 }}
-                className="flex gap-3 mb-10">
+              <motion.div
+                initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.4 }}
+                className="flex gap-3 mb-10"
+              >
                 <button onClick={() => navigate('/products')} className="btn-primary font-poppins text-base px-8 py-3.5">Shop Now →</button>
                 <button onClick={() => navigate('/about')} className="btn-outline font-poppins text-base px-8 py-3.5">Our Story</button>
               </motion.div>
 
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}
-                className="flex flex-wrap gap-5">
+              <motion.div
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}
+                className="flex flex-wrap gap-5"
+              >
                 {TRUST.map((t) => (
-                  <div key={t} className="flex items-center gap-1.5 text-white/75"
-                    style={{ fontSize: 'clamp(0.68rem,1.5vw,0.8rem)' }}>
+                  <div key={t} className="flex items-center gap-1.5 text-white/75" style={{ fontSize: 'clamp(0.68rem,1.5vw,0.8rem)' }}>
                     <span className="w-1.5 h-1.5 rounded-full bg-gold-light flex-shrink-0" />
                     <span className="whitespace-nowrap">{t}</span>
                   </div>
@@ -436,12 +302,12 @@ function HeroSection() {
             </div>
 
             {/* RIGHT — Packet */}
-            <motion.div initial={{ opacity: 0, scale: 0.88 }} animate={{ opacity: 1, scale: 1 }}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.88 }} animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.9, delay: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
               className="order-2 flex flex-col items-center justify-center relative"
-              onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}
-              style={{ position: 'relative', zIndex: 15 }}>
-
+              style={{ position: 'relative', zIndex: 15 }}
+            >
               <div style={{
                 position: 'absolute', top: '50%', left: '50%',
                 transform: 'translate(-50%,-50%)',
@@ -464,9 +330,15 @@ function HeroSection() {
 
               <div style={{ position: 'relative', zIndex: 3, width: '100%', display: 'flex', justifyContent: 'center' }}>
                 <AnimatePresence mode="wait" custom={direction}>
-                  <motion.div key={current} custom={direction}
-                    variants={slideVariants} initial="enter" animate="center" exit="exit"
-                    style={{ animation: 'heroFloat 4s ease-in-out infinite', display: 'flex', justifyContent: 'center', transform: 'translateY(-40px)' }}>
+                  <motion.div
+                    key={current}
+                    custom={direction}
+                    variants={slideVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    style={{ animation: 'heroFloat 4s ease-in-out infinite', display: 'flex', justifyContent: 'center', transform: 'translateY(-40px)' }}
+                  >
                     <img
                       src={PRODUCTS[current].img}
                       alt="Namdev Chiwada product"
@@ -485,8 +357,8 @@ function HeroSection() {
             </motion.div>
           </div>
         </div>
-      </section>
-    </>
+      </div>
+    </section>
   );
 }
 
