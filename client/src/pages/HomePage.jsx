@@ -182,15 +182,10 @@ function HeroSection() {
   );
 
   return (
-    <section
-      className="hero-gradient relative -mt-4 md:-mt-9"
-      style={{ minHeight: '100svh', overflow: 'visible' }}>
-
-      <BgDecorations />
-
+    <>
       {/* ══════════════════════════════════════════════════
-    MOBILE LAYOUT (< 768px)
-══════════════════════════════════════════════════ */}
+          MOBILE LAYOUT (< 768px)
+      ══════════════════════════════════════════════════ */}
       <section
         className="md:hidden hero-gradient relative -mt-4"
         style={{
@@ -201,6 +196,8 @@ function HeroSection() {
           justifyContent: 'flex-end'
         }}
       >
+        <BgDecorations />
+
         <div
           onTouchStart={onTouchStart}
           onTouchEnd={onTouchEnd}
@@ -379,110 +376,117 @@ function HeroSection() {
       {/* ══════════════════════════════════════════════════
           DESKTOP LAYOUT (≥ 768px)
       ══════════════════════════════════════════════════ */}
-      <div className="hidden md:flex max-w-7xl mx-auto px-6 w-full relative items-center"
-        style={{ zIndex: 10, minHeight: '100svh' }}>
-        <div className="grid md:grid-cols-2 w-full items-center" style={{ gap: 0 }}>
+      <section
+        className="hero-gradient relative hidden md:flex items-center -mt-9"
+        style={{ minHeight: '100svh', overflow: 'visible' }}
+      >
+        <BgDecorations />
 
-          {/* LEFT — Text */}
-          <div className="text-left order-1"
-            style={{ position: 'relative', zIndex: 20, paddingTop: 'clamp(40px,8vh,100px)', paddingBottom: 'clamp(40px,6vh,80px)' }}>
+        <div className="max-w-7xl mx-auto px-6 w-full relative"
+          style={{ zIndex: 10 }}>
+          <div className="grid md:grid-cols-2 w-full items-center" style={{ gap: 0 }}>
 
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/25 bg-white/10 text-gold-light font-semibold tracking-widest uppercase mb-6"
-              style={{ fontSize: 'clamp(0.58rem,1.8vw,0.75rem)' }}>
-              <span className="w-1.5 h-1.5 rounded-full bg-gold-light flex-shrink-0" />
-              Since 1873 · Solapur, Maharashtra
-            </motion.div>
+            {/* LEFT — Text */}
+            <div className="text-left order-1"
+              style={{ position: 'relative', zIndex: 20, paddingTop: 'clamp(40px,8vh,100px)', paddingBottom: 'clamp(40px,6vh,80px)' }}>
 
-            <motion.h1 initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }}
-              className="font-serif font-black text-white leading-[1.08] mb-3"
-              style={{ fontSize: 'clamp(2.05rem,5vw,3.5rem)', textShadow: '0 2px 20px rgba(0,0,0,0.3)', whiteSpace: 'nowrap' }}>
-              Authentic Taste,<br />
-              <span className="shimmer-text" style={{ whiteSpace: 'nowrap' }}>Timeless Tradition</span>
-            </motion.h1>
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/25 bg-white/10 text-gold-light font-semibold tracking-widest uppercase mb-6"
+                style={{ fontSize: 'clamp(0.58rem,1.8vw,0.75rem)' }}>
+                <span className="w-1.5 h-1.5 rounded-full bg-gold-light flex-shrink-0" />
+                Since 1873 · Solapur, Maharashtra
+              </motion.div>
 
-            <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }}
-              className="mb-6"
-              style={{
-                fontFamily: "'Gotu', sans-serif",
-                fontSize: 'clamp(0.82rem,2vw,1.3rem)',
-                background: 'linear-gradient(90deg,#ffd89b,#f0cc5a,#ffd89b)',
-                backgroundSize: '200% auto',
-                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text', letterSpacing: '0.02em',
-              }}>
-              खमंग चिवडा — पिढ्यानपिढ्याची चव
-            </motion.p>
+              <motion.h1 initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }}
+                className="font-serif font-black text-white leading-[1.08] mb-3"
+                style={{ fontSize: 'clamp(2.05rem,5vw,3.5rem)', textShadow: '0 2px 20px rgba(0,0,0,0.3)', whiteSpace: 'nowrap' }}>
+                Authentic Taste,<br />
+                <span className="shimmer-text" style={{ whiteSpace: 'nowrap' }}>Timeless Tradition</span>
+              </motion.h1>
 
-            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.4 }}
-              className="flex gap-3 mb-10">
-              <button onClick={() => navigate('/products')} className="btn-primary font-poppins text-base px-8 py-3.5">Shop Now →</button>
-              <button onClick={() => navigate('/about')} className="btn-outline font-poppins text-base px-8 py-3.5">Our Story</button>
-            </motion.div>
+              <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }}
+                className="mb-6"
+                style={{
+                  fontFamily: "'Gotu', sans-serif",
+                  fontSize: 'clamp(0.82rem,2vw,1.3rem)',
+                  background: 'linear-gradient(90deg,#ffd89b,#f0cc5a,#ffd89b)',
+                  backgroundSize: '200% auto',
+                  WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text', letterSpacing: '0.02em',
+                }}>
+                खमंग चिवडा — पिढ्यानपिढ्याची चव
+              </motion.p>
 
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}
-              className="flex flex-wrap gap-5">
-              {TRUST.map((t) => (
-                <div key={t} className="flex items-center gap-1.5 text-white/75"
-                  style={{ fontSize: 'clamp(0.68rem,1.5vw,0.8rem)' }}>
-                  <span className="w-1.5 h-1.5 rounded-full bg-gold-light flex-shrink-0" />
-                  <span className="whitespace-nowrap">{t}</span>
-                </div>
-              ))}
-            </motion.div>
-          </div>
+              <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.4 }}
+                className="flex gap-3 mb-10">
+                <button onClick={() => navigate('/products')} className="btn-primary font-poppins text-base px-8 py-3.5">Shop Now →</button>
+                <button onClick={() => navigate('/about')} className="btn-outline font-poppins text-base px-8 py-3.5">Our Story</button>
+              </motion.div>
 
-          {/* RIGHT — Packet */}
-          <motion.div initial={{ opacity: 0, scale: 0.88 }} animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.9, delay: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="order-2 flex flex-col items-center justify-center relative"
-            onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}
-            style={{ position: 'relative', zIndex: 15 }}>
-
-            <div style={{
-              position: 'absolute', top: '50%', left: '50%',
-              transform: 'translate(-50%,-50%)',
-              width: '80%', height: '80%', borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(212,168,55,0.25) 0%, transparent 70%)',
-              filter: 'blur(28px)', pointerEvents: 'none', zIndex: 1,
-            }} />
-            <div className="absolute" style={{
-              width: '540px', height: '540px', borderRadius: '50%',
-              border: '1.5px dashed rgba(212,175,55,0.2)',
-              animation: 'spinSlow 22s linear infinite',
-              top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 1,
-            }} />
-            <div className="absolute" style={{
-              width: '400px', height: '400px', borderRadius: '50%',
-              border: '1px solid rgba(255,255,255,0.06)',
-              animation: 'spinSlow 14s linear infinite reverse',
-              top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 1,
-            }} />
-
-            <div style={{ position: 'relative', zIndex: 3, width: '100%', display: 'flex', justifyContent: 'center' }}>
-              <AnimatePresence mode="wait" custom={direction}>
-                <motion.div key={current} custom={direction}
-                  variants={slideVariants} initial="enter" animate="center" exit="exit"
-                  style={{ animation: 'heroFloat 4s ease-in-out infinite', display: 'flex', justifyContent: 'center', transform: 'translateY(-40px)' }}>
-                  <img
-                    src={PRODUCTS[current].img}
-                    alt="Namdev Chiwada product"
-                    style={{
-                      width: 'clamp(300px,56vw,760px)', maxWidth: 'none',
-                      filter: 'drop-shadow(0 40px 70px rgba(0,0,0,0.6)) drop-shadow(0 8px 24px rgba(212,168,55,0.25))',
-                      display: 'block',
-                    }}
-                    draggable={false}
-                  />
-                </motion.div>
-              </AnimatePresence>
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}
+                className="flex flex-wrap gap-5">
+                {TRUST.map((t) => (
+                  <div key={t} className="flex items-center gap-1.5 text-white/75"
+                    style={{ fontSize: 'clamp(0.68rem,1.5vw,0.8rem)' }}>
+                    <span className="w-1.5 h-1.5 rounded-full bg-gold-light flex-shrink-0" />
+                    <span className="whitespace-nowrap">{t}</span>
+                  </div>
+                ))}
+              </motion.div>
             </div>
 
-            <Dots className="mt-2 justify-center" />
-          </motion.div>
+            {/* RIGHT — Packet */}
+            <motion.div initial={{ opacity: 0, scale: 0.88 }} animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.9, delay: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="order-2 flex flex-col items-center justify-center relative"
+              onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}
+              style={{ position: 'relative', zIndex: 15 }}>
+
+              <div style={{
+                position: 'absolute', top: '50%', left: '50%',
+                transform: 'translate(-50%,-50%)',
+                width: '80%', height: '80%', borderRadius: '50%',
+                background: 'radial-gradient(circle, rgba(212,168,55,0.25) 0%, transparent 70%)',
+                filter: 'blur(28px)', pointerEvents: 'none', zIndex: 1,
+              }} />
+              <div className="absolute" style={{
+                width: '540px', height: '540px', borderRadius: '50%',
+                border: '1.5px dashed rgba(212,175,55,0.2)',
+                animation: 'spinSlow 22s linear infinite',
+                top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 1,
+              }} />
+              <div className="absolute" style={{
+                width: '400px', height: '400px', borderRadius: '50%',
+                border: '1px solid rgba(255,255,255,0.06)',
+                animation: 'spinSlow 14s linear infinite reverse',
+                top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 1,
+              }} />
+
+              <div style={{ position: 'relative', zIndex: 3, width: '100%', display: 'flex', justifyContent: 'center' }}>
+                <AnimatePresence mode="wait" custom={direction}>
+                  <motion.div key={current} custom={direction}
+                    variants={slideVariants} initial="enter" animate="center" exit="exit"
+                    style={{ animation: 'heroFloat 4s ease-in-out infinite', display: 'flex', justifyContent: 'center', transform: 'translateY(-40px)' }}>
+                    <img
+                      src={PRODUCTS[current].img}
+                      alt="Namdev Chiwada product"
+                      style={{
+                        width: 'clamp(300px,56vw,760px)', maxWidth: 'none',
+                        filter: 'drop-shadow(0 40px 70px rgba(0,0,0,0.6)) drop-shadow(0 8px 24px rgba(212,168,55,0.25))',
+                        display: 'block',
+                      }}
+                      draggable={false}
+                    />
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+
+              <Dots className="mt-2 justify-center" />
+            </motion.div>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </>
   );
 }
 
