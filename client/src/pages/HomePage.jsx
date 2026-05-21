@@ -18,6 +18,7 @@ const TESTIMONIALS = [
   { name: 'Aditya Pawar', city: 'SambajiNagar', text: 'Ordered the Bakarwadi for Diwali gifting — everyone loved it. Will order again!', rating: 5 },
   { name: 'Umesh Chakure', city: 'Latur', text: 'The Dagdi Chiwada is perfectly crispy with just the right amount of spice. Love it!', rating: 5 },
 ];
+
 const PRODUCTS = [
   { img: 'https://res.cloudinary.com/dz7ykg6qr/image/upload/v1776256647/special1_sy4zxa.png' },
   { img: 'https://res.cloudinary.com/dz7ykg6qr/image/upload/v1778141952/maka-chiwada-Photoroom_efq78h.png' },
@@ -36,9 +37,14 @@ function HeroSection() {
   const touchStartX = useRef(null);
   const autoRef = useRef(null);
 
-  useEffect(() => { preloadImages(); }, []);
+  useEffect(() => {
+    preloadImages();
+  }, []);
 
-  const goTo = useCallback((index, dir = 1) => { setDirection(dir); setCurrent(index); }, []);
+  const goTo = useCallback((index, dir = 1) => {
+    setDirection(dir); setCurrent(index);
+  }, []);
+
   const next = useCallback(() => goTo((current + 1) % PRODUCTS.length, 1), [current, goTo]);
   const prev = useCallback(() => goTo((current - 1 + PRODUCTS.length) % PRODUCTS.length, -1), [current, goTo]);
 
@@ -56,134 +62,84 @@ function HeroSection() {
   };
 
   const slideVariants = {
-    enter: (dir) => ({ opacity: 0, x: dir > 0 ? 60 : -60, scale: 0.9 }),
+    enter: (dir) => ({ opacity: 0, x: dir > 0 ? 50 : -50, scale: 0.94 }),
     center: { opacity: 1, x: 0, scale: 1, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } },
-    exit: (dir) => ({ opacity: 0, x: dir > 0 ? -60 : 60, scale: 0.9, transition: { duration: 0.35 } }),
+    exit: (dir) => ({ opacity: 0, x: dir > 0 ? -50 : 50, scale: 0.94, transition: { duration: 0.35 } }),
   };
 
-  const desktopSlideVariants = {
-    enter: (dir) => ({ opacity: 0, x: dir > 0 ? 60 : -60, scale: 0.92, filter: 'blur(4px)' }),
-    center: { opacity: 1, x: 0, scale: 1, filter: 'blur(0px)', transition: { duration: 0.55, ease: [0.25, 0.46, 0.45, 0.94] } },
-    exit: (dir) => ({ opacity: 0, x: dir > 0 ? -60 : 60, scale: 0.92, filter: 'blur(4px)', transition: { duration: 0.4 } }),
-  };
+  const BgDecorations = () => (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 0 }}>
+      <div className="absolute inset-0 opacity-5"
+        style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ccircle cx='30' cy='30' r='28' fill='none' stroke='%23fff' stroke-width='0.5'/%3E%3C/svg%3E\")" }} />
+      <div className="absolute bottom-0 left-0 right-0 h-20 md:h-32 bg-gradient-to-t from-brown-dark/60 to-transparent" />
+      <div style={{ position: 'absolute', top: '-80px', right: '-60px', width: '360px', height: '360px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(212,168,55,0.18) 0%, transparent 70%)' }} />
+      <div style={{ position: 'absolute', bottom: '40px', left: '-80px', width: '280px', height: '280px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(224,112,0,0.14) 0%, transparent 70%)' }} />
+    </div>
+  );
 
-  const DesktopDots = () => (
-    <div className="flex gap-2 mt-2" style={{ zIndex: 4, position: 'relative' }}>
+  const Dots = ({ className = '' }) => (
+    <div className={`flex gap-2 ${className}`}>
       {PRODUCTS.map((_, i) => (
         <button key={i}
           onClick={() => { clearInterval(autoRef.current); goTo(i, i > current ? 1 : -1); }}
-          style={{ width: i === current ? '22px' : '7px', height: '7px', borderRadius: '4px', background: i === current ? '#ffd89b' : 'rgba(255,255,255,0.3)', border: 'none', cursor: 'pointer', padding: 0, transition: 'all 0.35s cubic-bezier(0.25,0.46,0.45,0.94)' }}
-          aria-label={`Product ${i + 1}`} />
+          style={{
+            width: i === current ? '22px' : '7px', height: '7px',
+            borderRadius: '4px',
+            background: i === current ? '#ffd89b' : 'rgba(255,255,255,0.3)',
+            border: 'none', cursor: 'pointer', padding: 0,
+            transition: 'all 0.35s cubic-bezier(0.25,0.46,0.45,0.94)',
+          }}
+          aria-label={`Product ${i + 1}`}
+        />
       ))}
     </div>
   );
 
   return (
-    <>
-      {/* ══════════════════════════════════════════════
-          MOBILE HERO
-          Layout: text on top, big packet below, buttons visible
-      ══════════════════════════════════════════════ */}
-      <section
-        className="md:hidden hero-gradient relative -mt-4"
-        style={{ minHeight: '100svh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
-        onTouchStart={onTouchStart}
-        onTouchEnd={onTouchEnd}>
+    <section
+      className="hero-gradient relative -mt-4 md:-mt-9"
+      style={{ minHeight: '100svh', overflow: 'hidden' }}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+    >
+      <BgDecorations />
 
-        {/* Background glow */}
-        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0 }}>
-          <div className="absolute inset-0 opacity-5"
-            style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ccircle cx='30' cy='30' r='28' fill='none' stroke='%23fff' stroke-width='0.5'/%3E%3C/svg%3E\")" }} />
-          <div style={{ position: 'absolute', top: '10%', left: '50%', transform: 'translateX(-50%)', width: '320px', height: '320px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(212,168,55,0.2) 0%, transparent 70%)', filter: 'blur(24px)' }} />
-          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '45%', background: 'linear-gradient(to top, rgba(35,15,0,0.85) 0%, transparent 100%)' }} />
-        </div>
-
-        {/* ── TOP: text section ── */}
-        <div style={{ position: 'relative', zIndex: 10, padding: '20px 22px 8px', flexShrink: 0 }}>
-
-          {/* Eyebrow */}
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: 6,
-            background: 'rgba(255,255,255,0.1)',
-            border: '1px solid rgba(255,255,255,0.2)',
-            borderRadius: 999, padding: '5px 11px', marginBottom: 10,
-          }}>
-            <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#f0cc5a', display: 'inline-block', flexShrink: 0 }} />
-            <span style={{ color: '#f0cc5a', fontWeight: 700, fontSize: '0.56rem', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-              Since 1873 · Solapur, Maharashtra
-            </span>
-          </div>
-
-          {/* Heading */}
-          <h1 style={{
-            fontFamily: "'Playfair Display', serif",
-            fontWeight: 900, color: '#fff',
-            fontSize: 'clamp(1.75rem, 7.5vw, 2.3rem)',
-            lineHeight: 1.08,
-            textShadow: '0 2px 18px rgba(0,0,0,0.5)',
-            marginBottom: 5,
-          }}>
-            Authentic Taste,<br />
-            <span className="shimmer-text">Timeless Tradition</span>
-          </h1>
-
-          {/* Marathi tagline */}
-          <p style={{
-            fontFamily: "'Gotu', sans-serif",
-            fontSize: '0.8rem',
-            background: 'linear-gradient(90deg,#ffd89b,#f0cc5a,#ffd89b)',
-            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text', letterSpacing: '0.02em',
-            marginBottom: 14,
-          }}>
-            खमंग चिवडा — पिढ्यानपिढ्याची चव
-          </p>
-
-          {/* Buttons */}
-          <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
-            <button onClick={() => navigate('/products')} style={{
-              flex: 1, padding: '12px 0', borderRadius: 999, fontWeight: 800,
-              fontSize: '0.85rem', border: 'none',
-              background: 'linear-gradient(135deg,#d4af37,#f0cc5a)',
-              color: '#2d1a00', cursor: 'pointer',
-              boxShadow: '0 4px 16px rgba(212,175,55,0.4)',
-              fontFamily: "'Poppins', sans-serif",
-            }}>Shop Now →</button>
-            <button onClick={() => navigate('/about')} style={{
-              flex: 1, padding: '12px 0', borderRadius: 999, fontWeight: 700,
-              fontSize: '0.85rem',
-              background: 'rgba(255,255,255,0.1)',
-              border: '1.5px solid rgba(255,255,255,0.35)',
-              color: '#fff', cursor: 'pointer',
-              fontFamily: "'Poppins', sans-serif",
-            }}>Our Story</button>
-          </div>
-
-          {/* Trust badges */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 14px' }}>
-            {TRUST.map((t) => (
-              <div key={t} style={{ display: 'flex', alignItems: 'center', gap: 5, color: 'rgba(255,255,255,0.65)', fontSize: '0.67rem' }}>
-                <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#f0cc5a', display: 'inline-block', flexShrink: 0 }} />
-                {t}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ── BOTTOM: Big packet image ── */}
+      {/* ── MOBILE layout (< 768px) ── */}
+      <div
+        className="flex flex-col md:hidden"
+        style={{ minHeight: '100svh', position: 'relative', zIndex: 5 }}
+      >
+        {/* ── Packet fills the top ~58% — no fixed height, grows naturally ── */}
         <div style={{
-          position: 'relative', zIndex: 5,
-          flex: 1,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          minHeight: 0,
+          position: 'relative',
+          flex: '0 0 58svh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          overflow: 'visible',
         }}>
-          {/* Spinning ring */}
+          {/* Large warm glow behind packet */}
           <div style={{
             position: 'absolute',
-            width: '300px', height: '300px', borderRadius: '50%',
-            border: '1px dashed rgba(212,175,55,0.2)',
-            animation: 'spinSlow 20s linear infinite',
-            top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
+            top: '50%', left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '110%', height: '110%',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(212,168,55,0.35) 0%, rgba(224,112,0,0.15) 45%, transparent 72%)',
+            filter: 'blur(32px)',
+            pointerEvents: 'none',
+          }} />
+
+          {/* Spinning decorative ring */}
+          <div style={{
+            position: 'absolute',
+            width: '72vw', height: '72vw',
+            borderRadius: '50%',
+            border: '1px dashed rgba(212,175,55,0.22)',
+            animation: 'spinSlow 22s linear infinite',
+            top: '50%', left: '50%',
+            transform: 'translate(-50%,-50%)',
+            pointerEvents: 'none',
           }} />
 
           <AnimatePresence mode="wait" custom={direction}>
@@ -191,82 +147,174 @@ function HeroSection() {
               key={current}
               custom={direction}
               variants={slideVariants}
-              initial="enter" animate="center" exit="exit"
-              style={{ animation: 'heroFloat 4s ease-in-out infinite' }}>
+              initial="enter"
+              animate="center"
+              exit="exit"
+              style={{
+                animation: 'heroFloat 4s ease-in-out infinite',
+                position: 'relative', zIndex: 2,
+                display: 'flex', justifyContent: 'center',
+              }}
+            >
               <img
                 src={PRODUCTS[current].img}
                 alt="Namdev Chiwada"
+                draggable={false}
                 style={{
-                  /* 1.5× bigger than before — was 86vw, now full 100vw height-constrained */
-                  width: '100vw',
-                  maxWidth: '480px',
-                  filter: 'drop-shadow(0 20px 48px rgba(0,0,0,0.7)) drop-shadow(0 6px 18px rgba(212,168,55,0.3))',
+                  width: '88vw',
+                  maxWidth: '420px',
+                  filter: 'drop-shadow(0 28px 52px rgba(0,0,0,0.75)) drop-shadow(0 8px 24px rgba(212,168,55,0.4))',
                   display: 'block',
                 }}
-                draggable={false}
               />
             </motion.div>
           </AnimatePresence>
         </div>
-      </section>
 
-      {/* ══════════════════════════════════════════════
-          DESKTOP HERO
-      ══════════════════════════════════════════════ */}
-      <section
-        className="hero-gradient relative hidden md:flex items-center -mt-9"
-        style={{ minHeight: '100svh', overflow: 'visible' }}>
+        {/* ── Text content — bottom ~42% ── */}
+        <div style={{
+          position: 'relative',
+          zIndex: 10,
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          padding: '0 22px 28px',
+          gap: 0,
+        }}>
+          {/* Eyebrow pill */}
+          <div
+            className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/10 text-gold-light font-semibold tracking-widest uppercase"
+            style={{ alignSelf: 'center', fontSize: '0.52rem', padding: '4px 10px', marginBottom: 10 }}
+          >
+            <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#f0cc5a', flexShrink: 0, display: 'inline-block' }} />
+            Since 1873 · Solapur, Maharashtra
+          </div>
 
-        {/* BG decorations */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 0 }}>
-          <div className="absolute inset-0 opacity-5"
-            style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ccircle cx='30' cy='30' r='28' fill='none' stroke='%23fff' stroke-width='0.5'/%3E%3C/svg%3E\")" }} />
-          <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-brown-dark/70 to-transparent" />
-          <div style={{ position: 'absolute', top: '-80px', right: '-60px', width: '420px', height: '420px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(212,168,55,0.2) 0%, transparent 70%)' }} />
-          <div style={{ position: 'absolute', bottom: '60px', left: '-80px', width: '320px', height: '320px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(224,112,0,0.16) 0%, transparent 70%)' }} />
-          <svg style={{ position: 'absolute', top: '50%', right: '2%', transform: 'translateY(-50%)', opacity: 0.07 }} width="600" height="600" viewBox="0 0 600 600" fill="none">
-            <circle cx="300" cy="300" r="280" stroke="#d4af37" strokeWidth="1" strokeDasharray="6 10" />
-            <circle cx="300" cy="300" r="220" stroke="#d4af37" strokeWidth="0.5" />
-            <circle cx="300" cy="300" r="160" stroke="#e07000" strokeWidth="0.5" strokeDasharray="3 8" />
-          </svg>
-          {[
-            { top: '18%', left: '54%', size: 7, delay: '0s', dur: '4.2s' },
-            { top: '72%', left: '58%', size: 5, delay: '1.1s', dur: '5s' },
-            { top: '30%', left: '88%', size: 9, delay: '0.5s', dur: '3.8s' },
-            { top: '60%', left: '82%', size: 6, delay: '2s', dur: '4.5s' },
-          ].map((p, i) => (
-            <div key={i} style={{ position: 'absolute', top: p.top, left: p.left, fontSize: p.size, color: 'rgba(212,175,55,0.5)', animation: `spiceFloat ${p.dur} ease-in-out ${p.delay} infinite` }}>✦</div>
-          ))}
+          {/* Heading */}
+          <h1
+            className="font-serif font-black text-white text-center"
+            style={{
+              fontSize: 'clamp(1.85rem, 8vw, 2.4rem)',
+              textShadow: '0 2px 20px rgba(0,0,0,0.4)',
+              marginBottom: 6,
+              lineHeight: 1.06,
+            }}
+          >
+            Authentic Taste,<br />
+            <span className="shimmer-text">Timeless Tradition</span>
+          </h1>
+
+          {/* Marathi tagline */}
+          <p
+            style={{
+              fontFamily: "'Gotu', sans-serif",
+              background: 'linear-gradient(90deg,#ffd89b,#f0cc5a,#ffd89b)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              letterSpacing: '0.02em',
+              textAlign: 'center',
+              marginBottom: 14,
+              fontSize: '0.8rem',
+            }}
+          >
+            खमंग चिवडा — पिढ्यानपिढ्याची चव
+          </p>
+
+          {/* Dots */}
+          <div className="flex justify-center" style={{ marginBottom: 14 }}>
+            <Dots />
+          </div>
+
+          {/* Buttons */}
+          <div className="flex gap-3 justify-center" style={{ marginBottom: 14 }}>
+            <button
+              onClick={() => navigate('/products')}
+              className="btn-primary font-poppins"
+              style={{ flex: 1, maxWidth: 165, padding: '13px 10px', fontSize: '0.85rem', borderRadius: '999px', fontWeight: 700, textAlign: 'center' }}
+            >
+              Shop Now →
+            </button>
+            <button
+              onClick={() => navigate('/about')}
+              className="btn-outline font-poppins"
+              style={{ flex: 1, maxWidth: 165, padding: '13px 10px', fontSize: '0.85rem', borderRadius: '999px', fontWeight: 700, textAlign: 'center' }}
+            >
+              Our Story
+            </button>
+          </div>
+
+          {/* Trust badges */}
+          <div className="flex flex-wrap gap-x-4 gap-y-1 justify-center">
+            {TRUST.map((t) => (
+              <div key={t} className="flex items-center gap-1.5" style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.65)' }}>
+                <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#f0cc5a', flexShrink: 0, display: 'inline-block' }} />
+                {t}
+              </div>
+            ))}
+          </div>
         </div>
+      </div>
 
-        <div className="max-w-7xl mx-auto px-6 w-full relative" style={{ zIndex: 10 }}>
-          <div className="grid md:grid-cols-2 items-center" style={{ gap: 0, minHeight: 'calc(100svh - 100px)' }}>
+      {/* ── DESKTOP layout (≥ 768px): two-column side-by-side ── */}
+      <div
+        className="hidden md:flex items-center"
+        style={{ minHeight: '100svh', position: 'relative', zIndex: 5 }}
+      >
+        <div className="max-w-7xl mx-auto px-6 w-full">
+          <div className="grid md:grid-cols-2 w-full items-center" style={{ gap: 0 }}>
 
-            {/* LEFT text */}
-            <div className="text-left order-1"
-              style={{ position: 'relative', zIndex: 20, paddingTop: 'clamp(40px,8vh,100px)', paddingBottom: 'clamp(40px,6vh,80px)' }}>
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
+            {/* LEFT — Text */}
+            <div
+              className="text-left order-1"
+              style={{ position: 'relative', zIndex: 20, paddingTop: 'clamp(40px,8vh,100px)', paddingBottom: 'clamp(40px,6vh,80px)' }}
+            >
+              <motion.div
+                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/25 bg-white/10 text-gold-light font-semibold tracking-widest uppercase mb-6"
-                style={{ fontSize: 'clamp(0.58rem,1.8vw,0.75rem)' }}>
+                style={{ fontSize: 'clamp(0.58rem,1.8vw,0.75rem)' }}
+              >
                 <span className="w-1.5 h-1.5 rounded-full bg-gold-light flex-shrink-0" />
                 Since 1873 · Solapur, Maharashtra
               </motion.div>
-              <motion.h1 initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }}
+
+              <motion.h1
+                initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }}
                 className="font-serif font-black text-white leading-[1.08] mb-3"
-                style={{ fontSize: 'clamp(2.05rem,5vw,3.5rem)', textShadow: '0 2px 20px rgba(0,0,0,0.3)', whiteSpace: 'nowrap' }}>
+                style={{ fontSize: 'clamp(2.05rem,5vw,3.5rem)', textShadow: '0 2px 20px rgba(0,0,0,0.3)', whiteSpace: 'nowrap' }}
+              >
                 Authentic Taste,<br />
                 <span className="shimmer-text" style={{ whiteSpace: 'nowrap' }}>Timeless Tradition</span>
               </motion.h1>
-              <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }}
+
+              <motion.p
+                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }}
                 className="mb-6"
-                style={{ fontFamily: "'Gotu', sans-serif", fontSize: 'clamp(0.82rem,2vw,1.3rem)', background: 'linear-gradient(90deg,#ffd89b,#f0cc5a,#ffd89b)', backgroundSize: '200% auto', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', letterSpacing: '0.02em' }}>
+                style={{
+                  fontFamily: "'Gotu', sans-serif",
+                  fontSize: 'clamp(0.82rem,2vw,1.3rem)',
+                  background: 'linear-gradient(90deg,#ffd89b,#f0cc5a,#ffd89b)',
+                  backgroundSize: '200% auto',
+                  WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text', letterSpacing: '0.02em',
+                }}
+              >
                 खमंग चिवडा — पिढ्यानपिढ्याची चव
               </motion.p>
-              <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.4 }} className="flex gap-3 mb-10">
+
+              <motion.div
+                initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.4 }}
+                className="flex gap-3 mb-10"
+              >
                 <button onClick={() => navigate('/products')} className="btn-primary font-poppins text-base px-8 py-3.5">Shop Now →</button>
                 <button onClick={() => navigate('/about')} className="btn-outline font-poppins text-base px-8 py-3.5">Our Story</button>
               </motion.div>
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="flex flex-wrap gap-5">
+
+              <motion.div
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}
+                className="flex flex-wrap gap-5"
+              >
                 {TRUST.map((t) => (
                   <div key={t} className="flex items-center gap-1.5 text-white/75" style={{ fontSize: 'clamp(0.68rem,1.5vw,0.8rem)' }}>
                     <span className="w-1.5 h-1.5 rounded-full bg-gold-light flex-shrink-0" />
@@ -276,31 +324,64 @@ function HeroSection() {
               </motion.div>
             </div>
 
-            {/* RIGHT packet */}
-            <motion.div initial={{ opacity: 0, scale: 0.88 }} animate={{ opacity: 1, scale: 1 }}
+            {/* RIGHT — Packet */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.88 }} animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.9, delay: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
               className="order-2 flex flex-col items-center justify-center relative"
-              onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}
-              style={{ position: 'relative', zIndex: 15 }}>
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: '80%', height: '80%', borderRadius: '50%', background: 'radial-gradient(circle, rgba(212,168,55,0.25) 0%, transparent 70%)', filter: 'blur(28px)', pointerEvents: 'none', zIndex: 1 }} />
-              <div className="absolute" style={{ width: '540px', height: '540px', borderRadius: '50%', border: '1.5px dashed rgba(212,175,55,0.2)', animation: 'spinSlow 22s linear infinite', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 1 }} />
-              <div className="absolute" style={{ width: '400px', height: '400px', borderRadius: '50%', border: '1px solid rgba(255,255,255,0.06)', animation: 'spinSlow 14s linear infinite reverse', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 1 }} />
+              style={{ position: 'relative', zIndex: 15 }}
+            >
+              <div style={{
+                position: 'absolute', top: '50%', left: '50%',
+                transform: 'translate(-50%,-50%)',
+                width: '80%', height: '80%', borderRadius: '50%',
+                background: 'radial-gradient(circle, rgba(212,168,55,0.25) 0%, transparent 70%)',
+                filter: 'blur(28px)', pointerEvents: 'none', zIndex: 1,
+              }} />
+              <div className="absolute" style={{
+                width: '540px', height: '540px', borderRadius: '50%',
+                border: '1.5px dashed rgba(212,175,55,0.2)',
+                animation: 'spinSlow 22s linear infinite',
+                top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 1,
+              }} />
+              <div className="absolute" style={{
+                width: '400px', height: '400px', borderRadius: '50%',
+                border: '1px solid rgba(255,255,255,0.06)',
+                animation: 'spinSlow 14s linear infinite reverse',
+                top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 1,
+              }} />
+
               <div style={{ position: 'relative', zIndex: 3, width: '100%', display: 'flex', justifyContent: 'center' }}>
                 <AnimatePresence mode="wait" custom={direction}>
-                  <motion.div key={current} custom={direction} variants={desktopSlideVariants} initial="enter" animate="center" exit="exit"
-                    style={{ animation: 'heroFloat 4s ease-in-out infinite', display: 'flex', justifyContent: 'center', transform: 'translateY(-40px)' }}>
-                    <img src={PRODUCTS[current].img} alt="Namdev Chiwada product"
-                      style={{ width: 'clamp(300px,56vw,760px)', maxWidth: 'none', filter: 'drop-shadow(0 40px 70px rgba(0,0,0,0.6)) drop-shadow(0 8px 24px rgba(212,168,55,0.25))', display: 'block' }}
-                      draggable={false} />
+                  <motion.div
+                    key={current}
+                    custom={direction}
+                    variants={slideVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    style={{ animation: 'heroFloat 4s ease-in-out infinite', display: 'flex', justifyContent: 'center', transform: 'translateY(-40px)' }}
+                  >
+                    <img
+                      src={PRODUCTS[current].img}
+                      alt="Namdev Chiwada product"
+                      style={{
+                        width: 'clamp(300px,56vw,760px)', maxWidth: 'none',
+                        filter: 'drop-shadow(0 40px 70px rgba(0,0,0,0.6)) drop-shadow(0 8px 24px rgba(212,168,55,0.25))',
+                        display: 'block',
+                      }}
+                      draggable={false}
+                    />
                   </motion.div>
                 </AnimatePresence>
               </div>
-              <DesktopDots />
+
+              <Dots className="mt-2 justify-center" />
             </motion.div>
           </div>
         </div>
-      </section>
-    </>
+      </div>
+    </section>
   );
 }
 
@@ -330,11 +411,15 @@ function FeaturesSection() {
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
           {FEATURES.map((f, i) => (
-            <motion.div key={f.title} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1, duration: 0.5 }} viewport={{ once: true }}
+            <motion.div key={f.title}
+              initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1, duration: 0.5 }} viewport={{ once: true }}
               className="bg-white rounded-xl md:rounded-xl2 p-4 md:p-6 shadow-saffron border border-saffron/5 text-center hover:-translate-y-1 transition-transform duration-300">
               <div className="text-2xl md:text-4xl mb-2 md:mb-4">{f.icon}</div>
-              <div className="font-serif font-bold text-brown-dark mb-1 md:mb-2 leading-tight" style={{ fontSize: 'clamp(0.78rem,1.8vw,1rem)' }}>{f.title}</div>
-              <div className="text-brown-mid/70 leading-relaxed hidden sm:block" style={{ fontSize: 'clamp(0.72rem,1.5vw,0.875rem)' }}>{f.desc}</div>
+              <div className="font-serif font-bold text-brown-dark mb-1 md:mb-2 leading-tight"
+                style={{ fontSize: 'clamp(0.78rem,1.8vw,1rem)' }}>{f.title}</div>
+              <div className="text-brown-mid/70 leading-relaxed hidden sm:block"
+                style={{ fontSize: 'clamp(0.72rem,1.5vw,0.875rem)' }}>{f.desc}</div>
             </motion.div>
           ))}
         </div>
@@ -358,7 +443,9 @@ function LegacyGlimpseSection() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={isInView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.5 }} className="text-center mb-4">
           <div className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: '#c8902a', letterSpacing: '0.13em' }}>Our Story · Since 1873</div>
-          <h2 className="font-serif font-black leading-tight mb-3" style={{ fontSize: 'clamp(1.6rem,4vw,2.4rem)', color: '#ffffff' }}>150 years. <span style={{ color: '#d4a843' }}>One recipe.</span></h2>
+          <h2 className="font-serif font-black leading-tight mb-3" style={{ fontSize: 'clamp(1.6rem,4vw,2.4rem)', color: '#ffffff' }}>
+            150 years. <span style={{ color: '#d4a843' }}>One recipe.</span>
+          </h2>
           <p className="text-center mx-auto" style={{ fontSize: 'clamp(0.82rem,1.6vw,0.95rem)', color: 'rgba(255,255,255,0.48)', lineHeight: 1.65, maxWidth: '400px' }}>
             Started by one man with nothing but hard work. Six generations later, the same taste — unchanged.
           </p>
@@ -369,7 +456,8 @@ function LegacyGlimpseSection() {
             {milestones.map((m, i) => (
               <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={isInView ? { opacity: 1, y: 0 } : {}} transition={{ delay: 0.1 + i * 0.1, duration: 0.5 }}
                 className="flex flex-col items-center text-center relative z-10 gap-1 sm:gap-2">
-                <div className="flex items-center justify-center flex-shrink-0" style={{ width: '38px', height: '38px', borderRadius: '50%', background: '#3d1c00', border: '1px solid rgba(212,175,55,0.40)', fontSize: '15px' }}>{m.icon}</div>
+                <div className="flex items-center justify-center flex-shrink-0"
+                  style={{ width: '38px', height: '38px', borderRadius: '50%', background: '#3d1c00', border: '1px solid rgba(212,175,55,0.40)', fontSize: '15px' }}>{m.icon}</div>
                 <div className="font-semibold leading-snug" style={{ fontSize: 'clamp(0.55rem,1.3vw,0.72rem)', color: 'rgba(255,255,255,0.82)', wordBreak: 'break-word', hyphens: 'auto' }}>{m.label}</div>
                 <div style={{ fontSize: 'clamp(0.5rem,1.1vw,0.65rem)', color: 'rgba(255,255,255,0.32)', lineHeight: 1.3, wordBreak: 'break-word' }}>{m.sub}</div>
               </motion.div>
@@ -404,10 +492,12 @@ function TestimonialsSection() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
           {TESTIMONIALS.map((t, i) => (
-            <motion.div key={t.name} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.12, duration: 0.5 }} viewport={{ once: true }}
+            <motion.div key={t.name} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.12, duration: 0.5 }} viewport={{ once: true }}
               className="bg-white rounded-xl md:rounded-xl2 p-5 md:p-7 shadow-saffron border border-saffron/5">
               <div className="text-amber-400 text-base md:text-lg mb-2 md:mb-3">{'★'.repeat(t.rating)}</div>
-              <p className="text-brown-dark/80 leading-relaxed mb-3 md:mb-5 italic font-medium" style={{ fontSize: 'clamp(0.96rem,3.2vw,1.1rem)' }}>"{t.text}"</p>
+              <p className="text-brown-dark/80 leading-relaxed mb-3 md:mb-5 italic font-medium"
+                style={{ fontSize: 'clamp(0.96rem,3.2vw,1.1rem)' }}>"{t.text}"</p>
               <div>
                 <div className="font-bold text-brown-dark text-sm">{t.name}</div>
                 <div className="text-xs text-brown-mid/60">{t.city}</div>
@@ -422,7 +512,11 @@ function TestimonialsSection() {
 
 function StatsSection() {
   const ref = useReveal();
-  const STATS = [{ value: '150+', label: 'Years of Legacy' }, { value: '10K+', label: 'Happy Customers' }, { value: '100%', label: 'Vegetarian' }];
+  const STATS = [
+    { value: '150+', label: 'Years of Legacy' },
+    { value: '10K+', label: 'Happy Customers' },
+    { value: '100%', label: 'Vegetarian' },
+  ];
   return (
     <section className="py-10 md:py-16" style={{ background: 'linear-gradient(135deg,#3d1c00,#7a3300)' }}>
       <div ref={ref} className="reveal max-w-6xl mx-auto px-4 sm:px-6">
