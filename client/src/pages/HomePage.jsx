@@ -37,9 +37,7 @@ function HeroSection() {
   const touchStartX = useRef(null);
   const autoRef = useRef(null);
 
-  useEffect(() => {
-    preloadImages();
-  }, []);
+  useEffect(() => { preloadImages(); }, []);
 
   const goTo = useCallback((index, dir = 1) => {
     setDirection(dir); setCurrent(index);
@@ -109,24 +107,24 @@ function HeroSection() {
         className="flex flex-col md:hidden"
         style={{ minHeight: '100svh', position: 'relative', zIndex: 5 }}
       >
-        {/* ── Packet: tall area, image big and centred ── */}
+        {/* Packet zone — fixed height so image has real space to fill */}
         <div style={{
           position: 'relative',
-          flex: '0 0 64svh',          /* taller slot = bigger packet */
+          height: '62svh',
+          flexShrink: 0,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           overflow: 'visible',
-          marginTop: '-12px',          /* pull up into navbar gap */
         }}>
-          {/* Warm glow behind packet */}
+          {/* Warm glow */}
           <div style={{
             position: 'absolute',
             top: '50%', left: '50%',
             transform: 'translate(-50%,-50%)',
-            width: '120%', height: '120%',
+            width: '130%', height: '130%',
             borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(212,168,55,0.32) 0%, rgba(224,112,0,0.12) 50%, transparent 72%)',
+            background: 'radial-gradient(circle, rgba(212,168,55,0.30) 0%, rgba(224,112,0,0.10) 50%, transparent 72%)',
             filter: 'blur(36px)',
             pointerEvents: 'none',
           }} />
@@ -134,7 +132,7 @@ function HeroSection() {
           {/* Spinning ring */}
           <div style={{
             position: 'absolute',
-            width: '80vw', height: '80vw',
+            width: '84vw', height: '84vw',
             borderRadius: '50%',
             border: '1px dashed rgba(212,175,55,0.20)',
             animation: 'spinSlow 22s linear infinite',
@@ -153,8 +151,14 @@ function HeroSection() {
               exit="exit"
               style={{
                 animation: 'heroFloat 4s ease-in-out infinite',
-                position: 'relative', zIndex: 2,
-                display: 'flex', justifyContent: 'center',
+                position: 'relative',
+                zIndex: 2,
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                /* The actual size lever: render at 92vw, no maxWidth cap */
+                width: '92vw',
+                height: '100%',
               }}
             >
               <img
@@ -162,9 +166,10 @@ function HeroSection() {
                 alt="Namdev Chiwada"
                 draggable={false}
                 style={{
-                  /* 1.5× the old 88vw ≈ 132vw — cap keeps it on-screen */
-                  width: '100vw',
-                  maxWidth: '520px',
+                  width: '92vw',          /* fills almost the full screen width */
+                  maxWidth: 'none',        /* remove any cap so it actually grows */
+                  height: 'auto',
+                  objectFit: 'contain',
                   filter: 'drop-shadow(0 32px 60px rgba(0,0,0,0.80)) drop-shadow(0 8px 28px rgba(212,168,55,0.45))',
                   display: 'block',
                 }}
@@ -173,22 +178,21 @@ function HeroSection() {
           </AnimatePresence>
         </div>
 
-        {/* ── Text content — sits directly below packet, no flex gap ── */}
+        {/* Text content */}
         <div style={{
           position: 'relative',
           zIndex: 10,
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'flex-start',   /* anchor to top of remaining space */
-          padding: '4px 20px 24px',
-          gap: 0,
-          marginTop: '-20px',             /* overlap slightly to save vertical space */
+          justifyContent: 'flex-start',
+          padding: '2px 20px 20px',
+          marginTop: '-16px',
         }}>
           {/* Eyebrow pill */}
           <div
             className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/10 text-gold-light font-semibold tracking-widest uppercase"
-            style={{ alignSelf: 'center', fontSize: '0.5rem', padding: '3px 9px', marginBottom: 7 }}
+            style={{ alignSelf: 'center', fontSize: '0.5rem', padding: '3px 9px', marginBottom: 6 }}
           >
             <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#f0cc5a', flexShrink: 0, display: 'inline-block' }} />
             Since 1873 · Solapur, Maharashtra
@@ -209,29 +213,27 @@ function HeroSection() {
           </h1>
 
           {/* Marathi tagline */}
-          <p
-            style={{
-              fontFamily: "'Gotu', sans-serif",
-              background: 'linear-gradient(90deg,#ffd89b,#f0cc5a,#ffd89b)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              letterSpacing: '0.02em',
-              textAlign: 'center',
-              marginBottom: 10,
-              fontSize: '0.78rem',
-            }}
-          >
+          <p style={{
+            fontFamily: "'Gotu', sans-serif",
+            background: 'linear-gradient(90deg,#ffd89b,#f0cc5a,#ffd89b)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            letterSpacing: '0.02em',
+            textAlign: 'center',
+            marginBottom: 9,
+            fontSize: '0.78rem',
+          }}>
             खमंग चिवडा — पिढ्यानपिढ्याची चव
           </p>
 
           {/* Dots */}
-          <div className="flex justify-center" style={{ marginBottom: 12 }}>
+          <div className="flex justify-center" style={{ marginBottom: 11 }}>
             <Dots />
           </div>
 
           {/* Buttons */}
-          <div className="flex gap-3 justify-center" style={{ marginBottom: 12 }}>
+          <div className="flex gap-3 justify-center" style={{ marginBottom: 11 }}>
             <button
               onClick={() => navigate('/products')}
               className="btn-primary font-poppins"
@@ -260,7 +262,7 @@ function HeroSection() {
         </div>
       </div>
 
-      {/* ── DESKTOP layout (≥ 768px): two-column side-by-side ── */}
+      {/* ── DESKTOP layout (≥ 768px) ── */}
       <div
         className="hidden md:flex items-center"
         style={{ minHeight: '100svh', position: 'relative', zIndex: 5 }}
