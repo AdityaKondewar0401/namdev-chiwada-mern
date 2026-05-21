@@ -109,33 +109,34 @@ function HeroSection() {
         className="flex flex-col md:hidden"
         style={{ minHeight: '100svh', position: 'relative', zIndex: 5 }}
       >
-        {/* ── Packet fills the top ~58% — no fixed height, grows naturally ── */}
+        {/* ── Packet: tall area, image big and centred ── */}
         <div style={{
           position: 'relative',
-          flex: '0 0 58svh',
+          flex: '0 0 64svh',          /* taller slot = bigger packet */
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           overflow: 'visible',
+          marginTop: '-12px',          /* pull up into navbar gap */
         }}>
-          {/* Large warm glow behind packet */}
+          {/* Warm glow behind packet */}
           <div style={{
             position: 'absolute',
             top: '50%', left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: '110%', height: '110%',
+            transform: 'translate(-50%,-50%)',
+            width: '120%', height: '120%',
             borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(212,168,55,0.35) 0%, rgba(224,112,0,0.15) 45%, transparent 72%)',
-            filter: 'blur(32px)',
+            background: 'radial-gradient(circle, rgba(212,168,55,0.32) 0%, rgba(224,112,0,0.12) 50%, transparent 72%)',
+            filter: 'blur(36px)',
             pointerEvents: 'none',
           }} />
 
-          {/* Spinning decorative ring */}
+          {/* Spinning ring */}
           <div style={{
             position: 'absolute',
-            width: '72vw', height: '72vw',
+            width: '80vw', height: '80vw',
             borderRadius: '50%',
-            border: '1px dashed rgba(212,175,55,0.22)',
+            border: '1px dashed rgba(212,175,55,0.20)',
             animation: 'spinSlow 22s linear infinite',
             top: '50%', left: '50%',
             transform: 'translate(-50%,-50%)',
@@ -161,9 +162,10 @@ function HeroSection() {
                 alt="Namdev Chiwada"
                 draggable={false}
                 style={{
-                  width: '88vw',
-                  maxWidth: '420px',
-                  filter: 'drop-shadow(0 28px 52px rgba(0,0,0,0.75)) drop-shadow(0 8px 24px rgba(212,168,55,0.4))',
+                  /* 1.5× the old 88vw ≈ 132vw — cap keeps it on-screen */
+                  width: '100vw',
+                  maxWidth: '520px',
+                  filter: 'drop-shadow(0 32px 60px rgba(0,0,0,0.80)) drop-shadow(0 8px 28px rgba(212,168,55,0.45))',
                   display: 'block',
                 }}
               />
@@ -171,23 +173,24 @@ function HeroSection() {
           </AnimatePresence>
         </div>
 
-        {/* ── Text content — bottom ~42% ── */}
+        {/* ── Text content — sits directly below packet, no flex gap ── */}
         <div style={{
           position: 'relative',
           zIndex: 10,
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'center',
-          padding: '0 22px 28px',
+          justifyContent: 'flex-start',   /* anchor to top of remaining space */
+          padding: '4px 20px 24px',
           gap: 0,
+          marginTop: '-20px',             /* overlap slightly to save vertical space */
         }}>
           {/* Eyebrow pill */}
           <div
             className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/10 text-gold-light font-semibold tracking-widest uppercase"
-            style={{ alignSelf: 'center', fontSize: '0.52rem', padding: '4px 10px', marginBottom: 10 }}
+            style={{ alignSelf: 'center', fontSize: '0.5rem', padding: '3px 9px', marginBottom: 7 }}
           >
-            <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#f0cc5a', flexShrink: 0, display: 'inline-block' }} />
+            <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#f0cc5a', flexShrink: 0, display: 'inline-block' }} />
             Since 1873 · Solapur, Maharashtra
           </div>
 
@@ -195,10 +198,10 @@ function HeroSection() {
           <h1
             className="font-serif font-black text-white text-center"
             style={{
-              fontSize: 'clamp(1.85rem, 8vw, 2.4rem)',
+              fontSize: 'clamp(1.65rem, 7.5vw, 2.2rem)',
               textShadow: '0 2px 20px rgba(0,0,0,0.4)',
-              marginBottom: 6,
-              lineHeight: 1.06,
+              marginBottom: 4,
+              lineHeight: 1.08,
             }}
           >
             Authentic Taste,<br />
@@ -215,31 +218,31 @@ function HeroSection() {
               backgroundClip: 'text',
               letterSpacing: '0.02em',
               textAlign: 'center',
-              marginBottom: 14,
-              fontSize: '0.8rem',
+              marginBottom: 10,
+              fontSize: '0.78rem',
             }}
           >
             खमंग चिवडा — पिढ्यानपिढ्याची चव
           </p>
 
           {/* Dots */}
-          <div className="flex justify-center" style={{ marginBottom: 14 }}>
+          <div className="flex justify-center" style={{ marginBottom: 12 }}>
             <Dots />
           </div>
 
           {/* Buttons */}
-          <div className="flex gap-3 justify-center" style={{ marginBottom: 14 }}>
+          <div className="flex gap-3 justify-center" style={{ marginBottom: 12 }}>
             <button
               onClick={() => navigate('/products')}
               className="btn-primary font-poppins"
-              style={{ flex: 1, maxWidth: 165, padding: '13px 10px', fontSize: '0.85rem', borderRadius: '999px', fontWeight: 700, textAlign: 'center' }}
+              style={{ flex: 1, maxWidth: 165, padding: '12px 10px', fontSize: '0.83rem', borderRadius: '999px', fontWeight: 700, textAlign: 'center' }}
             >
               Shop Now →
             </button>
             <button
               onClick={() => navigate('/about')}
               className="btn-outline font-poppins"
-              style={{ flex: 1, maxWidth: 165, padding: '13px 10px', fontSize: '0.85rem', borderRadius: '999px', fontWeight: 700, textAlign: 'center' }}
+              style={{ flex: 1, maxWidth: 165, padding: '12px 10px', fontSize: '0.83rem', borderRadius: '999px', fontWeight: 700, textAlign: 'center' }}
             >
               Our Story
             </button>
@@ -248,8 +251,8 @@ function HeroSection() {
           {/* Trust badges */}
           <div className="flex flex-wrap gap-x-4 gap-y-1 justify-center">
             {TRUST.map((t) => (
-              <div key={t} className="flex items-center gap-1.5" style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.65)' }}>
-                <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#f0cc5a', flexShrink: 0, display: 'inline-block' }} />
+              <div key={t} className="flex items-center gap-1.5" style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.62)' }}>
+                <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#f0cc5a', flexShrink: 0, display: 'inline-block' }} />
                 {t}
               </div>
             ))}
