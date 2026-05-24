@@ -4,7 +4,7 @@ import { motion, useInView, AnimatePresence } from 'framer-motion';
 import useReveal from '../hooks/useReveal';
 import NamkeenSection from '../components/NamkeenSection';
 import PageWrapper from '../components/PageWrapper';
- 
+
 const MARQUEE_ITEMS = ['Dagdi-Poha Chiwada', 'Maka Chiwada', 'Bakarwadi', 'Lasun Sev', 'Shengdana Chutney', 'Special Farsan', 'Authentic Taste'];
 const TRUST = ['150+ Years Legacy', 'No Artificial Colors', 'FSSAI Licensed'];
 const FEATURES = [
@@ -18,39 +18,39 @@ const TESTIMONIALS = [
   { name: 'Aditya Pawar', city: 'SambajiNagar', text: 'Ordered the Bakarwadi for Diwali gifting — everyone loved it. Will order again!', rating: 5 },
   { name: 'Umesh Chakure', city: 'Latur', text: 'The Dagdi Chiwada is perfectly crispy with just the right amount of spice. Love it!', rating: 5 },
 ];
- 
+
 const PRODUCTS = [
   { img: 'https://res.cloudinary.com/dz7ykg6qr/image/upload/v1776256647/special1_sy4zxa.png' },
   { img: 'https://res.cloudinary.com/dz7ykg6qr/image/upload/v1778141952/maka-chiwada-Photoroom_efq78h.png' },
   { img: 'https://res.cloudinary.com/dz7ykg6qr/image/upload/v1778141952/bakarwadii-Photoroom_wqk7o0.png' },
   { img: 'https://res.cloudinary.com/dz7ykg6qr/image/upload/v1778141952/farsan_1_-Photoroom_hsdpb5.png' },
 ];
- 
+
 function preloadImages() {
   PRODUCTS.forEach(p => { const img = new Image(); img.src = p.img; });
 }
- 
+
 function HeroSection() {
   const navigate = useNavigate();
   const [current, setCurrent] = useState(0);
   const [direction, setDirection] = useState(1);
   const touchStartX = useRef(null);
   const autoRef = useRef(null);
- 
+
   useEffect(() => { preloadImages(); }, []);
- 
+
   const goTo = useCallback((index, dir = 1) => {
     setDirection(dir); setCurrent(index);
   }, []);
- 
+
   const next = useCallback(() => goTo((current + 1) % PRODUCTS.length, 1), [current, goTo]);
   const prev = useCallback(() => goTo((current - 1 + PRODUCTS.length) % PRODUCTS.length, -1), [current, goTo]);
- 
+
   useEffect(() => {
     autoRef.current = setInterval(next, 3200);
     return () => clearInterval(autoRef.current);
   }, [next]);
- 
+
   const onTouchStart = (e) => { touchStartX.current = e.touches[0].clientX; };
   const onTouchEnd = (e) => {
     if (touchStartX.current === null) return;
@@ -58,19 +58,19 @@ function HeroSection() {
     if (Math.abs(diff) > 40) { diff > 0 ? next() : prev(); }
     touchStartX.current = null;
   };
- 
+
   const mobileSlideVariants = {
     enter: (dir) => ({ opacity: 0, x: dir > 0 ? 80 : -80 }),
     center: { opacity: 1, x: 0, transition: { duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] } },
     exit: (dir) => ({ opacity: 0, x: dir > 0 ? -80 : 80, transition: { duration: 0.3 } }),
   };
- 
+
   const desktopSlideVariants = {
     enter: (dir) => ({ opacity: 0, x: dir > 0 ? 50 : -50, scale: 0.94 }),
     center: { opacity: 1, x: 0, scale: 1, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } },
     exit: (dir) => ({ opacity: 0, x: dir > 0 ? -50 : 50, scale: 0.94, transition: { duration: 0.35 } }),
   };
- 
+
   const BgDecorations = () => (
     <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 0 }}>
       <div className="absolute inset-0 opacity-5"
@@ -80,7 +80,7 @@ function HeroSection() {
       <div style={{ position: 'absolute', bottom: '40px', left: '-80px', width: '280px', height: '280px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(224,112,0,0.14) 0%, transparent 70%)' }} />
     </div>
   );
- 
+
   const Dots = ({ className = '' }) => (
     <div className={`flex gap-2 ${className}`}>
       {PRODUCTS.map((_, i) => (
@@ -98,7 +98,7 @@ function HeroSection() {
       ))}
     </div>
   );
- 
+
   return (
     <section
       className="hero-gradient relative -mt-4 md:-mt-9"
@@ -107,19 +107,19 @@ function HeroSection() {
       onTouchEnd={onTouchEnd}
     >
       <BgDecorations />
- 
+
       {/* ══════════════════════════════════════
           MOBILE layout (< 768px)
           ══════════════════════════════════════ */}
       <div className="md:hidden" style={{ minHeight: '100svh', position: 'relative', zIndex: 5 }}>
- 
+
         {/* Absolutely positioned packet — top 55svh, no flex constraints */}
         <div style={{
           position: 'absolute',
           top: 0,
           left: 0,
           right: 0,
-          height: '55svh',          /* reduced from 62svh → pulls text up */
+          height: '50svh',          /* reduced further → pulls text up more */
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -133,7 +133,7 @@ function HeroSection() {
             background: 'radial-gradient(ellipse 80% 70% at 50% 55%, rgba(212,168,55,0.28) 0%, rgba(224,112,0,0.10) 55%, transparent 75%)',
             filter: 'blur(30px)',
           }} />
- 
+
           {/* Spinning ring */}
           <div style={{
             position: 'absolute',
@@ -144,7 +144,7 @@ function HeroSection() {
             top: '50%', left: '50%',
             transform: 'translate(-50%,-50%)',
           }} />
- 
+
           {/* Image — 110vw, no maxWidth cap */}
           <AnimatePresence mode="wait" custom={direction}>
             <motion.img
@@ -171,19 +171,19 @@ function HeroSection() {
             />
           </AnimatePresence>
         </div>
- 
+
         {/* Text block — paddingTop matches packet height, reduced so text starts higher */}
         <div style={{
           position: 'relative',
           zIndex: 10,
-          /* 55svh - 30px overlap: text slides up under the packet bottom */
-          padding: 'calc(55svh - 30px) 20px 20px',
+          /* 50svh - 40px overlap: text slides further up under the packet bottom */
+          padding: 'calc(50svh - 40px) 20px 20px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           gap: 0,
         }}>
- 
+
           {/* Eyebrow */}
           <div
             className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/10 text-gold-light font-semibold tracking-widest uppercase"
@@ -192,7 +192,7 @@ function HeroSection() {
             <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#f0cc5a', flexShrink: 0, display: 'inline-block' }} />
             Since 1873 · Solapur, Maharashtra
           </div>
- 
+
           {/* Heading */}
           <h1
             className="font-serif font-black text-white text-center"
@@ -201,7 +201,7 @@ function HeroSection() {
             Authentic Taste,<br />
             <span className="shimmer-text">Timeless Tradition</span>
           </h1>
- 
+
           {/* Marathi tagline */}
           <p style={{
             fontFamily: "'Gotu', sans-serif",
@@ -211,12 +211,12 @@ function HeroSection() {
           }}>
             खमंग चिवडा — पिढ्यानपिढ्याची चव
           </p>
- 
+
           {/* Dots */}
           <div className="flex justify-center" style={{ marginBottom: 10 }}>
             <Dots />
           </div>
- 
+
           {/* Buttons */}
           <div className="flex gap-3 w-full justify-center" style={{ marginBottom: 10 }}>
             <button onClick={() => navigate('/products')} className="btn-primary font-poppins"
@@ -228,7 +228,7 @@ function HeroSection() {
               Our Story
             </button>
           </div>
- 
+
           {/* Trust badges */}
           <div className="flex flex-wrap gap-x-4 gap-y-1 justify-center">
             {TRUST.map((t) => (
@@ -240,14 +240,14 @@ function HeroSection() {
           </div>
         </div>
       </div>
- 
+
       {/* ══════════════════════════════
           DESKTOP layout (≥ 768px)
           ══════════════════════════════ */}
       <div className="hidden md:flex items-center" style={{ minHeight: '100svh', position: 'relative', zIndex: 5 }}>
         <div className="max-w-7xl mx-auto px-6 w-full">
           <div className="grid md:grid-cols-2 w-full items-center" style={{ gap: 0 }}>
- 
+
             {/* LEFT — Text */}
             <div className="text-left order-1"
               style={{ position: 'relative', zIndex: 20, paddingTop: 'clamp(40px,8vh,100px)', paddingBottom: 'clamp(40px,6vh,80px)' }}>
@@ -258,7 +258,7 @@ function HeroSection() {
                 <span className="w-1.5 h-1.5 rounded-full bg-gold-light flex-shrink-0" />
                 Since 1873 · Solapur, Maharashtra
               </motion.div>
- 
+
               <motion.h1
                 initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }}
                 className="font-serif font-black text-white leading-[1.08] mb-3"
@@ -266,7 +266,7 @@ function HeroSection() {
                 Authentic Taste,<br />
                 <span className="shimmer-text" style={{ whiteSpace: 'nowrap' }}>Timeless Tradition</span>
               </motion.h1>
- 
+
               <motion.p
                 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }}
                 className="mb-6"
@@ -277,14 +277,14 @@ function HeroSection() {
                 }}>
                 खमंग चिवडा — पिढ्यानपिढ्याची चव
               </motion.p>
- 
+
               <motion.div
                 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.4 }}
                 className="flex gap-3 mb-10">
                 <button onClick={() => navigate('/products')} className="btn-primary font-poppins text-base px-8 py-3.5">Shop Now →</button>
                 <button onClick={() => navigate('/about')} className="btn-outline font-poppins text-base px-8 py-3.5">Our Story</button>
               </motion.div>
- 
+
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="flex flex-wrap gap-5">
                 {TRUST.map((t) => (
                   <div key={t} className="flex items-center gap-1.5 text-white/75" style={{ fontSize: 'clamp(0.68rem,1.5vw,0.8rem)' }}>
@@ -294,7 +294,7 @@ function HeroSection() {
                 ))}
               </motion.div>
             </div>
- 
+
             {/* RIGHT — Packet */}
             <motion.div
               initial={{ opacity: 0, scale: 0.88 }} animate={{ opacity: 1, scale: 1 }}
@@ -330,14 +330,14 @@ function HeroSection() {
               </div>
               <Dots className="mt-2 justify-center" />
             </motion.div>
- 
+
           </div>
         </div>
       </div>
     </section>
   );
 }
- 
+
 function MarqueeSection() {
   const doubled = [...MARQUEE_ITEMS, ...MARQUEE_ITEMS];
   return (
@@ -352,7 +352,7 @@ function MarqueeSection() {
     </div>
   );
 }
- 
+
 function FeaturesSection() {
   const ref = useReveal();
   return (
@@ -380,7 +380,7 @@ function FeaturesSection() {
     </section>
   );
 }
- 
+
 function LegacyGlimpseSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-60px' });
@@ -433,7 +433,7 @@ function LegacyGlimpseSection() {
     </section>
   );
 }
- 
+
 function TestimonialsSection() {
   const ref = useReveal();
   return (
@@ -462,7 +462,7 @@ function TestimonialsSection() {
     </section>
   );
 }
- 
+
 function StatsSection() {
   const ref = useReveal();
   const STATS = [
@@ -485,7 +485,7 @@ function StatsSection() {
     </section>
   );
 }
- 
+
 function CTASection() {
   return (
     <section className="py-14 md:py-20 bg-cream-mid text-center">
@@ -504,7 +504,7 @@ function CTASection() {
     </section>
   );
 }
- 
+
 export default function HomePage() {
   return (
     <PageWrapper>
