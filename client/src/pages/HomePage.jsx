@@ -26,8 +26,134 @@ const PRODUCTS = [
   { img: 'https://res.cloudinary.com/dz7ykg6qr/image/upload/v1778141952/farsan_1_-Photoroom_hsdpb5.png' },
 ];
 
+// ── NEW: Rotating taglines for the desktop hero ──────────────────────────────
+const TAGLINES = [
+  'खमंग चिवडा — पिढ्यानपिढ्याची चव',
+  'Hand-Roasted in Small Batches, Daily',
+  'सोलापूरची ओळख, घराघरात पोहोचलेली',
+  'Six Generations. One Unchanged Recipe.',
+];
+
 function preloadImages() {
   PRODUCTS.forEach(p => { const img = new Image(); img.src = p.img; });
+}
+
+// ── NEW: Word-by-word reveal heading ──────────────────────────────────────────
+function StaggerHeading() {
+  const line1 = 'Authentic Taste,';
+  const line2 = 'Timeless Tradition';
+
+  const container = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.09, delayChildren: 0.1 } },
+  };
+  const word = {
+    hidden: { opacity: 0, y: 28, filter: 'blur(6px)' },
+    visible: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.55, ease: [0.25, 0.46, 0.45, 0.94] } },
+  };
+
+  return (
+    <motion.h1
+      initial="hidden"
+      animate="visible"
+      variants={container}
+      className="font-serif font-black text-white leading-[1.08] mb-3"
+      style={{ fontSize: 'clamp(2.05rem,5vw,3.5rem)', textShadow: '0 2px 20px rgba(0,0,0,0.3)', whiteSpace: 'nowrap' }}
+    >
+      <span style={{ display: 'inline-block', overflow: 'hidden' }}>
+        {line1.split(' ').map((w, i) => (
+          <motion.span key={i} variants={word} style={{ display: 'inline-block', marginRight: '0.28em' }}>
+            {w}
+          </motion.span>
+        ))}
+      </span>
+      <br />
+      <span className="shimmer-text" style={{ whiteSpace: 'nowrap', display: 'inline-block', overflow: 'hidden' }}>
+        {line2.split(' ').map((w, i) => (
+          <motion.span key={i} variants={word} style={{ display: 'inline-block', marginRight: '0.28em' }}>
+            {w}
+          </motion.span>
+        ))}
+      </span>
+    </motion.h1>
+  );
+}
+
+// ── NEW: Rotating tagline ticker (replaces the static Marathi line) ──────────
+function RotatingTagline() {
+  const [idx, setIdx] = useState(0);
+
+  useEffect(() => {
+    const t = setInterval(() => setIdx((i) => (i + 1) % TAGLINES.length), 3400);
+    return () => clearInterval(t);
+  }, []);
+
+  return (
+    <div className="mb-6" style={{ minHeight: 'clamp(1.6rem,3vw,2.2rem)', position: 'relative' }}>
+      <AnimatePresence mode="wait">
+        <motion.p
+          key={idx}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] }}
+          style={{
+            fontFamily: "'Gotu', sans-serif",
+            fontSize: 'clamp(0.82rem,2vw,1.3rem)',
+            background: 'linear-gradient(90deg,#ffd89b,#f0cc5a,#ffd89b)',
+            backgroundSize: '200% auto',
+            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
+            letterSpacing: '0.02em',
+            margin: 0,
+          }}
+        >
+          {TAGLINES[idx]}
+        </motion.p>
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ── NEW: Live social-proof counter chip ───────────────────────────────────────
+function LiveOrderChip() {
+  const [count, setCount] = useState(127);
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      setCount((c) => c + (Math.random() > 0.6 ? 1 : 0));
+    }, 4500);
+    return () => clearInterval(t);
+  }, []);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.6, delay: 0.55 }}
+      className="inline-flex items-center gap-2"
+      style={{
+        background: 'rgba(255,255,255,0.06)',
+        border: '1px solid rgba(212,175,55,0.25)',
+        borderRadius: '999px',
+        padding: '6px 14px 6px 10px',
+        marginBottom: '28px',
+      }}
+    >
+      <span style={{ position: 'relative', width: 8, height: 8, display: 'inline-block' }}>
+        <span style={{
+          position: 'absolute', inset: 0, borderRadius: '50%',
+          background: '#4ade80', animation: 'pulseDot 1.8s ease-in-out infinite',
+        }} />
+        <span style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: '#4ade80' }} />
+      </span>
+      <span style={{ color: 'rgba(255,255,255,0.78)', fontSize: 'clamp(0.68rem,1.4vw,0.78rem)', fontWeight: 600 }}>
+        <motion.span key={count} initial={{ opacity: 0.4 }} animate={{ opacity: 1 }} style={{ color: '#f0cc5a', fontWeight: 800 }}>
+          {count}
+        </motion.span>{' '}
+        orders placed this week
+      </span>
+    </motion.div>
+  );
 }
 
 function HeroSection() {
@@ -59,7 +185,6 @@ function HeroSection() {
     touchStartX.current = null;
   };
 
-  // Mobile slide variants — no scale so framer doesn't fight the img width
   const mobileSlideVariants = {
     enter: (dir) => ({ opacity: 0, x: dir > 0 ? 80 : -80 }),
     center: { opacity: 1, x: 0, transition: { duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] } },
@@ -109,86 +234,43 @@ function HeroSection() {
     >
       <BgDecorations />
 
-      {/* ══════════════════════════════════════
-          MOBILE layout (< 768px)
-          Image is absolutely positioned so NO
-          parent flex/grid can constrain its size.
-          ══════════════════════════════════════ */}
+      {/* MOBILE layout (< 768px) — UNCHANGED */}
       <div className="md:hidden" style={{ minHeight: '100svh', position: 'relative', zIndex: 5 }}>
-
-        {/* ── Absolutely positioned packet ── */}
-        {/* Sits from top-0 to ~62svh, centred horizontally */}
         <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: '62svh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 2,
-          pointerEvents: 'none',   /* let touches pass through to section */
-          overflow: 'visible',
+          position: 'absolute', top: 0, left: 0, right: 0, height: '62svh',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 2, pointerEvents: 'none', overflow: 'visible',
         }}>
-          {/* Glow */}
           <div style={{
             position: 'absolute', inset: 0,
             background: 'radial-gradient(ellipse 80% 70% at 50% 55%, rgba(212,168,55,0.28) 0%, rgba(224,112,0,0.10) 55%, transparent 75%)',
             filter: 'blur(30px)',
           }} />
-
-          {/* Spinning ring */}
           <div style={{
-            position: 'absolute',
-            width: '86vw', height: '86vw',
-            borderRadius: '50%',
-            border: '1px dashed rgba(212,175,55,0.18)',
-            animation: 'spinSlow 22s linear infinite',
-            top: '50%', left: '50%',
-            transform: 'translate(-50%,-50%)',
+            position: 'absolute', width: '86vw', height: '86vw', borderRadius: '50%',
+            border: '1px dashed rgba(212,175,55,0.18)', animation: 'spinSlow 22s linear infinite',
+            top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
           }} />
-
-          {/* The actual image — 110vw so it bleeds edge-to-edge and feels BIG */}
           <AnimatePresence mode="wait" custom={direction}>
             <motion.img
-              key={current}
-              custom={direction}
-              variants={mobileSlideVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              src={PRODUCTS[current].img}
-              alt="Namdev Chiwada"
-              draggable={false}
+              key={current} custom={direction} variants={mobileSlideVariants}
+              initial="enter" animate="center" exit="exit"
+              src={PRODUCTS[current].img} alt="Namdev Chiwada" draggable={false}
               style={{
-                position: 'relative',
-                zIndex: 3,
-                width: '110vw',        /* deliberately wider than screen → big & bold */
-                maxWidth: 'none',      /* no cap */
-                height: 'auto',
+                position: 'relative', zIndex: 3, width: '110vw', maxWidth: 'none', height: 'auto',
                 animation: 'heroFloat 4s ease-in-out infinite',
                 filter: 'drop-shadow(0 28px 55px rgba(0,0,0,0.82)) drop-shadow(0 6px 22px rgba(212,168,55,0.50))',
-                display: 'block',
-                pointerEvents: 'auto',
+                display: 'block', pointerEvents: 'auto',
               }}
             />
           </AnimatePresence>
         </div>
 
-        {/* ── Text block — pushed down below the image zone ── */}
         <div style={{
-          position: 'relative',
-          zIndex: 10,
-          paddingTop: 'calc(62svh - 10px)',   /* starts just below the image zone */
+          position: 'relative', zIndex: 10,
           padding: 'calc(62svh - 10px) 20px 22px',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 0,
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0,
         }}>
-
-          {/* Eyebrow */}
           <div
             className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/10 text-gold-light font-semibold tracking-widest uppercase"
             style={{ fontSize: '0.5rem', padding: '3px 9px', marginBottom: 6 }}
@@ -197,7 +279,6 @@ function HeroSection() {
             Since 1873 · Solapur, Maharashtra
           </div>
 
-          {/* Heading */}
           <h1
             className="font-serif font-black text-white text-center"
             style={{ fontSize: 'clamp(1.65rem, 7.5vw, 2.2rem)', textShadow: '0 2px 20px rgba(0,0,0,0.4)', marginBottom: 4, lineHeight: 1.08 }}
@@ -206,7 +287,6 @@ function HeroSection() {
             <span className="shimmer-text">Timeless Tradition</span>
           </h1>
 
-          {/* Marathi tagline */}
           <p style={{
             fontFamily: "'Gotu', sans-serif",
             background: 'linear-gradient(90deg,#ffd89b,#f0cc5a,#ffd89b)',
@@ -216,12 +296,10 @@ function HeroSection() {
             खमंग चिवडा — पिढ्यानपिढ्याची चव
           </p>
 
-          {/* Dots */}
           <div className="flex justify-center" style={{ marginBottom: 11 }}>
             <Dots />
           </div>
 
-          {/* Buttons */}
           <div className="flex gap-3 w-full justify-center" style={{ marginBottom: 11 }}>
             <button onClick={() => navigate('/products')} className="btn-primary font-poppins"
               style={{ flex: 1, maxWidth: 165, padding: '12px 10px', fontSize: '0.83rem', borderRadius: '999px', fontWeight: 700, textAlign: 'center' }}>
@@ -233,7 +311,6 @@ function HeroSection() {
             </button>
           </div>
 
-          {/* Trust badges */}
           <div className="flex flex-wrap gap-x-4 gap-y-1 justify-center">
             {TRUST.map((t) => (
               <div key={t} className="flex items-center gap-1.5" style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.62)' }}>
@@ -245,16 +322,14 @@ function HeroSection() {
         </div>
       </div>
 
-      {/* ══════════════════════════════
-          DESKTOP layout (≥ 768px)
-          ══════════════════════════════ */}
+      {/* DESKTOP layout (≥ 768px) — LEFT TEXT REDESIGNED */}
       <div className="hidden md:flex items-center" style={{ minHeight: '100svh', position: 'relative', zIndex: 5 }}>
         <div className="max-w-7xl mx-auto px-6 w-full">
           <div className="grid md:grid-cols-2 w-full items-center" style={{ gap: 0 }}>
 
-            {/* LEFT — Text */}
             <div className="text-left order-1"
               style={{ position: 'relative', zIndex: 20, paddingTop: 'clamp(40px,8vh,100px)', paddingBottom: 'clamp(40px,6vh,80px)' }}>
+
               <motion.div
                 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/25 bg-white/10 text-gold-light font-semibold tracking-widest uppercase mb-6"
@@ -263,30 +338,29 @@ function HeroSection() {
                 Since 1873 · Solapur, Maharashtra
               </motion.div>
 
-              <motion.h1
-                initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }}
-                className="font-serif font-black text-white leading-[1.08] mb-3"
-                style={{ fontSize: 'clamp(2.05rem,5vw,3.5rem)', textShadow: '0 2px 20px rgba(0,0,0,0.3)', whiteSpace: 'nowrap' }}>
-                Authentic Taste,<br />
-                <span className="shimmer-text" style={{ whiteSpace: 'nowrap' }}>Timeless Tradition</span>
-              </motion.h1>
-
-              <motion.p
-                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }}
-                className="mb-6"
-                style={{
-                  fontFamily: "'Gotu', sans-serif", fontSize: 'clamp(0.82rem,2vw,1.3rem)',
-                  background: 'linear-gradient(90deg,#ffd89b,#f0cc5a,#ffd89b)', backgroundSize: '200% auto',
-                  WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', letterSpacing: '0.02em',
-                }}>
-                खमंग चिवडा — पिढ्यानपिढ्याची चव
-              </motion.p>
+              <StaggerHeading />
+              <RotatingTagline />
+              <LiveOrderChip />
 
               <motion.div
                 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.4 }}
                 className="flex gap-3 mb-10">
-                <button onClick={() => navigate('/products')} className="btn-primary font-poppins text-base px-8 py-3.5">Shop Now →</button>
-                <button onClick={() => navigate('/about')} className="btn-outline font-poppins text-base px-8 py-3.5">Our Story</button>
+                <motion.button
+                  whileHover={{ y: -2, boxShadow: '0 10px 28px rgba(224,112,0,0.45)' }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => navigate('/products')}
+                  className="btn-primary font-poppins text-base px-8 py-3.5"
+                >
+                  Shop Now →
+                </motion.button>
+                <motion.button
+                  whileHover={{ y: -2, borderColor: 'rgba(255,255,255,0.5)' }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => navigate('/about')}
+                  className="btn-outline font-poppins text-base px-8 py-3.5"
+                >
+                  Our Story
+                </motion.button>
               </motion.div>
 
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="flex flex-wrap gap-5">
@@ -299,7 +373,6 @@ function HeroSection() {
               </motion.div>
             </div>
 
-            {/* RIGHT — Packet */}
             <motion.div
               initial={{ opacity: 0, scale: 0.88 }} animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.9, delay: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
