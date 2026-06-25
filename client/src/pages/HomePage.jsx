@@ -68,9 +68,14 @@ function StaggerHeading() {
         ))}
       </span>
       <br />
-      <span className="shimmer-text" style={{ whiteSpace: 'nowrap', display: 'inline-block', overflow: 'hidden' }}>
+      <span style={{ whiteSpace: 'nowrap', display: 'inline-block', overflow: 'hidden' }}>
         {line2.split(' ').map((w, i) => (
-          <motion.span key={i} variants={word} style={{ display: 'inline-block', marginRight: '0.28em' }}>
+          <motion.span
+            key={i}
+            variants={word}
+            className="shimmer-text"
+            style={{ display: 'inline-block', marginRight: '0.28em' }}
+          >
             {w}
           </motion.span>
         ))}
