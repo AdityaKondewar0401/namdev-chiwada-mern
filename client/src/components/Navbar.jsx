@@ -184,8 +184,8 @@ export default function Navbar() {
               alt="Namdev Chiwada"
               className="transition-transform duration-300 group-hover:scale-105"
               style={{
-                height: "150px", // 95 × 1.2
-                width: "192px", // 160 × 1.2
+                height: "110px",
+                width: "auto",
                 objectFit: "contain",
                 imageRendering: "-webkit-optimize-contrast",
               }}
