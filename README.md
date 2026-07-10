@@ -110,7 +110,7 @@ For MongoDB Atlas, replace `MONGO_URI` with your Atlas connection string.
 
 **client/.env** (already created):
 ```env
-VITE_API_URL=http://localhost:5000/api
+VITE_API_URL=https://namdev-chiwada-mern-production.up.railway.app/api  
 ```
 
 ### 4. Seed the database

@@ -18,12 +18,17 @@ const allowedOrigins = [
   process.env.CLIENT_URL,
 ].filter(Boolean);
 
+// Allow all Vercel preview deployments
+const isAllowedOrigin = (origin) => {
+  if (!origin) return true;
+  if (allowedOrigins.includes(origin)) return true;
+  if (origin.endsWith('.vercel.app')) return true; // ← allows ALL vercel URLs
+  return false;
+};
+
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (mobile apps, Postman, curl)
-    if (!origin) return callback(null, true);
-
-    if (allowedOrigins.includes(origin)) {
+    if (isAllowedOrigin(origin)) {
       callback(null, true);
     } else {
       console.warn(`⚠️ CORS blocked: ${origin}`);
