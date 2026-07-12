@@ -33,8 +33,23 @@ export default function ProductDetailPage() {
   const [zoomOrigin, setZoomOrigin]           = useState('50% 50%');
   const [isZooming, setIsZooming]             = useState(false);
   const [mobileIdx, setMobileIdx]             = useState(0);
+  const [stickyVisible, setStickyVisible]     = useState(true);
 
   const mobileScrollRef = useRef(null);
+
+  // Hide the sticky "Add to Cart" bar once the person scrolls near the
+  // bottom of the page (footer territory) so it never sits on top of
+  // contact info / copyright text. Reappears if they scroll back up.
+  useEffect(() => {
+    const onScroll = () => {
+      const scrolledToBottom =
+        window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 420;
+      setStickyVisible(!scrolledToBottom);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -178,8 +193,12 @@ export default function ProductDetailPage() {
             />
           </div>
 
-          {/* Sticky bottom action bar */}
-          <div className="fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-sm border-t border-saffron/10 px-4 py-3"
+          {/* Sticky bottom action bar — hides itself near the footer */}
+          <motion.div
+            initial={false}
+            animate={{ y: stickyVisible ? 0 : '120%' }}
+            transition={{ duration: 0.25, ease: 'easeInOut' }}
+            className="fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-sm border-t border-saffron/10 px-4 py-3"
             style={{ boxShadow: '0 -6px 20px rgba(58,35,23,0.10)' }}>
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1 bg-cream-mid rounded-full px-1 py-1">
@@ -203,7 +222,7 @@ export default function ProductDetailPage() {
                 <span>{!product.inStock ? 'Out of Stock' : added ? 'Added ✓' : 'Add to Cart'}</span>
               </motion.button>
             </div>
-          </div>
+          </motion.div>
         </div>
 
         {/* ════════════════════════════════════════════════════════════
