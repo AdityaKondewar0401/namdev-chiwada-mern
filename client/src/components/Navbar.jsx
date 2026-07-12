@@ -25,7 +25,7 @@ export default function Navbar() {
   return (
     <>
       {/* ── Announcement Bar ── */}
-      <div className={`w-full bg-[#1a3a2a] text-white text-xs font-medium py-2 px-6 flex items-center justify-between overflow-hidden transition-all duration-200 ${menuOpen ? 'invisible opacity-0' : 'visible opacity-100'}`}>
+      <div className={`w-full bg-[#1a3a2a] text-white text-xs font-medium py-1.5 md:py-2 px-4 md:px-6 flex items-center justify-between overflow-hidden transition-all duration-200 ${menuOpen ? 'invisible opacity-0' : 'visible opacity-100'}`}>
         <div className="flex-1 overflow-hidden">
           <div className="marquee-track flex gap-0 whitespace-nowrap" style={{ width: 'max-content' }}>
             {[...Array(4)].map((_, i) => (
@@ -79,15 +79,15 @@ export default function Navbar() {
 
       {/* ── Main Navbar ── */}
       <nav className={`sticky top-0 left-0 right-0 z-40 bg-white border-b border-gray-100 shadow-sm transition-all duration-200 ${menuOpen ? 'invisible opacity-0' : 'visible opacity-100'}`}>
-        <div className="max-w-7xl mx-auto flex items-center justify-between px-8" style={{ minHeight: 80 }}>
+        <div className="max-w-7xl mx-auto flex items-center justify-between px-4 md:px-8 min-h-[60px] md:min-h-[80px]">
 
           {/* Logo */}
           <Link to="/" className="flex items-center group flex-shrink-0">
             <img
               src="/images/logo.png"
               alt="Namdev Chiwada"
-              className="transition-transform duration-300 group-hover:scale-105"
-              style={{ height: '95px', width: '160px', objectFit: 'contain', imageRendering: '-webkit-optimize-contrast' }}
+              className="transition-transform duration-300 group-hover:scale-105 h-[52px] w-[88px] md:h-[95px] md:w-[160px]"
+              style={{ objectFit: 'contain', imageRendering: '-webkit-optimize-contrast' }}
             />
           </Link>
 
@@ -182,9 +182,9 @@ export default function Navbar() {
           </div>
 
           {/* Mobile: cart + hamburger */}
-          <div className="flex md:hidden items-center gap-2 ml-auto">
-            <Link to="/cart" className="relative p-2">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-brown-dark" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <div className="flex md:hidden items-center gap-1 ml-auto">
+            <Link to="/cart" className="relative p-1.5">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-brown-dark" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0" />
               </svg>
               {totalItems > 0 && (
@@ -195,10 +195,10 @@ export default function Navbar() {
             </Link>
             <button
               onClick={() => setMenuOpen(!menuOpen)}
-              className={`flex flex-col gap-1.5 p-2 rounded-lg transition-colors ${menuOpen ? 'bg-saffron/10' : ''}`}>
-              <span className={`block w-6 h-0.5 bg-brown-dark transition-all duration-300 ${menuOpen ? 'translate-y-2 rotate-45' : ''}`} />
-              <span className={`block w-6 h-0.5 bg-brown-dark transition-all duration-300 ${menuOpen ? 'opacity-0' : ''}`} />
-              <span className={`block w-6 h-0.5 bg-brown-dark transition-all duration-300 ${menuOpen ? '-translate-y-2 -rotate-45' : ''}`} />
+              className={`flex flex-col gap-1.5 p-1.5 rounded-lg transition-colors ${menuOpen ? 'bg-saffron/10' : ''}`}>
+              <span className={`block w-5 h-0.5 bg-brown-dark transition-all duration-300 ${menuOpen ? 'translate-y-2 rotate-45' : ''}`} />
+              <span className={`block w-5 h-0.5 bg-brown-dark transition-all duration-300 ${menuOpen ? 'opacity-0' : ''}`} />
+              <span className={`block w-5 h-0.5 bg-brown-dark transition-all duration-300 ${menuOpen ? '-translate-y-2 -rotate-45' : ''}`} />
             </button>
           </div>
         </div>
