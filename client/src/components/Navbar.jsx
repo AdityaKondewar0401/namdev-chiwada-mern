@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
@@ -14,13 +14,23 @@ const NAV_LINKS = [
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const { user, logout } = useAuth();
   const { totalItems } = useCart();
   const location = useLocation();
+  const navigate = useNavigate();
 
-  useEffect(() => { setMenuOpen(false); }, [location]);
+  useEffect(() => { setMenuOpen(false); setMobileSearchOpen(false); }, [location]);
 
   const isActive = (to) => location.pathname === to || (to !== '/' && location.pathname.startsWith(to));
+
+  const submitSearch = (e) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+    navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+    setMobileSearchOpen(false);
+  };
 
   return (
     <>
@@ -79,14 +89,14 @@ export default function Navbar() {
 
       {/* ── Main Navbar ── */}
       <nav className={`sticky top-0 left-0 right-0 z-40 bg-white border-b border-gray-100 shadow-sm transition-all duration-200 ${menuOpen ? 'invisible opacity-0' : 'visible opacity-100'}`}>
-        <div className="max-w-7xl mx-auto flex items-center justify-between px-4 md:px-8 min-h-[60px] md:min-h-[80px]">
+        <div className="max-w-7xl mx-auto flex items-center justify-between px-4 md:px-8 min-h-[68px] md:min-h-[80px]">
 
           {/* Logo */}
           <Link to="/" className="flex items-center group flex-shrink-0">
             <img
               src="/images/logo.png"
               alt="Namdev Chiwada"
-              className="transition-transform duration-300 group-hover:scale-105 h-[52px] w-[88px] md:h-[95px] md:w-[160px]"
+              className="transition-transform duration-300 group-hover:scale-105 h-[58px] w-[98px] md:h-[95px] md:w-[160px]"
               style={{ objectFit: 'contain', imageRendering: '-webkit-optimize-contrast' }}
             />
           </Link>
@@ -181,27 +191,71 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Mobile: cart + hamburger */}
-          <div className="flex md:hidden items-center gap-1 ml-auto">
-            <Link to="/cart" className="relative p-1.5">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-brown-dark" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          {/* Mobile: search + cart + hamburger — boxed icon style */}
+          <div className="flex md:hidden items-center gap-2 ml-auto">
+            <button
+              onClick={() => setMobileSearchOpen((s) => !s)}
+              aria-label="Search"
+              className={`flex items-center justify-center w-9 h-9 rounded-lg border transition-colors ${
+                mobileSearchOpen ? 'border-saffron bg-saffron/8 text-saffron' : 'border-brown-dark/15 text-brown-dark'
+              }`}>
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+              </svg>
+            </button>
+
+            <Link to="/cart" aria-label="Cart"
+              className="relative flex items-center justify-center w-9 h-9 rounded-lg border border-brown-dark/15 text-brown-dark">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0" />
               </svg>
               {totalItems > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
                   {totalItems}
                 </span>
               )}
             </Link>
+
             <button
               onClick={() => setMenuOpen(!menuOpen)}
-              className={`flex flex-col gap-1.5 p-1.5 rounded-lg transition-colors ${menuOpen ? 'bg-saffron/10' : ''}`}>
-              <span className={`block w-5 h-0.5 bg-brown-dark transition-all duration-300 ${menuOpen ? 'translate-y-2 rotate-45' : ''}`} />
-              <span className={`block w-5 h-0.5 bg-brown-dark transition-all duration-300 ${menuOpen ? 'opacity-0' : ''}`} />
-              <span className={`block w-5 h-0.5 bg-brown-dark transition-all duration-300 ${menuOpen ? '-translate-y-2 -rotate-45' : ''}`} />
+              aria-label="Menu"
+              className={`flex flex-col items-center justify-center gap-[5px] w-9 h-9 rounded-lg border transition-colors ${
+                menuOpen ? 'border-saffron bg-saffron/8' : 'border-brown-dark/15'
+              }`}>
+              <span className={`block w-4 h-0.5 bg-brown-dark transition-all duration-300 ${menuOpen ? 'translate-y-[6px] rotate-45' : ''}`} />
+              <span className={`block w-4 h-0.5 bg-brown-dark transition-all duration-300 ${menuOpen ? 'opacity-0' : ''}`} />
+              <span className={`block w-4 h-0.5 bg-brown-dark transition-all duration-300 ${menuOpen ? '-translate-y-[6px] -rotate-45' : ''}`} />
             </button>
           </div>
         </div>
+
+        {/* Mobile search bar — slides open under the navbar */}
+        <AnimatePresence>
+          {mobileSearchOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.22, ease: 'easeInOut' }}
+              className="md:hidden overflow-hidden border-t border-saffron/10"
+            >
+              <form onSubmit={submitSearch} className="flex items-center gap-2 px-4 py-3">
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-brown-mid/50 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+                </svg>
+                <input
+                  autoFocus
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search for chiwada, farsan, bakarwadi…"
+                  className="flex-1 bg-transparent text-sm text-brown-dark placeholder:text-brown-mid/40 focus:outline-none"
+                />
+                <button type="submit" className="text-xs font-bold text-saffron flex-shrink-0">Go</button>
+              </form>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </nav>
 
       {/* ── Mobile Menu (Slide-in drawer from right) ── */}
