@@ -1,5 +1,6 @@
 const Order = require('../models/Order');
 const Cart = require('../models/Cart');
+const User = require('../models/User'); // NEW — needed to persist checkout consent
 
 const PROMO_CODES = {
   NAMDEV10: { type: 'percent', value: 10 },
@@ -21,6 +22,7 @@ exports.placeOrder = async (req, res, next) => {
       razorpayPaymentId,
       promoCode,
       notes,
+      marketingConsent, // NEW
     } = req.body;
 
     if (!shippingAddress) {
@@ -41,7 +43,6 @@ exports.placeOrder = async (req, res, next) => {
       });
     }
 
-    // Block unpaid online orders
     if (
       paymentMethod === 'ONLINE' &&
       paymentStatus !== 'paid'
@@ -141,6 +142,34 @@ exports.placeOrder = async (req, res, next) => {
     // Clear cart after successful order creation
     cart.items = [];
     await cart.save();
+
+    // NEW: sync marketing consent captured at checkout onto the user's
+    // profile. Only touches the field when the frontend explicitly sent
+    // a boolean — never silently flips consent as a side effect of
+    // unrelated order fields being present/absent.
+    if (typeof marketingConsent === 'boolean') {
+      const currentUser = await User.findById(req.user._id).select('marketingConsent');
+      const alreadyConsented = Boolean(
+        currentUser?.marketingConsent?.email ||
+        currentUser?.marketingConsent?.sms ||
+        currentUser?.marketingConsent?.whatsapp
+      );
+
+      await User.findByIdAndUpdate(req.user._id, {
+        marketingConsent: {
+          email: marketingConsent,
+          sms: marketingConsent,
+          whatsapp: marketingConsent,
+          // Only stamp a fresh consentedAt when this is a NEW opt-in.
+          // If they were already consented, keep the original timestamp.
+          // If they're opting out, clear it — no timestamp for "no consent".
+          consentedAt: marketingConsent
+            ? (alreadyConsented ? currentUser.marketingConsent.consentedAt : new Date())
+            : null,
+          source: marketingConsent ? (currentUser?.marketingConsent?.source || 'checkout') : null,
+        },
+      });
+    }
 
     res.status(201).json({
       success: true,

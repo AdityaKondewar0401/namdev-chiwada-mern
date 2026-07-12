@@ -379,6 +379,17 @@ function CheckoutPage() {
   const [processing, setProcessing] = useState(false);
   const [errors, setErrors] = useState({});
 
+  // NEW: marketing opt-in. Defaults to the user's EXISTING consent status
+  // (so an already-opted-in customer isn't shown an unchecked box every
+  // time), but never defaults to true for someone who's never consented.
+  const [marketingConsent, setMarketingConsent] = useState(
+    Boolean(
+      user?.marketingConsent?.email ||
+      user?.marketingConsent?.sms ||
+      user?.marketingConsent?.whatsapp
+    )
+  );
+
   const handleAddressChange = useCallback((e) => {
     const { name, value } = e.target;
     setAddress(prev => ({ ...prev, [name]: value }));
@@ -423,6 +434,7 @@ function CheckoutPage() {
         shippingAddress: address,
         paymentMethod: 'COD',
         promoCode: promoApplied ? promoCode : '',
+        marketingConsent, // NEW
       });
       clearCart();
       navigate(`/orders/${res.data.order._id}`, { state: { success: true } });
@@ -464,6 +476,7 @@ function CheckoutPage() {
                 promoCode: promoApplied ? promoCode : '',
                 razorpayOrderId: response.razorpay_order_id,
                 razorpayPaymentId: response.razorpay_payment_id,
+                marketingConsent, // NEW
               });
               clearCart();
               navigate(`/orders/${orderRes.data.order._id}`, { state: { success: true, paid: true } });
@@ -749,6 +762,21 @@ function CheckoutPage() {
                   </div>
                   {/* Extra space at bottom so COD card clears the sticky mobile CTA bar */}
                   <div style={{ height: 8 }} />
+                </div>
+
+                {/* NEW: Marketing Consent */}
+                <div className="card-panel">
+                  <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={marketingConsent}
+                      onChange={(e) => setMarketingConsent(e.target.checked)}
+                      style={{ marginTop: 3, width: 16, height: 16, accentColor: '#e07000', flexShrink: 0 }}
+                    />
+                    <span style={{ fontSize: 13, color: '#7a5c3a', fontFamily: "'Lora', serif", lineHeight: 1.5 }}>
+                      Send me order updates and offers via WhatsApp, SMS, and email. You can turn this off anytime from your account.
+                    </span>
+                  </label>
                 </div>
               </div>
 
