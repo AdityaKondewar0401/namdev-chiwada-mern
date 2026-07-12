@@ -200,11 +200,11 @@ function HeroSection() {
           ══════════════════════════════════════ */}
       <div className="md:hidden" style={{ minHeight: '100svh', position: 'relative', zIndex: 5 }}>
 
-        {/* ── Image zone — shrunk to 48svh so text appears higher ── */}
+        {/* ── Image zone — 46svh, packet centered with equal space ── */}
         <div style={{
           position: 'absolute',
           top: 0, left: 0, right: 0,
-          height: '48svh',               /* ← was 52svh, moved up more */
+          height: '46svh',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           zIndex: 2, pointerEvents: 'none', overflow: 'visible',
         }}>
@@ -228,9 +228,10 @@ function HeroSection() {
               src={PRODUCTS[current].img} alt="Namdev Chiwada" draggable={false}
               style={{
                 position: 'relative', zIndex: 3,
-                width: '125vw',          /* ← was 110vw → bigger packet */
+                width: '115vw',
                 maxWidth: 'none',
                 height: 'auto',
+                marginTop: '2svh',       /* ← push down slightly for equal top/bottom space */
                 animation: 'heroFloat 4s ease-in-out infinite',
                 filter: 'drop-shadow(0 28px 55px rgba(0,0,0,0.82)) drop-shadow(0 6px 22px rgba(212,168,55,0.50))',
                 display: 'block', pointerEvents: 'auto',
@@ -242,7 +243,7 @@ function HeroSection() {
         {/* ── Text block — starts at 52svh, tight spacing ── */}
         <div style={{
           position: 'relative', zIndex: 10,
-          padding: 'calc(48svh + 4px) 20px 18px', /* ← matches new 48svh image height */
+          padding: 'calc(46svh + 4px) 20px 18px',
           display: 'flex', flexDirection: 'column', alignItems: 'center',
         }}>
 
@@ -255,24 +256,24 @@ function HeroSection() {
             Since 1873 · Solapur, Maharashtra
           </div>
 
-          {/* Heading — bigger, more line spacing */}
+          {/* Heading — slightly reduced */}
           <h1
             className="font-serif font-black text-white text-center"
-            style={{ fontSize: 'clamp(2rem, 9vw, 2.6rem)', textShadow: '0 2px 20px rgba(0,0,0,0.4)', marginBottom: 6, lineHeight: 1.15 }}
+            style={{ fontSize: 'clamp(1.75rem, 8vw, 2.2rem)', textShadow: '0 2px 20px rgba(0,0,0,0.4)', marginBottom: 6, lineHeight: 1.13 }}
           >
             Authentic Taste,<br />
             <span className="shimmer-text">Timeless Tradition</span>
           </h1>
 
-          {/* Marathi tagline — bigger, more breathing room */}
+          {/* Marathi tagline — slightly reduced */}
           <p style={{
             fontFamily: "'Gotu', sans-serif",
             background: 'linear-gradient(90deg,#ffd89b,#f0cc5a,#ffd89b)',
             WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
             letterSpacing: '0.03em', textAlign: 'center',
             marginBottom: 10,
-            fontSize: '0.95rem',
-            lineHeight: 1.6,
+            fontSize: '0.85rem',
+            lineHeight: 1.55,
           }}>
             खमंग चिवडा — पिढ्यानपिढ्याची चव
           </p>
