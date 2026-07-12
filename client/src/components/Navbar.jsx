@@ -96,7 +96,7 @@ export default function Navbar() {
             <img
               src="/images/logo.png"
               alt="Namdev Chiwada"
-              className="transition-transform duration-300 group-hover:scale-105 h-[58px] w-[98px] md:h-[95px] md:w-[160px]"
+              className="transition-transform duration-300 group-hover:scale-105 h-[64px] w-[108px] md:h-[95px] md:w-[160px]"
               style={{ objectFit: 'contain', imageRendering: '-webkit-optimize-contrast' }}
             />
           </Link>
