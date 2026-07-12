@@ -130,20 +130,17 @@ export default function ProductDetailPage() {
               </button>
             </div>
 
-            {/* Swipeable image carousel */}
+            {/* Swipeable image carousel — solid, opaque background so nothing behind it ever shows through */}
             <div
               ref={mobileScrollRef}
               onScroll={handleMobileScroll}
               className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar"
-              style={{ scrollbarWidth: 'none' }}
+              style={{ scrollbarWidth: 'none', backgroundColor: '#DEDAD2' }}
             >
               {thumbs.map((img, i) => (
                 <div key={i}
                   className="relative flex-shrink-0 w-full snap-center"
-                  style={{
-                    aspectRatio: '1/1',
-                    background: `radial-gradient(circle at 50% 40%, ${GOLD_SOFT}, transparent 65%), linear-gradient(180deg,#FBF6EC,#F2E9D8)`,
-                  }}>
+                  style={{ aspectRatio: '1/1', backgroundColor: '#DEDAD2' }}>
                   {i === 0 && product.badge && (
                     <span className="absolute top-16 left-4 z-10 text-[11px] font-bold px-2.5 py-1 rounded-full text-white shadow-md tracking-wide"
                       style={{ background: product.badgeColor || '#e07000' }}>
@@ -169,14 +166,6 @@ export default function ProductDetailPage() {
                 ))}
               </div>
             )}
-
-            {/* Heritage plate */}
-            <div className="absolute bottom-3 right-4">
-              <span className="text-[10px] tracking-[0.15em] uppercase font-semibold px-2 py-1 rounded-full bg-white/80 backdrop-blur-sm"
-                style={{ color: MAROON }}>
-                Est. 1873
-              </span>
-            </div>
           </div>
 
           {/* Overlapping sheet */}
@@ -358,7 +347,7 @@ export default function ProductDetailPage() {
               <div className="section-eyebrow">You May Also Like</div>
               <h3 className="font-serif font-bold text-brown-dark text-lg">Related Products</h3>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               {related.map((p, i) => <ProductCard key={p._id} product={p} index={i} />)}
             </div>
           </div>
