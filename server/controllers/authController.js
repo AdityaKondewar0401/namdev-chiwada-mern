@@ -1,36 +1,17 @@
-// server/controllers/authController.js
-
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
 
-// Google OAuth client — verifies Google tokens
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-/*
-  HELPER: Create a JWT token
-  
-  jwt.sign(data, secret, options)
-  - data: what to store inside the token (user's ID)
-  - secret: a password only YOUR server knows
-  - options: when does it expire
-  
-  ANALOGY: 
-  Stamping a ticket with your hotel's
-  unique stamp that only you have
-*/
 const signToken = (id) => {
   return jwt.sign(
-    { id },                          // Payload: store user ID
-    process.env.JWT_SECRET,          // Secret key (keep this SAFE!)
-    { expiresIn: process.env.JWT_EXPIRE || '30d' }  // Expires in 30 days
+    { id },
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_EXPIRE || '30d' }
   );
 };
 
-/*
-  HELPER: Send token response
-  Reused by register, login, and Google auth
-*/
 const sendTokenResponse = (user, statusCode, res) => {
   const token = signToken(user._id);
 
@@ -41,8 +22,10 @@ const sendTokenResponse = (user, statusCode, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
+      phone: user.phone,
       role: user.role,
       avatar: user.avatar,
+      marketingConsent: user.marketingConsent,
     },
   });
 };
@@ -51,19 +34,10 @@ const sendTokenResponse = (user, statusCode, res) => {
 // REGISTER (Signup)
 // POST /api/auth/register
 // ──────────────────────────────────────────────────────
-/*
-  FLOW:
-  1. User sends: { name, email, password }
-  2. Check if email already exists
-  3. Create user (password gets hashed automatically by User model)
-  4. Generate JWT token
-  5. Send token back
-*/
 exports.register = async (req, res, next) => {
   try {
-    const { name, email, password, phone } = req.body;
+    const { name, email, password, phone, marketingConsent } = req.body;
 
-    // Step 1: Check all required fields
     if (!name || !email || !password) {
       return res.status(400).json({
         success: false,
@@ -71,7 +45,6 @@ exports.register = async (req, res, next) => {
       });
     }
 
-    // Step 2: Check if email already registered
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({
@@ -80,20 +53,29 @@ exports.register = async (req, res, next) => {
       });
     }
 
-    // Step 3: Create user
-    // Password is automatically hashed by User model's pre-save hook
+    // marketingConsent comes from the frontend as a simple boolean
+    // (single checkbox = "yes, contact me"). We expand it into the
+    // per-channel schema and stamp when consent was given.
+    const consentGiven = marketingConsent === true;
+
     const user = await User.create({
       name,
       email,
       password,
       phone,
+      marketingConsent: {
+        email: consentGiven,
+        sms: consentGiven,
+        whatsapp: consentGiven,
+        consentedAt: consentGiven ? new Date() : null,
+        source: consentGiven ? 'signup' : null,
+      },
     });
 
-    // Step 4 & 5: Generate token and send response
     sendTokenResponse(user, 201, res);
 
   } catch (err) {
-    next(err); // Pass to error handler
+    next(err);
   }
 };
 
@@ -101,19 +83,10 @@ exports.register = async (req, res, next) => {
 // LOGIN
 // POST /api/auth/login
 // ──────────────────────────────────────────────────────
-/*
-  FLOW:
-  1. User sends: { email, password }
-  2. Find user by email
-  3. Compare password with stored hash
-  4. Generate JWT
-  5. Send token back
-*/
 exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    // Step 1: Check fields provided
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -121,22 +94,15 @@ exports.login = async (req, res, next) => {
       });
     }
 
-    // Step 2: Find user
-    // NOTE: We need to explicitly select password
-    // because in User model we could have set select: false
     const user = await User.findOne({ email }).select('+password');
 
-    // Step 3: Check user exists AND password matches
     if (!user || !(await user.matchPassword(password))) {
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password',
-        // NOTE: Give SAME message for both cases
-        // Don't say "email not found" — that helps hackers
       });
     }
 
-    // Check if user registered with Google (no password set)
     if (!user.password) {
       return res.status(400).json({
         success: false,
@@ -144,7 +110,6 @@ exports.login = async (req, res, next) => {
       });
     }
 
-    // Step 4 & 5: Send token
     sendTokenResponse(user, 200, res);
 
   } catch (err) {
@@ -156,28 +121,9 @@ exports.login = async (req, res, next) => {
 // GOOGLE LOGIN
 // POST /api/auth/google
 // ──────────────────────────────────────────────────────
-/*
-  HOW GOOGLE AUTH WORKS:
-  
-  1. User clicks "Continue with Google" on frontend
-  2. Google shows its login popup
-  3. User logs in on Google's page (NOT yours)
-  4. Google gives frontend a "credential" (a token)
-  5. Frontend sends that credential to YOUR backend
-  6. YOUR backend asks Google: "Is this token real?"
-  7. Google says "Yes, here's the user info: name, email, picture"
-  8. You create/find user in your DB
-  9. You generate YOUR OWN JWT and send back
-  
-  ANALOGY:
-  Like showing your Aadhaar card (Google token) to a hotel
-  The hotel calls the Aadhaar office to verify it's real
-  Then gives you their own room key card (JWT)
-*/
 exports.googleLogin = async (req, res, next) => {
   try {
     const { credential } = req.body;
-    // credential = the token Google gave to your frontend
 
     if (!credential) {
       return res.status(400).json({
@@ -186,46 +132,33 @@ exports.googleLogin = async (req, res, next) => {
       });
     }
 
-    // Step 1: Verify the Google token
-    // This asks Google's servers: "Is this token valid?"
     const ticket = await googleClient.verifyIdToken({
       idToken: credential,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
 
-    // Step 2: Extract user info from verified token
     const { sub, email, name, picture } = ticket.getPayload();
-    // sub = Google's unique user ID (like a fingerprint)
-    // picture = profile photo URL
 
-    // Step 3: Check if user already exists in OUR database
     let user = await User.findOne({
-      $or: [
-        { googleId: sub },  // Found by Google ID
-        { email: email },   // Found by email (might have regular account)
-      ],
+      $or: [{ googleId: sub }, { email: email }],
     });
 
     if (user) {
-      // User EXISTS — update their Google info if needed
       if (!user.googleId) {
         user.googleId = sub;
         user.avatar = user.avatar || picture;
         await user.save();
       }
     } else {
-      // User DOESN'T EXIST — create new account
       user = await User.create({
         name,
         email,
         googleId: sub,
         avatar: picture,
-        isVerified: true, // Google already verified their email
-        // No password — Google users don't need one
+        isVerified: true,
       });
     }
 
-    // Step 4: Generate OUR JWT and send
     sendTokenResponse(user, 200, res);
 
   } catch (err) {
@@ -239,11 +172,10 @@ exports.googleLogin = async (req, res, next) => {
 
 // ──────────────────────────────────────────────────────
 // GET CURRENT USER
-// GET /api/auth/me  (protected route)
+// GET /api/auth/me
 // ──────────────────────────────────────────────────────
 exports.getMe = async (req, res, next) => {
   try {
-    // req.user is set by the protect middleware (explained next)
     const user = await User.findById(req.user._id)
       .select('-password')
       .populate('wishlist', 'name img price');
@@ -260,11 +192,26 @@ exports.getMe = async (req, res, next) => {
 // ──────────────────────────────────────────────────────
 exports.updateProfile = async (req, res, next) => {
   try {
-    const { name, phone, address } = req.body;
+    const { name, phone, address, marketingConsent } = req.body;
+
+    const update = { name, phone, address };
+
+    // Only touch marketingConsent if the request explicitly includes it,
+    // so unrelated profile edits (e.g. changing address) never
+    // silently reset consent.
+    if (typeof marketingConsent === 'boolean') {
+      update.marketingConsent = {
+        email: marketingConsent,
+        sms: marketingConsent,
+        whatsapp: marketingConsent,
+        consentedAt: marketingConsent ? new Date() : null,
+        source: 'account',
+      };
+    }
 
     const user = await User.findByIdAndUpdate(
       req.user._id,
-      { name, phone, address },
+      update,
       { new: true, runValidators: true }
     ).select('-password');
 
@@ -284,7 +231,6 @@ exports.changePassword = async (req, res, next) => {
 
     const user = await User.findById(req.user._id).select('+password');
 
-    // Verify current password
     if (!(await user.matchPassword(currentPassword))) {
       return res.status(400).json({
         success: false,
@@ -292,7 +238,7 @@ exports.changePassword = async (req, res, next) => {
       });
     }
 
-    user.password = newPassword; // Will be hashed by pre-save hook
+    user.password = newPassword;
     await user.save();
 
     res.json({ success: true, message: 'Password changed successfully' });

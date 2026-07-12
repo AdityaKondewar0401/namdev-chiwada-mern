@@ -11,7 +11,6 @@ function AuthCard({ title, subtitle, children }) {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
         className="w-full max-w-md">
 
-        {/* Logo */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-3 group">
             <div className="w-14 h-14 rounded-full flex items-center justify-center"
@@ -38,9 +37,6 @@ function AuthCard({ title, subtitle, children }) {
 /* ================= GOOGLE LOGIN BUTTON ================= */
 function GoogleLoginButton() {
   const navigate = useNavigate();
-  // FIX: consume saveUser from AuthContext so React state updates immediately
-  // Previously this component wrote directly to localStorage, bypassing setUser(),
-  // which meant the Navbar and all other consumers didn't re-render until refresh.
   const { saveUser } = useAuth();
 
   useEffect(() => {
@@ -73,9 +69,6 @@ function GoogleLoginButton() {
       const data = await res.json();
 
       if (data.success) {
-        // FIX: call saveUser() instead of writing localStorage manually.
-        // saveUser() does both: persists to localStorage AND calls setUser()
-        // so every context consumer (Navbar, etc.) re-renders immediately.
         saveUser(data.user, data.token);
         toast.success(`Welcome, ${data.user.name}! 🎉`);
         navigate('/');
@@ -152,7 +145,13 @@ export function LoginPage() {
 
 /* ================= REGISTER PAGE ================= */
 export function RegisterPage() {
-  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '' });
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    password: '',
+    marketingConsent: false, // NEW: unchecked by default — genuine opt-in, not implied consent
+  });
   const { register, loading } = useAuth();
   const navigate = useNavigate();
 
@@ -186,6 +185,19 @@ export function RegisterPage() {
               />
             </div>
           ))}
+
+          {/* NEW: marketing opt-in — explicit, unchecked by default */}
+          <label className="flex items-start gap-2.5 pt-1 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={form.marketingConsent}
+              onChange={(e) => setForm({ ...form, marketingConsent: e.target.checked })}
+              className="mt-0.5 w-4 h-4 accent-saffron-DEFAULT flex-shrink-0"
+            />
+            <span className="text-xs text-brown-mid/70 leading-relaxed">
+              Send me order updates and offers via WhatsApp, SMS, and email. You can turn this off anytime from your account.
+            </span>
+          </label>
 
           <button type="submit" disabled={loading}
             className={`w-full btn-saffron py-3.5 font-bold text-base mt-2 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}>
