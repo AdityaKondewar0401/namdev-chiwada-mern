@@ -200,11 +200,11 @@ function HeroSection() {
           ══════════════════════════════════════ */}
       <div className="md:hidden" style={{ minHeight: '100svh', position: 'relative', zIndex: 5 }}>
 
-        {/* ── Image zone — shrunk to 52svh so text appears higher ── */}
+        {/* ── Image zone — shrunk to 48svh so text appears higher ── */}
         <div style={{
           position: 'absolute',
           top: 0, left: 0, right: 0,
-          height: '52svh',               /* ← was 62svh */
+          height: '48svh',               /* ← was 52svh, moved up more */
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           zIndex: 2, pointerEvents: 'none', overflow: 'visible',
         }}>
@@ -242,7 +242,7 @@ function HeroSection() {
         {/* ── Text block — starts at 52svh, tight spacing ── */}
         <div style={{
           position: 'relative', zIndex: 10,
-          padding: 'calc(52svh + 4px) 20px 18px', /* ← matches new image height */
+          padding: 'calc(48svh + 4px) 20px 18px', /* ← matches new 48svh image height */
           display: 'flex', flexDirection: 'column', alignItems: 'center',
         }}>
 
@@ -255,23 +255,24 @@ function HeroSection() {
             Since 1873 · Solapur, Maharashtra
           </div>
 
-          {/* Heading */}
+          {/* Heading — bigger, more line spacing */}
           <h1
             className="font-serif font-black text-white text-center"
-            style={{ fontSize: 'clamp(1.65rem, 7.5vw, 2.2rem)', textShadow: '0 2px 20px rgba(0,0,0,0.4)', marginBottom: 3, lineHeight: 1.08 }}
+            style={{ fontSize: 'clamp(2rem, 9vw, 2.6rem)', textShadow: '0 2px 20px rgba(0,0,0,0.4)', marginBottom: 6, lineHeight: 1.15 }}
           >
             Authentic Taste,<br />
             <span className="shimmer-text">Timeless Tradition</span>
           </h1>
 
-          {/* Marathi tagline — tighter margin */}
+          {/* Marathi tagline — bigger, more breathing room */}
           <p style={{
             fontFamily: "'Gotu', sans-serif",
             background: 'linear-gradient(90deg,#ffd89b,#f0cc5a,#ffd89b)',
             WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
-            letterSpacing: '0.02em', textAlign: 'center',
-            marginBottom: 7,             /* ← was 9 */
-            fontSize: '0.76rem',
+            letterSpacing: '0.03em', textAlign: 'center',
+            marginBottom: 10,
+            fontSize: '0.95rem',
+            lineHeight: 1.6,
           }}>
             खमंग चिवडा — पिढ्यानपिढ्याची चव
           </p>
