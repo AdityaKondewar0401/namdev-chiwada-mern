@@ -194,17 +194,17 @@ function HeroSection() {
 
       {/* ══════════════════════════════════════
           MOBILE layout — UPDATED
-          • Image zone: 52svh (was 62svh) → text starts higher
-          • Packet width: 125vw (was 110vw) → bigger product
-          • Tighter spacing → buttons visible on first screen
+          • Image zone: 50svh (was 46svh) → text block sits a little lower
+          • Packet width: 128vw (was 115vw) → bigger product
+          • Text spacing/line-heights untouched
           ══════════════════════════════════════ */}
       <div className="md:hidden" style={{ minHeight: '100svh', position: 'relative', zIndex: 5 }}>
 
-        {/* ── Image zone — 46svh, packet centered with equal space ── */}
+        {/* ── Image zone — 50svh, packet centered with equal space ── */}
         <div style={{
           position: 'absolute',
           top: 0, left: 0, right: 0,
-          height: '46svh',
+          height: '50svh',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           zIndex: 2, pointerEvents: 'none', overflow: 'visible',
         }}>
@@ -232,7 +232,7 @@ function HeroSection() {
                 <img
                   src={PRODUCTS[current].img} alt="Namdev Chiwada" draggable={false}
                   style={{
-                    width: '115vw',
+                    width: '128vw',
                     maxWidth: 'none',
                     height: 'auto',
                     marginTop: '2svh',
@@ -245,10 +245,10 @@ function HeroSection() {
           </AnimatePresence>
         </div>
 
-        {/* ── Text block — starts at 52svh, tight spacing ── */}
+        {/* ── Text block — starts at 50svh, same internal spacing as before ── */}
         <div style={{
           position: 'relative', zIndex: 10,
-          padding: 'calc(46svh + 4px) 20px 18px',
+          padding: 'calc(50svh + 4px) 20px 18px',
           display: 'flex', flexDirection: 'column', alignItems: 'center',
         }}>
 
