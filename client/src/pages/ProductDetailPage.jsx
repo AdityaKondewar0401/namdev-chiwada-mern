@@ -148,7 +148,7 @@ export default function ProductDetailPage() {
                     </span>
                   )}
                   <img src={img} alt={product.name}
-                    className="w-full h-full object-contain p-10" />
+                    className="w-full h-full object-cover" />
                 </div>
               ))}
             </div>
@@ -223,7 +223,7 @@ export default function ProductDetailPage() {
                     aspectRatio: '1/1',
                     ...(mainImg === img ? { boxShadow: `0 0 0 2px ${GOLD}` } : {}),
                   }}>
-                  <img src={img} alt="" className="w-full h-full object-contain bg-cream-mid p-1.5" />
+                  <img src={img} alt="" className="w-full h-full object-cover" />
                 </button>
               ))}
             </div>
@@ -262,10 +262,10 @@ export default function ProductDetailPage() {
                     initial={{ opacity: 0, scale: 0.97 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.3 }}
-                    className="w-full h-full object-contain p-12 transition-transform duration-200 ease-out"
+                    className="w-full h-full object-cover transition-transform duration-200 ease-out"
                     style={{
                       transformOrigin: zoomOrigin,
-                      transform: isZooming ? 'scale(1.55)' : 'scale(1)',
+                      transform: isZooming ? 'scale(1.35)' : 'scale(1.06)',
                     }}
                   />
 
