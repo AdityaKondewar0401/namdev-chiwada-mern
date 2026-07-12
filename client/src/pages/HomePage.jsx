@@ -222,21 +222,26 @@ function HeroSection() {
           }} />
           {/* Packet image — bigger */}
           <AnimatePresence mode="wait" custom={direction}>
-            <motion.img
+            <motion.div
               key={current} custom={direction} variants={mobileSlideVariants}
               initial="enter" animate="center" exit="exit"
-              src={PRODUCTS[current].img} alt="Namdev Chiwada" draggable={false}
-              style={{
-                position: 'relative', zIndex: 3,
-                width: '115vw',
-                maxWidth: 'none',
-                height: 'auto',
-                marginTop: '2svh',       /* ← push down slightly for equal top/bottom space */
-                animation: 'heroFloat 4s ease-in-out infinite',
-                filter: 'drop-shadow(0 28px 55px rgba(0,0,0,0.82)) drop-shadow(0 6px 22px rgba(212,168,55,0.50))',
-                display: 'block', pointerEvents: 'auto',
-              }}
-            />
+              style={{ position: 'relative', zIndex: 3, pointerEvents: 'auto' }}
+            >
+              {/* Float wrapper — separate from slide so y doesn't mix with x transition */}
+              <div style={{ animation: 'heroFloat 4s ease-in-out infinite' }}>
+                <img
+                  src={PRODUCTS[current].img} alt="Namdev Chiwada" draggable={false}
+                  style={{
+                    width: '115vw',
+                    maxWidth: 'none',
+                    height: 'auto',
+                    marginTop: '2svh',
+                    filter: 'drop-shadow(0 28px 55px rgba(0,0,0,0.82)) drop-shadow(0 6px 22px rgba(212,168,55,0.50))',
+                    display: 'block',
+                  }}
+                />
+              </div>
+            </motion.div>
           </AnimatePresence>
         </div>
 
