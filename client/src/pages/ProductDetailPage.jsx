@@ -36,20 +36,21 @@ export default function ProductDetailPage() {
   const [stickyVisible, setStickyVisible]     = useState(true);
 
   const mobileScrollRef = useRef(null);
+  const relatedSentinelRef = useRef(null);
 
-  // Hide the sticky "Add to Cart" bar once the person scrolls near the
-  // bottom of the page (footer territory) so it never sits on top of
-  // contact info / copyright text. Reappears if they scroll back up.
+  // The sticky "Add to Cart" bar belongs to *this* product only — hide it
+  // the moment "Related Products" scrolls into view, and bring it back if
+  // the person scrolls back up into the product's own content.
   useEffect(() => {
-    const onScroll = () => {
-      const scrolledToBottom =
-        window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 420;
-      setStickyVisible(!scrolledToBottom);
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+    const el = relatedSentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setStickyVisible(!entry.isIntersecting),
+      { rootMargin: '0px 0px -10% 0px' }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [related.length]);
 
   useEffect(() => {
     setLoading(true);
@@ -358,6 +359,9 @@ export default function ProductDetailPage() {
             </div>
           )}
         </div>
+
+        {/* Marks the end of this product's own content — sticky CTA hides past this point */}
+        <div ref={relatedSentinelRef} />
 
         {/* Related products — mobile */}
         {related.length > 0 && (
