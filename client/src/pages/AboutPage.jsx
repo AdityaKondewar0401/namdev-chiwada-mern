@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useInView, useScroll, useTransform } from 'framer-motion';
 import PageWrapper from '../components/PageWrapper';
@@ -59,6 +59,171 @@ const VALUES = [
   { icon: '❤️', title: 'माया', subtitle: 'Love', desc: 'Made like a mother cooks — with care, not just ingredients. That\'s why it tastes different.' },
   { icon: '✨', title: 'दर्जा', subtitle: 'Quality', desc: 'No shortcuts, no compromises. The finest ingredients, the same slow-roasting technique since 1873.' },
 ];
+
+// ── Extra premium keyframes (shine sweep, glow pulse) ──
+const premiumStyles = `
+  @keyframes shineSweep {
+    0%   { transform: translateX(-120%) skewX(-20deg); }
+    100% { transform: translateX(220%) skewX(-20deg); }
+  }
+  @keyframes glowPulse {
+    0%, 100% { box-shadow: 0 0 0 4px rgba(212,175,55,0.15), 0 0 30px rgba(212,175,55,0.25); }
+    50%      { box-shadow: 0 0 0 6px rgba(212,175,55,0.25), 0 0 46px rgba(212,175,55,0.4); }
+  }
+  .shine-btn { position: relative; overflow: hidden; }
+  .shine-btn::after {
+    content: '';
+    position: absolute; top: 0; left: 0;
+    width: 40%; height: 100%;
+    background: linear-gradient(120deg, transparent, rgba(255,255,255,0.55), transparent);
+    animation: shineSweep 3.2s ease-in-out infinite;
+    animation-delay: 1s;
+  }
+  .founder-frame { animation: glowPulse 4s ease-in-out infinite; }
+`;
+
+// ── Film grain overlay — subtle premium texture across the whole page ──
+function GrainOverlay() {
+  return (
+    <div
+      className="pointer-events-none fixed inset-0 z-[1] opacity-[0.035] mix-blend-overlay"
+      style={{
+        backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
+      }}
+    />
+  );
+}
+
+// ── Floating ember particles for the hero ──
+function EmberParticles({ count = 16 }) {
+  const particles = useMemo(
+    () =>
+      Array.from({ length: count }, (_, i) => ({
+        id: i,
+        left: Math.random() * 100,
+        size: 2 + Math.random() * 3.5,
+        delay: Math.random() * 6,
+        duration: 7 + Math.random() * 7,
+      })),
+    [count]
+  );
+
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      {particles.map((p) => (
+        <motion.span
+          key={p.id}
+          initial={{ y: '10%', opacity: 0 }}
+          animate={{ y: '-90%', opacity: [0, 0.8, 0] }}
+          transition={{ duration: p.duration, delay: p.delay, repeat: Infinity, ease: 'linear' }}
+          style={{
+            position: 'absolute',
+            left: `${p.left}%`,
+            bottom: 0,
+            width: p.size,
+            height: p.size,
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, #f0cc5a, rgba(240,204,90,0) 70%)',
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+// ── Count-up hook for the stats strip ──
+function useCountUp(target, duration, startWhenInView) {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    if (!startWhenInView) return;
+    let startTime;
+    let raf;
+    function tick(ts) {
+      if (!startTime) startTime = ts;
+      const progress = Math.min((ts - startTime) / duration, 1);
+      setValue(Math.floor(progress * target));
+      if (progress < 1) raf = requestAnimationFrame(tick);
+    }
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [startWhenInView, target, duration]);
+  return value;
+}
+
+// ── Stats strip — quick, premium, count-up numbers ──
+function StatsStrip() {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: '-100px' });
+  const years = useCountUp(150, 1600, isInView);
+  const generations = useCountUp(6, 1200, isInView);
+  const customers = useCountUp(10, 1400, isInView);
+
+  const stats = [
+    { value: `${years}+`, label: 'Years of Legacy' },
+    { value: `${generations}`, label: 'Generations' },
+    { value: `${customers}K+`, label: 'Happy Customers' },
+  ];
+
+  return (
+    <section
+      ref={ref}
+      className="relative py-12 md:py-14"
+      style={{ background: '#fffdf7', borderTop: '1px solid rgba(224,112,0,0.08)', borderBottom: '1px solid rgba(224,112,0,0.08)' }}
+    >
+      <div className="max-w-4xl mx-auto px-6 grid grid-cols-3 gap-4 sm:gap-8 text-center">
+        {stats.map((s) => (
+          <div key={s.label}>
+            <div
+              className="font-serif font-black"
+              style={{
+                fontSize: 'clamp(1.7rem,4.5vw,3rem)',
+                background: 'linear-gradient(135deg,#e07000,#d4af37)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+              }}
+            >
+              {s.value}
+            </div>
+            <div
+              className="font-bold tracking-widest uppercase mt-1"
+              style={{ color: '#7a5a38', fontSize: 'clamp(0.55rem,1.5vw,0.72rem)' }}
+            >
+              {s.label}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// ── 3D tilt wrapper for Values cards ──
+function TiltCard({ children }) {
+  const ref = useRef(null);
+  const [transform, setTransform] = useState('perspective(700px) rotateX(0deg) rotateY(0deg) scale(1)');
+
+  function handleMove(e) {
+    const rect = ref.current.getBoundingClientRect();
+    const px = (e.clientX - rect.left) / rect.width - 0.5;
+    const py = (e.clientY - rect.top) / rect.height - 0.5;
+    setTransform(`perspective(700px) rotateX(${py * -9}deg) rotateY(${px * 9}deg) scale(1.03)`);
+  }
+  function reset() {
+    setTransform('perspective(700px) rotateX(0deg) rotateY(0deg) scale(1)');
+  }
+
+  return (
+    <div
+      ref={ref}
+      onMouseMove={handleMove}
+      onMouseLeave={reset}
+      style={{ transform, transition: 'transform 0.18s ease-out', transformStyle: 'preserve-3d' }}
+    >
+      {children}
+    </div>
+  );
+}
 
 // ── Fade In Component ──────────────────────────────────
 function FadeIn({ children, delay = 0, direction = 'up', className = '' }) {
@@ -255,6 +420,8 @@ function AboutHero() {
     <section ref={heroRef} className="relative min-h-[85vh] flex items-center overflow-hidden"
       style={{ background: 'linear-gradient(135deg,#1a0a00 0%,#3d1c00 35%,#7a3300 65%,#e07000 100%)' }}>
 
+      <EmberParticles />
+
       <motion.div style={{ y }} className="absolute inset-0 pointer-events-none">
         <div className="absolute inset-0 opacity-[0.05]"
           style={{
@@ -337,7 +504,7 @@ function IntroQuote() {
     <section className="py-16 relative" style={{ background: '#fffdf7' }}>
       <div className="max-w-4xl mx-auto px-6 text-center">
         <FadeIn>
-          <div className="font-serif text-5xl mb-4" style={{ color: 'rgba(224,112,0,0.15)' }}>"</div>
+          <div className="font-serif mb-4" style={{ color: 'rgba(224,112,0,0.18)', fontSize: 'clamp(3.5rem,8vw,6rem)', lineHeight: 0.6 }}>"</div>
           <blockquote style={{
             fontFamily: "'Tiro Devanagari Marathi', serif",
             fontSize: 'clamp(2.2rem,3.0vw,2.2rem)',
@@ -366,6 +533,12 @@ function IntroQuote() {
 
 // ── Timeline Section ───────────────────────────────────
 function TimelineSection() {
+  const timelineRef = useRef(null);
+  const { scrollYProgress: timelineProgress } = useScroll({
+    target: timelineRef,
+    offset: ['start 0.8', 'end 0.25'],
+  });
+
   return (
     <section className="py-24 relative overflow-hidden"
       style={{ background: 'linear-gradient(180deg,#fef3e0 0%,#fffdf7 100%)' }}>
@@ -390,14 +563,36 @@ function TimelineSection() {
         </FadeIn>
 
         {/* Timeline */}
-        <div className="relative">
-          {/* Desktop center vertical line — hidden on mobile */}
+        <div ref={timelineRef} className="relative">
+          {/* Faint static track — desktop */}
           <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px -translate-x-1/2"
-            style={{ background: 'linear-gradient(to bottom,transparent,#e07000 10%,#d4af37 50%,#e07000 90%,transparent)' }} />
-
-          {/* Mobile left vertical line */}
+            style={{ background: 'rgba(224,112,0,0.12)' }} />
+          {/* Faint static track — mobile */}
           <div className="md:hidden absolute left-[22px] top-0 bottom-0 w-px"
-            style={{ background: 'linear-gradient(to bottom,transparent,#e07000 10%,#d4af37 50%,#e07000 90%,transparent)' }} />
+            style={{ background: 'rgba(224,112,0,0.12)' }} />
+
+          {/* Gold scroll-progress line — desktop */}
+          <motion.div
+            className="hidden md:block absolute left-1/2 top-0 w-[2px] -translate-x-1/2 rounded-full"
+            style={{
+              scaleY: timelineProgress,
+              transformOrigin: 'top',
+              height: '100%',
+              background: 'linear-gradient(to bottom, #e07000, #d4af37, #2d5a1b)',
+              boxShadow: '0 0 14px rgba(212,175,55,0.55)',
+            }}
+          />
+          {/* Gold scroll-progress line — mobile */}
+          <motion.div
+            className="md:hidden absolute left-[22px] top-0 w-[2px] rounded-full"
+            style={{
+              scaleY: timelineProgress,
+              transformOrigin: 'top',
+              height: '100%',
+              background: 'linear-gradient(to bottom, #e07000, #d4af37, #2d5a1b)',
+              boxShadow: '0 0 10px rgba(212,175,55,0.45)',
+            }}
+          />
 
           {TIMELINE.map((item, index) => (
             <TimelineItem key={index} item={item} index={index} />
@@ -451,36 +646,40 @@ function ValuesSection() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {VALUES.map((v, i) => (
             <FadeIn key={v.title} delay={i * 0.1}>
-              <motion.div
-                whileHover={{ y: -8, boxShadow: '0 20px 50px rgba(224,112,0,0.2)' }}
-                className="rounded-2xl p-6 text-center transition-all duration-300 cursor-default"
-                style={{
-                  background: 'rgba(255,253,247,0.06)',
-                  backdropFilter: 'blur(16px)',
-                  border: '1px solid rgba(212,175,55,0.2)',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
-                }}>
-                <motion.div whileHover={{ scale: 1.2, rotate: 5 }} transition={{ type: 'spring', stiffness: 300 }}
-                  className="text-4xl mb-4 inline-block">
-                  {v.icon}
-                </motion.div>
-                <div style={{
-                  fontFamily: "'Gotu',sans-serif",
-                  fontSize: '1.2rem',
-                  color: '#f0cc5a',
-                  fontWeight: 700,
-                  marginBottom: '2px',
-                }}>
-                  {v.title}
+              <TiltCard>
+                <div
+                  className="rounded-2xl p-6 text-center transition-shadow duration-300 cursor-default"
+                  style={{
+                    background: 'rgba(255,253,247,0.06)',
+                    backdropFilter: 'blur(16px)',
+                    border: '1px solid rgba(212,175,55,0.2)',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 20px 50px rgba(224,112,0,0.25)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.2)')}
+                >
+                  <motion.div whileHover={{ scale: 1.2, rotate: 5 }} transition={{ type: 'spring', stiffness: 300 }}
+                    className="text-4xl mb-4 inline-block">
+                    {v.icon}
+                  </motion.div>
+                  <div style={{
+                    fontFamily: "'Gotu',sans-serif",
+                    fontSize: '1.2rem',
+                    color: '#f0cc5a',
+                    fontWeight: 700,
+                    marginBottom: '2px',
+                  }}>
+                    {v.title}
+                  </div>
+                  <div className="text-xs font-bold tracking-widest uppercase mb-3"
+                    style={{ color: 'rgba(255,255,255,0.4)' }}>
+                    {v.subtitle}
+                  </div>
+                  <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.65)' }}>
+                    {v.desc}
+                  </p>
                 </div>
-                <div className="text-xs font-bold tracking-widest uppercase mb-3"
-                  style={{ color: 'rgba(255,255,255,0.4)' }}>
-                  {v.subtitle}
-                </div>
-                <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.65)' }}>
-                  {v.desc}
-                </p>
-              </motion.div>
+              </TiltCard>
             </FadeIn>
           ))}
         </div>
@@ -506,16 +705,56 @@ function FounderSection() {
             transition={{ duration: 0.8 }}
             className="relative">
 
-            <div className="rounded-3xl overflow-hidden relative"
+            <div className="founder-frame relative rounded-3xl overflow-hidden"
               style={{
-                boxShadow: '0 24px 60px rgba(45,26,0,0.15)',
-                border: '2px solid rgba(224,112,0,0.1)',
-                background: 'linear-gradient(135deg,#fef3e0,#fff0d6)',
-                minHeight: '380px',
+                boxShadow: '0 30px 70px rgba(45,26,0,0.18)',
+                border: '1.5px solid rgba(212,175,55,0.35)',
+                background: 'linear-gradient(150deg,#fef3e0 0%,#fff0d6 55%,#fbe6c4 100%)',
+                minHeight: '400px',
               }}>
 
-              <div className="p-10 flex flex-col items-center justify-center h-full text-center" style={{ minHeight: '380px' }}>
-                <div className="text-7xl mb-6">🏺</div>
+              {/* Ornate corner ticks */}
+              {[
+                { top: 14, left: 14, rotate: 0 },
+                { top: 14, right: 14, rotate: 90 },
+                { bottom: 14, left: 14, rotate: -90 },
+                { bottom: 14, right: 14, rotate: 180 },
+              ].map((pos, i) => (
+                <div key={i} className="absolute w-6 h-6 pointer-events-none z-10" style={{ ...pos }}>
+                  <svg viewBox="0 0 24 24" fill="none" style={{ transform: `rotate(${pos.rotate}deg)` }}>
+                    <path d="M2 2H14M2 2V14" stroke="#d4af37" strokeWidth="1.5" strokeLinecap="round" opacity="0.7" />
+                  </svg>
+                </div>
+              ))}
+
+              {/* Rotating dashed gold ring behind the icon */}
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ repeat: Infinity, duration: 45, ease: 'linear' }}
+                className="absolute pointer-events-none"
+                style={{
+                  top: '38%', left: '50%',
+                  width: 230, height: 230,
+                  marginLeft: -115, marginTop: -115,
+                  borderRadius: '50%',
+                  border: '1px dashed rgba(212,175,55,0.45)',
+                }}
+              />
+              <motion.div
+                animate={{ rotate: -360 }}
+                transition={{ repeat: Infinity, duration: 60, ease: 'linear' }}
+                className="absolute pointer-events-none"
+                style={{
+                  top: '38%', left: '50%',
+                  width: 180, height: 180,
+                  marginLeft: -90, marginTop: -90,
+                  borderRadius: '50%',
+                  border: '1px solid rgba(224,112,0,0.2)',
+                }}
+              />
+
+              <div className="p-10 flex flex-col items-center justify-center h-full text-center relative z-10" style={{ minHeight: '400px' }}>
+                <div className="text-7xl mb-6" style={{ filter: 'drop-shadow(0 8px 20px rgba(224,112,0,0.35))' }}>🏺</div>
                 <div style={{ fontFamily: "'Gotu',sans-serif", fontSize: '1.5rem', color: '#3d1c00', fontWeight: 700, marginBottom: '8px' }}>
                   आमचे बाप्पा
                 </div>
@@ -526,19 +765,22 @@ function FounderSection() {
                 <div className="mt-4 font-serif text-4xl" style={{ color: 'rgba(224,112,0,0.2)' }}>"</div>
               </div>
 
-              <div className="absolute bottom-0 left-0 right-0 px-6 py-4 text-center"
-                style={{ background: 'linear-gradient(to top,rgba(45,26,0,0.08),transparent)' }}>
+              <div className="absolute bottom-0 left-0 right-0 px-6 py-4 text-center z-10"
+                style={{ background: 'linear-gradient(to top,rgba(45,26,0,0.1),transparent)' }}>
                 <div style={{ fontFamily: "'Tiro Devanagari Marathi',serif", color: '#7a3300', fontSize: '0.9rem', fontStyle: 'italic' }}>
                   राणी सावरगाव → सोलापूर → इतिहास
                 </div>
               </div>
             </div>
 
-            <div className="absolute -top-5 -right-5 w-20 h-20 rounded-full flex flex-col items-center justify-center z-10"
-              style={{ background: 'linear-gradient(135deg,#d4af37,#f0cc5a)', boxShadow: '0 8px 24px rgba(212,175,55,0.5)' }}>
+            <motion.div
+              animate={{ scale: [1, 1.05, 1] }}
+              transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
+              className="absolute -top-5 -right-5 w-20 h-20 rounded-full flex flex-col items-center justify-center z-20"
+              style={{ background: 'linear-gradient(135deg,#d4af37,#f0cc5a)', boxShadow: '0 8px 24px rgba(212,175,55,0.55)' }}>
               <div className="font-serif font-black text-brown-dark text-lg leading-none">1873</div>
               <div className="text-brown-dark/60 text-[9px] font-bold tracking-wider uppercase">Est.</div>
-            </div>
+            </motion.div>
           </motion.div>
 
           {/* Right — Story */}
@@ -636,7 +878,7 @@ function AboutCTA() {
           <div className="flex gap-4 justify-center flex-wrap">
             <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
               <Link to="/products"
-                className="inline-block px-8 py-4 rounded-full font-bold text-brown-dark text-base"
+                className="shine-btn inline-block px-8 py-4 rounded-full font-bold text-brown-dark text-base"
                 style={{ background: 'linear-gradient(135deg,#d4af37,#f0cc5a)', boxShadow: '0 8px 24px rgba(212,175,55,0.4)' }}>
                 Shop Our Products →
               </Link>
@@ -659,8 +901,11 @@ function AboutCTA() {
 export default function AboutPage() {
   return (
     <PageWrapper>
-      <div>
+      <style>{premiumStyles}</style>
+      <GrainOverlay />
+      <div className="relative">
         <AboutHero />
+        <StatsStrip />
         <IntroQuote />
         <TimelineSection />
         <ValuesSection />
