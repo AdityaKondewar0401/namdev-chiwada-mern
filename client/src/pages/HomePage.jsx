@@ -7,6 +7,12 @@ import PageWrapper from '../components/PageWrapper';
 
 const MARQUEE_ITEMS = ['Dagdi-Poha Chiwada', 'Maka Chiwada', 'Bakarwadi', 'Lasun Sev', 'Shengdana Chutney', 'Special Farsan', 'Authentic Taste'];
 const TRUST = ['150+ Years Legacy', 'No Artificial Colors', 'FSSAI Licensed'];
+// NEW: icon-based trust badges for the redesigned mobile hero (item 7)
+const MOBILE_TRUST = [
+  { icon: '✦', label: '150+ Years' },
+  { icon: '🍃', label: 'No Artificial Colors' },
+  { icon: '🛡', label: 'FSSAI' },
+];
 const FEATURES = [
   { icon: '🔥', title: 'Perfectly Roasted Blend', desc: 'Each batch is carefully roasted and blended for that signature Namdev crunch.' },
   { icon: '🏺', title: '150 Years of Craft', desc: 'A recipe passed down through six generations of the Namdev family.' },
@@ -32,6 +38,13 @@ const TAGLINES = [
   'सोलापूरची ओळख, घराघरात पोहोचलेली',
   'Six Generations. One Unchanged Recipe.',
 ];
+
+// NEW (item 1): premium font stack — Cormorant Garamond for headings,
+// Inter for body text, Noto Serif Devanagari for Marathi copy.
+// Loaded once at the top of the page.
+const heroFontImport = `
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700;800&family=Noto+Serif+Devanagari:wght@500;600&display=swap');
+`;
 
 function preloadImages() {
   PRODUCTS.forEach(p => { const img = new Image(); img.src = p.img; });
@@ -158,8 +171,9 @@ function HeroSection() {
 
   const BgDecorations = () => (
     <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 0 }}>
-      <div className="absolute inset-0 opacity-5"
-        style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ccircle cx='30' cy='30' r='28' fill='none' stroke='%23fff' stroke-width='0.5'/%3E%3C/svg%3E\")" }} />
+      {/* item 10: opacity reduced from 0.05 to 0.025 — pattern now barely noticeable */}
+      <div className="absolute inset-0"
+        style={{ opacity: 0.025, backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ccircle cx='30' cy='30' r='28' fill='none' stroke='%23fff' stroke-width='0.5'/%3E%3C/svg%3E\")" }} />
       <div className="absolute bottom-0 left-0 right-0 h-20 md:h-32 bg-gradient-to-t from-brown-dark/60 to-transparent" />
       <div style={{ position: 'absolute', top: '-80px', right: '-60px', width: '360px', height: '360px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(212,168,55,0.18) 0%, transparent 70%)' }} />
       <div style={{ position: 'absolute', bottom: '40px', left: '-80px', width: '280px', height: '280px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(224,112,0,0.14) 0%, transparent 70%)' }} />
@@ -193,14 +207,22 @@ function HeroSection() {
       <BgDecorations />
 
       {/* ══════════════════════════════════════
-          MOBILE layout — UPDATED
-          • Image zone: 50svh (was 46svh) → text block sits a little lower
-          • Packet width: 128vw (was 115vw) → bigger product
-          • Text spacing/line-heights untouched
+          MOBILE layout — PREMIUM REDESIGN
+          1. Cormorant Garamond / Noto Serif Devanagari fonts
+          2. Packet: 132vw (was 128vw), marginTop 1svh (was 2svh)
+          3. Heading redesigned w/ decorative underline
+          4. Marathi tagline refined
+          5. New decorative divider
+          6. Bigger buttons (56px, gap 18px, deeper shadow)
+          7. Icon-based trust badges
+          8. Reordered: Heading → Subtitle → Divider → Dots → Buttons → Trust
+          9. paddingTop 53svh (was 50svh)
+          10. Background pattern opacity 0.025 (was 0.05, see BgDecorations)
+          11. Refined eyebrow badge
           ══════════════════════════════════════ */}
       <div className="md:hidden" style={{ minHeight: '100svh', position: 'relative', zIndex: 5 }}>
 
-        {/* ── Image zone — 50svh, packet centered with equal space ── */}
+        {/* ── Image zone — packet enlarged to 132vw ── */}
         <div style={{
           position: 'absolute',
           top: 0, left: 0, right: 0,
@@ -232,10 +254,10 @@ function HeroSection() {
                 <img
                   src={PRODUCTS[current].img} alt="Namdev Chiwada" draggable={false}
                   style={{
-                    width: '128vw',
+                    width: '132vw',
                     maxWidth: 'none',
                     height: 'auto',
-                    marginTop: '2svh',
+                    marginTop: '1svh',
                     filter: 'drop-shadow(0 28px 55px rgba(0,0,0,0.82)) drop-shadow(0 6px 22px rgba(212,168,55,0.50))',
                     display: 'block',
                   }}
@@ -245,73 +267,96 @@ function HeroSection() {
           </AnimatePresence>
         </div>
 
-        {/* ── Text block — starts at 50svh, same internal spacing as before ── */}
+        {/* ── Text block — paddingTop increased to 53svh for a more premium feel ── */}
         <div style={{
           position: 'relative', zIndex: 10,
-          padding: 'calc(50svh + 4px) 20px 18px',
+          padding: 'calc(53svh + 4px) 20px 18px',
           display: 'flex', flexDirection: 'column', alignItems: 'center',
         }}>
 
-          {/* Eyebrow pill */}
+          {/* Eyebrow badge — refined, uppercase, wide tracking */}
           <div
-            className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/10 text-gold-light font-semibold tracking-widest uppercase"
-            style={{ fontSize: '0.48rem', padding: '3px 9px', marginBottom: 5 }}
+            className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/10 text-gold-light font-semibold uppercase"
+            style={{ fontSize: '0.46rem', padding: '4px 12px', marginBottom: 14, letterSpacing: '0.22em', fontFamily: "'Inter', sans-serif" }}
           >
-            <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#f0cc5a', flexShrink: 0, display: 'inline-block' }} />
-            Since 1873 · Solapur, Maharashtra
+            ● SINCE 1873 · SOLAPUR, MAHARASHTRA
           </div>
 
-          {/* Heading — slightly reduced */}
-          <h1
-            className="font-serif font-black text-white text-center"
-            style={{ fontSize: 'clamp(1.75rem, 8vw, 2.2rem)', textShadow: '0 2px 20px rgba(0,0,0,0.4)', marginBottom: 6, lineHeight: 1.13 }}
-          >
-            Authentic Taste,<br />
-            <span className="shimmer-text">Timeless Tradition</span>
-          </h1>
+          {/* Heading — Cormorant Garamond, tighter line-height, decorative underline behind it */}
+          <div className="relative text-center" style={{ marginBottom: 4 }}>
+            <div
+              className="absolute left-1/2 -translate-x-1/2"
+              style={{ top: '58%', width: '120px', height: '1px', background: 'rgba(212,168,55,0.45)' }}
+            />
+            <h1
+              style={{
+                fontFamily: "'Cormorant Garamond', serif",
+                fontWeight: 700,
+                fontSize: 'clamp(2.5rem,11vw,4rem)',
+                lineHeight: 0.88,
+                letterSpacing: '-0.03em',
+                color: '#fff',
+                textShadow: '0 10px 35px rgba(0,0,0,0.35)',
+                position: 'relative',
+                zIndex: 1,
+              }}
+            >
+              Authentic Taste,
+              <br />
+              <span style={{ color: '#e7bf63' }}>Timeless Tradition</span>
+            </h1>
+          </div>
 
-          {/* Marathi tagline — slightly reduced */}
+          {/* Marathi tagline — refined size, spacing, opacity */}
           <p style={{
-            fontFamily: "'Gotu', sans-serif",
+            fontFamily: "'Noto Serif Devanagari', serif",
             background: 'linear-gradient(90deg,#ffd89b,#f0cc5a,#ffd89b)',
             WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
-            letterSpacing: '0.03em', textAlign: 'center',
-            marginBottom: 10,
-            fontSize: '0.85rem',
-            lineHeight: 1.55,
+            letterSpacing: '0.02em', textAlign: 'center',
+            fontSize: '1rem',
+            opacity: 0.92,
+            marginTop: 16,
+            marginBottom: 22,
           }}>
             खमंग चिवडा — पिढ्यानपिढ्याची चव
           </p>
 
-          {/* Dots — tighter */}
-          <div className="flex justify-center" style={{ marginBottom: 9 }}> {/* ← was 11 */}
+          {/* Decorative divider */}
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 14, marginBottom: 24 }}>
+            <div style={{ width: 45, height: 1, background: 'rgba(212,168,55,0.45)' }} />
+            <div style={{ width: 7, height: 7, background: '#D4A843', borderRadius: 999 }} />
+            <div style={{ width: 45, height: 1, background: 'rgba(212,168,55,0.45)' }} />
+          </div>
+
+          {/* Dots — moved above buttons */}
+          <div className="flex justify-center" style={{ marginBottom: 22 }}>
             <Dots />
           </div>
 
-          {/* CTA Buttons — these should now be visible on landing */}
-          <div className="flex gap-3 w-full justify-center" style={{ marginBottom: 10 }}> {/* ← was 11 */}
+          {/* CTA Buttons — bigger, wider gap, deeper shadow */}
+          <div className="flex w-full justify-center" style={{ gap: 18, marginBottom: 16 }}>
             <button
               onClick={() => navigate('/products')}
               className="btn-primary font-poppins"
-              style={{ flex: 1, maxWidth: 165, padding: '13px 10px', fontSize: '0.85rem', borderRadius: '999px', fontWeight: 700, textAlign: 'center' }}
+              style={{ flex: 1, maxWidth: 165, height: 56, fontSize: '0.85rem', borderRadius: 999, fontWeight: 700, textAlign: 'center', boxShadow: '0 15px 35px rgba(0,0,0,0.22)' }}
             >
               Shop Now →
             </button>
             <button
               onClick={() => navigate('/about')}
               className="btn-outline font-poppins"
-              style={{ flex: 1, maxWidth: 165, padding: '13px 10px', fontSize: '0.85rem', borderRadius: '999px', fontWeight: 700, textAlign: 'center' }}
+              style={{ flex: 1, maxWidth: 165, height: 56, fontSize: '0.85rem', borderRadius: 999, fontWeight: 700, textAlign: 'center', boxShadow: '0 15px 35px rgba(0,0,0,0.22)' }}
             >
               Our Story
             </button>
           </div>
 
-          {/* Trust badges */}
-          <div className="flex flex-wrap gap-x-4 gap-y-1 justify-center">
-            {TRUST.map((t) => (
-              <div key={t} className="flex items-center gap-1.5" style={{ fontSize: '0.63rem', color: 'rgba(255,255,255,0.62)' }}>
-                <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#f0cc5a', flexShrink: 0, display: 'inline-block' }} />
-                {t}
+          {/* Trust badges — icon-based instead of bullets */}
+          <div className="flex flex-wrap gap-x-5 gap-y-1.5 justify-center">
+            {MOBILE_TRUST.map((t) => (
+              <div key={t.label} className="flex items-center gap-1.5" style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.68)', fontFamily: "'Inter', sans-serif" }}>
+                <span style={{ fontSize: '0.75rem' }}>{t.icon}</span>
+                {t.label}
               </div>
             ))}
           </div>
@@ -579,6 +624,7 @@ function CTASection() {
 export default function HomePage() {
   return (
     <PageWrapper>
+      <style>{heroFontImport}</style>
       <HeroSection />
       <MarqueeSection />
       <FeaturesSection />
