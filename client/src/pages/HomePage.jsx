@@ -43,7 +43,7 @@ const TAGLINES = [
 // Inter for body text, Noto Serif Devanagari for Marathi copy.
 // Loaded once at the top of the page.
 const heroFontImport = `
-  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700;800&family=Noto+Serif+Devanagari:wght@500;600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=Noto+Serif+Devanagari:wght@500;600&display=swap');
 `;
 
 function preloadImages() {
@@ -282,25 +282,27 @@ function HeroSection() {
             ● SINCE 1873 · SOLAPUR, MAHARASHTRA
           </div>
 
-          {/* Heading — Cormorant Garamond, tighter line-height, decorative underline behind it */}
-          <div className="relative text-center" style={{ marginBottom: 4 }}>
+          {/* Heading — Fraunces (ball-terminal serif matching the reference logo), sized to actually fit the viewport */}
+          <div className="relative text-center" style={{ marginBottom: 4, width: '100%', maxWidth: '92vw' }}>
             <div
               className="absolute left-1/2 -translate-x-1/2"
               style={{ top: '58%', width: '120px', height: '1px', background: 'rgba(212,168,55,0.45)' }}
             />
             <h1
               style={{
-                fontFamily: "'Cormorant Garamond', serif",
+                fontFamily: "'Fraunces', serif",
                 fontWeight: 700,
-                fontSize: 'clamp(2.9rem,13vw,4.6rem)',
-                lineHeight: 0.9,
-                letterSpacing: '-0.03em',
+                fontSize: 'clamp(2.1rem,8.6vw,3.4rem)',
+                lineHeight: 1.02,
+                letterSpacing: '-0.01em',
                 position: 'relative',
                 zIndex: 1,
+                width: '100%',
               }}
             >
               <span style={{
                 display: 'block',
+                textAlign: 'center',
                 color: '#fff',
                 textShadow: '0 10px 40px rgba(0,0,0,0.4), 0 2px 10px rgba(0,0,0,0.3)',
               }}>
@@ -308,6 +310,7 @@ function HeroSection() {
               </span>
               <span style={{
                 display: 'block',
+                textAlign: 'center',
                 background: 'linear-gradient(90deg,#ffe9c2,#e7bf63,#ffe9c2)',
                 WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
                 textShadow: '0 10px 40px rgba(224,112,0,0.35)',
@@ -324,7 +327,7 @@ function HeroSection() {
             background: 'linear-gradient(90deg,#ffd89b,#f0cc5a,#ffd89b)',
             WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
             letterSpacing: '0.02em', textAlign: 'center',
-            fontSize: '1rem',
+            fontSize: '1.22rem',
             marginTop: 16,
             marginBottom: 22,
           }}>
