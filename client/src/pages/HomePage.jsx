@@ -43,7 +43,7 @@ const TAGLINES = [
 // Inter for body text, Noto Serif Devanagari for Marathi copy.
 // Loaded once at the top of the page.
 const heroFontImport = `
-  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=Noto+Serif+Devanagari:wght@500;600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;0,900;1,700;1,800&family=Inter:wght@400;500;600;700;800&family=Noto+Serif+Devanagari:wght@500;600&display=swap');
 `;
 
 function preloadImages() {
@@ -282,18 +282,13 @@ function HeroSection() {
             ● SINCE 1873 · SOLAPUR, MAHARASHTRA
           </div>
 
-          {/* Heading — Fraunces (ball-terminal serif matching the reference logo), sized to actually fit the viewport */}
-          <div className="relative text-center" style={{ marginBottom: 4, width: '100%', maxWidth: '92vw' }}>
-            <div
-              className="absolute left-1/2 -translate-x-1/2"
-              style={{ top: '58%', width: '120px', height: '1px', background: 'rgba(212,168,55,0.45)' }}
-            />
+          {/* Heading — Playfair Display, exact-replica styling of reference: bold white line 1, italic gold line 2 with leaf accent */}
+          <div className="relative text-center" style={{ marginBottom: 4, width: '100%', maxWidth: '94vw' }}>
             <h1
               style={{
-                fontFamily: "'Fraunces', serif",
-                fontWeight: 700,
-                fontSize: 'clamp(2.1rem,8.6vw,3.4rem)',
-                lineHeight: 1.02,
+                fontWeight: 800,
+                fontSize: 'clamp(2.2rem,9.5vw,3.6rem)',
+                lineHeight: 1.05,
                 letterSpacing: '-0.01em',
                 position: 'relative',
                 zIndex: 1,
@@ -303,6 +298,9 @@ function HeroSection() {
               <span style={{
                 display: 'block',
                 textAlign: 'center',
+                fontFamily: "'Playfair Display', serif",
+                fontWeight: 800,
+                fontStyle: 'normal',
                 color: '#fff',
                 textShadow: '0 10px 40px rgba(0,0,0,0.4), 0 2px 10px rgba(0,0,0,0.3)',
               }}>
@@ -311,12 +309,14 @@ function HeroSection() {
               <span style={{
                 display: 'block',
                 textAlign: 'center',
-                background: 'linear-gradient(90deg,#ffe9c2,#e7bf63,#ffe9c2)',
-                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
-                textShadow: '0 10px 40px rgba(224,112,0,0.35)',
+                fontFamily: "'Playfair Display', serif",
+                fontWeight: 700,
                 fontStyle: 'italic',
+                color: '#e7bf63',
+                textShadow: '0 10px 40px rgba(224,112,0,0.35)',
               }}>
-                Timeless Tradition
+                Timeless Tradition.{' '}
+                <span style={{ fontSize: '0.6em', fontStyle: 'normal' }}>🌿</span>
               </span>
             </h1>
           </div>
