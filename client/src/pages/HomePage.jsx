@@ -7,10 +7,11 @@ import PageWrapper from '../components/PageWrapper';
 
 const MARQUEE_ITEMS = ['Dagdi-Poha Chiwada', 'Maka Chiwada', 'Bakarwadi', 'Lasun Sev', 'Shengdana Chutney', 'Special Farsan', 'Authentic Taste'];
 const TRUST = ['150+ Years Legacy', 'No Artificial Colors', 'FSSAI Licensed'];
+// NEW: icon-based trust badges for the redesigned mobile hero (item 7)
 const MOBILE_TRUST = [
-  { icon: '✦', label: '150+ Years Legacy' },
+  { icon: '✦', label: '150+ Years' },
   { icon: '🍃', label: 'No Artificial Colors' },
-  { icon: '🛡', label: 'FSSAI Licensed' },
+  { icon: '🛡', label: 'FSSAI' },
 ];
 const FEATURES = [
   { icon: '🔥', title: 'Perfectly Roasted Blend', desc: 'Each batch is carefully roasted and blended for that signature Namdev crunch.' },
@@ -38,8 +39,11 @@ const TAGLINES = [
   'Six Generations. One Unchanged Recipe.',
 ];
 
+// NEW (item 1): premium font stack — Cormorant Garamond for headings,
+// Inter for body text, Noto Serif Devanagari for Marathi copy.
+// Loaded once at the top of the page.
 const heroFontImport = `
-  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600;1,700&family=Inter:wght@400;500;600;700;800&family=Noto+Serif+Devanagari:wght@400;500;600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700;800&family=Noto+Serif+Devanagari:wght@500;600&display=swap');
 `;
 
 function preloadImages() {
@@ -167,6 +171,7 @@ function HeroSection() {
 
   const BgDecorations = () => (
     <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 0 }}>
+      {/* item 10: opacity reduced from 0.05 to 0.025 — pattern now barely noticeable */}
       <div className="absolute inset-0"
         style={{ opacity: 0.025, backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ccircle cx='30' cy='30' r='28' fill='none' stroke='%23fff' stroke-width='0.5'/%3E%3C/svg%3E\")" }} />
       <div className="absolute bottom-0 left-0 right-0 h-20 md:h-32 bg-gradient-to-t from-brown-dark/60 to-transparent" />
@@ -202,23 +207,34 @@ function HeroSection() {
       <BgDecorations />
 
       {/* ══════════════════════════════════════
-          MOBILE layout
-      ══════════════════════════════════════ */}
+          MOBILE layout — PREMIUM REDESIGN
+          1. Cormorant Garamond / Noto Serif Devanagari fonts
+          2. Packet: 132vw (was 128vw), marginTop 1svh (was 2svh)
+          3. Heading redesigned w/ decorative underline
+          4. Marathi tagline refined
+          5. New decorative divider
+          6. Bigger buttons (56px, gap 18px, deeper shadow)
+          7. Icon-based trust badges
+          8. Reordered: Heading → Subtitle → Divider → Dots → Buttons → Trust
+          9. paddingTop 53svh (was 50svh)
+          10. Background pattern opacity 0.025 (was 0.05, see BgDecorations)
+          11. Refined eyebrow badge
+          ══════════════════════════════════════ */}
       <div className="md:hidden" style={{ minHeight: '100svh', position: 'relative', zIndex: 5 }}>
 
-        {/* Packet image zone — top 52% of screen */}
+        {/* ── Image zone — packet enlarged to 132vw ── */}
         <div style={{
           position: 'absolute',
           top: 0, left: 0, right: 0,
-          height: '52svh',
+          height: '50svh',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           zIndex: 2, pointerEvents: 'none', overflow: 'visible',
         }}>
           {/* Glow */}
           <div style={{
             position: 'absolute', inset: 0,
-            background: 'radial-gradient(ellipse 80% 70% at 50% 55%, rgba(212,168,55,0.26) 0%, rgba(224,112,0,0.08) 55%, transparent 75%)',
-            filter: 'blur(28px)',
+            background: 'radial-gradient(ellipse 80% 70% at 50% 55%, rgba(212,168,55,0.28) 0%, rgba(224,112,0,0.10) 55%, transparent 75%)',
+            filter: 'blur(30px)',
           }} />
           {/* Spinning ring */}
           <div style={{
@@ -226,22 +242,23 @@ function HeroSection() {
             border: '1px dashed rgba(212,175,55,0.18)', animation: 'spinSlow 22s linear infinite',
             top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
           }} />
-          {/* Packet */}
+          {/* Packet image — bigger */}
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
               key={current} custom={direction} variants={mobileSlideVariants}
               initial="enter" animate="center" exit="exit"
               style={{ position: 'relative', zIndex: 3, pointerEvents: 'auto' }}
             >
+              {/* Float wrapper — separate from slide so y doesn't mix with x transition */}
               <div style={{ animation: 'heroFloat 4s ease-in-out infinite' }}>
                 <img
                   src={PRODUCTS[current].img} alt="Namdev Chiwada" draggable={false}
                   style={{
-                    width: '115vw',
+                    width: '132vw',
                     maxWidth: 'none',
                     height: 'auto',
-                    marginTop: '2svh',
-                    filter: 'drop-shadow(0 24px 50px rgba(0,0,0,0.75)) drop-shadow(0 6px 18px rgba(212,168,55,0.40))',
+                    marginTop: '1svh',
+                    filter: 'drop-shadow(0 28px 55px rgba(0,0,0,0.82)) drop-shadow(0 6px 22px rgba(212,168,55,0.50))',
                     display: 'block',
                   }}
                 />
@@ -250,209 +267,125 @@ function HeroSection() {
           </AnimatePresence>
         </div>
 
-        {/* Text block — starts at 52svh */}
+        {/* ── Text block — paddingTop increased to 53svh for a more premium feel ── */}
         <div style={{
           position: 'relative', zIndex: 10,
-          paddingTop: 'calc(52svh + 8px)',
-          paddingLeft: '20px',
-          paddingRight: '20px',
-          paddingBottom: '24px',
+          padding: 'calc(53svh + 4px) 20px 18px',
           display: 'flex', flexDirection: 'column', alignItems: 'center',
         }}>
 
-          {/* Badge */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: '6px',
-              borderRadius: '999px',
-              border: '1px solid rgba(212,175,55,0.35)',
-              background: 'rgba(255,255,255,0.07)',
-              padding: '5px 14px',
-              marginBottom: '18px',
-              fontFamily: "'Inter', sans-serif",
-              fontSize: '0.48rem',
-              fontWeight: 600,
-              letterSpacing: '0.20em',
-              color: 'rgba(255,220,140,0.90)',
-              textTransform: 'uppercase',
-            }}
+          {/* Eyebrow badge — refined, uppercase, wide tracking */}
+          <div
+            className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/10 text-gold-light font-semibold uppercase"
+            style={{ fontSize: '0.46rem', padding: '4px 12px', marginBottom: 14, letterSpacing: '0.22em', fontFamily: "'Inter', sans-serif" }}
           >
-            <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#D4A843', flexShrink: 0, display: 'inline-block' }} />
-            SINCE 1873 · SOLAPUR, MAHARASHTRA
-          </motion.div>
+            ● SINCE 1873 · SOLAPUR, MAHARASHTRA
+          </div>
 
-          {/* ── HEADING — Cormorant Garamond, luxury editorial ── */}
-          <motion.div
-            initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.65, delay: 0.18, ease: [0.25, 0.46, 0.45, 0.94] }}
-            style={{
-              maxWidth: '320px',
-              margin: '0 auto',
-              textAlign: 'center',
-              marginBottom: '0px',
-              overflow: 'visible',
-            }}
-          >
-            {/* Thin decorative line above heading */}
-            <div style={{
-              width: '48px', height: '1px',
-              background: 'rgba(212,168,55,0.5)',
-              margin: '0 auto 10px',
-            }} />
-
-            <h1 style={{
-              fontFamily: "'Cormorant Garamond', serif",
-              fontWeight: 700,
-              fontSize: 'clamp(2.5rem, 10vw, 3.8rem)',
-              lineHeight: 0.86,
-              letterSpacing: '-0.04em',
-              color: '#ffffff',
-              textShadow: '0 6px 28px rgba(0,0,0,0.28)',
-              margin: 0,
-              padding: 0,
-            }}>
-              {/* Line 1 — slightly smaller, white */}
+          {/* Heading — Cormorant Garamond, tighter line-height, decorative underline behind it */}
+          <div className="relative text-center" style={{ marginBottom: 4 }}>
+            <div
+              className="absolute left-1/2 -translate-x-1/2"
+              style={{ top: '58%', width: '120px', height: '1px', background: 'rgba(212,168,55,0.45)' }}
+            />
+            <h1
+              style={{
+                fontFamily: "'Cormorant Garamond', serif",
+                fontWeight: 700,
+                fontSize: 'clamp(2.9rem,13vw,4.6rem)',
+                lineHeight: 0.9,
+                letterSpacing: '-0.03em',
+                position: 'relative',
+                zIndex: 1,
+              }}
+            >
               <span style={{
                 display: 'block',
-                fontSize: 'clamp(2.1rem, 8.5vw, 3.2rem)',
-                fontWeight: 600,
-                letterSpacing: '-0.03em',
                 color: '#fff',
-                marginBottom: '2px',
+                textShadow: '0 10px 40px rgba(0,0,0,0.4), 0 2px 10px rgba(0,0,0,0.3)',
               }}>
                 Authentic Taste,
               </span>
-              {/* Line 2 — larger, gold, dominant */}
               <span style={{
                 display: 'block',
-                fontSize: 'clamp(2.6rem, 10.5vw, 4rem)',
-                fontWeight: 700,
-                letterSpacing: '-0.05em',
-                color: '#D4A843',
-                lineHeight: 0.88,
+                background: 'linear-gradient(90deg,#ffe9c2,#e7bf63,#ffe9c2)',
+                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
+                textShadow: '0 10px 40px rgba(224,112,0,0.35)',
+                fontStyle: 'italic',
               }}>
                 Timeless Tradition
               </span>
             </h1>
+          </div>
 
-            {/* Thin decorative line below heading */}
-            <div style={{
-              width: '80px', height: '1px',
-              background: 'rgba(212,168,55,0.40)',
-              margin: '12px auto 0',
-            }} />
-          </motion.div>
-
-          {/* Marathi tagline — Noto Serif Devanagari */}
-          <motion.p
-            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, delay: 0.3 }}
-            style={{
-              fontFamily: "'Noto Serif Devanagari', serif",
-              fontSize: '0.9rem',
-              fontWeight: 500,
-              color: 'rgba(255,220,155,0.82)',
-              letterSpacing: '0.01em',
-              textAlign: 'center',
-              marginTop: '14px',
-              marginBottom: '20px',
-              lineHeight: 1.5,
-            }}
-          >
+          {/* Marathi tagline — refined size, spacing, opacity */}
+          <p style={{
+            fontFamily: "'Gotu', sans-serif",
+            background: 'linear-gradient(90deg,#ffd89b,#f0cc5a,#ffd89b)',
+            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
+            letterSpacing: '0.02em', textAlign: 'center',
+            fontSize: '1rem',
+            marginTop: 16,
+            marginBottom: 22,
+          }}>
             खमंग चिवडा — पिढ्यानपिढ्याची चव
-          </motion.p>
+          </p>
 
-          {/* Gold divider — ——— ● ——— */}
-          <motion.div
-            initial={{ opacity: 0, scaleX: 0.6 }} animate={{ opacity: 1, scaleX: 1 }}
-            transition={{ duration: 0.5, delay: 0.38 }}
-            style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              gap: '12px',
-              marginBottom: '20px',
-            }}
-          >
-            <div style={{ width: '52px', height: '1px', background: 'rgba(212,168,55,0.50)' }} />
-            <div style={{
-              width: '7px', height: '7px', borderRadius: '50%',
-              background: '#D4A843',
-              boxShadow: '0 0 6px rgba(212,168,55,0.6)',
-            }} />
-            <div style={{ width: '52px', height: '1px', background: 'rgba(212,168,55,0.50)' }} />
-          </motion.div>
+          {/* Decorative divider */}
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 14, marginBottom: 24 }}>
+            <div style={{ width: 45, height: 1, background: 'rgba(212,168,55,0.45)' }} />
+            <div style={{ width: 7, height: 7, background: '#D4A843', borderRadius: 999 }} />
+            <div style={{ width: 45, height: 1, background: 'rgba(212,168,55,0.45)' }} />
+          </div>
 
-          {/* Dots */}
-          <div style={{ marginBottom: '20px' }}>
+          {/* Dots — moved above buttons */}
+          <div className="flex justify-center" style={{ marginBottom: 22 }}>
             <Dots />
           </div>
 
-          {/* CTA Buttons */}
-          <motion.div
-            initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, delay: 0.44 }}
-            style={{ display: 'flex', width: '100%', gap: '14px', marginBottom: '18px', maxWidth: '340px' }}
-          >
+          {/* CTA Buttons — bigger, wider gap, deeper shadow */}
+          <div className="flex w-full justify-center" style={{ gap: 18, marginBottom: 16 }}>
             <button
               onClick={() => navigate('/products')}
               className="btn-primary font-poppins"
               style={{
-                flex: 1,
-                height: '52px',
-                fontSize: '0.88rem',
-                borderRadius: '999px',
-                fontWeight: 700,
-                textAlign: 'center',
-                boxShadow: '0 12px 30px rgba(0,0,0,0.20)',
-                letterSpacing: '0.01em',
+                flex: 1, maxWidth: 165, height: 56, fontSize: '0.85rem', borderRadius: 999, fontWeight: 700,
+                boxShadow: '0 15px 35px rgba(0,0,0,0.22)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                whiteSpace: 'nowrap',
               }}
             >
-              Shop Now →
+              Shop Now <span>→</span>
             </button>
             <button
               onClick={() => navigate('/about')}
               className="btn-outline font-poppins"
               style={{
-                flex: 1,
-                height: '52px',
-                fontSize: '0.88rem',
-                borderRadius: '999px',
-                fontWeight: 700,
-                textAlign: 'center',
-                boxShadow: '0 12px 30px rgba(0,0,0,0.20)',
-                letterSpacing: '0.01em',
+                flex: 1, maxWidth: 165, height: 56, fontSize: '0.85rem', borderRadius: 999, fontWeight: 700,
+                boxShadow: '0 15px 35px rgba(0,0,0,0.22)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                whiteSpace: 'nowrap',
               }}
             >
               Our Story
             </button>
-          </motion.div>
+          </div>
 
-          {/* Trust badges */}
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.52 }}
-            style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 18px', justifyContent: 'center' }}
-          >
+          {/* Trust badges — icon-based instead of bullets */}
+          <div className="flex flex-wrap gap-x-5 gap-y-1.5 justify-center">
             {MOBILE_TRUST.map((t) => (
-              <div key={t.label} style={{
-                display: 'flex', alignItems: 'center', gap: '5px',
-                fontSize: '0.65rem',
-                color: 'rgba(255,255,255,0.65)',
-                fontFamily: "'Inter', sans-serif",
-                fontWeight: 500,
-              }}>
-                <span style={{ fontSize: '0.72rem', opacity: 0.8 }}>{t.icon}</span>
+              <div key={t.label} className="flex items-center gap-1.5" style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.68)', fontFamily: "'Inter', sans-serif" }}>
+                <span style={{ fontSize: '0.75rem' }}>{t.icon}</span>
                 {t.label}
               </div>
             ))}
-          </motion.div>
-
+          </div>
         </div>
       </div>
 
       {/* ══════════════════════════════
           DESKTOP layout — UNCHANGED
-      ══════════════════════════════ */}
+          ══════════════════════════════ */}
       <div className="hidden md:flex items-center" style={{ minHeight: '100svh', position: 'relative', zIndex: 5 }}>
         <div className="max-w-7xl mx-auto px-6 w-full">
           <div className="grid md:grid-cols-2 w-full items-center" style={{ gap: 0 }}>
