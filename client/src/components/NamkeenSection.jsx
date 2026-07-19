@@ -384,6 +384,8 @@ export default function NamkeenSection() {
   const [loading, setLoading] =
     useState(true);
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     productAPI
       .getAll({
@@ -523,6 +525,38 @@ export default function NamkeenSection() {
             )}
           </div>
         )}
+
+        {/* View All Products — single centered CTA, naturally responsive across mobile and desktop */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="flex justify-center mt-10 sm:mt-14"
+        >
+          <button
+            onClick={() => navigate('/products')}
+            className="group inline-flex items-center gap-2 px-8 py-3.5 rounded-full font-bold text-sm sm:text-base transition-all duration-300"
+            style={{
+              color: '#e07000',
+              border: '2px solid #e07000',
+              background: 'transparent',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#e07000';
+              e.currentTarget.style.color = '#fff';
+              e.currentTarget.style.boxShadow = '0 10px 28px rgba(224,112,0,0.3)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.color = '#e07000';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+          >
+            View All Products
+            <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
+          </button>
+        </motion.div>
       </div>
     </section>
   );

@@ -222,11 +222,11 @@ function HeroSection() {
           ══════════════════════════════════════ */}
       <div className="md:hidden" style={{ minHeight: '100svh', position: 'relative', zIndex: 5 }}>
 
-        {/* ── Image zone — packet enlarged to 132vw ── */}
+        {/* ── Image zone — now spans exactly navbar-bottom to badge-top (53svh) so the packet sits centered between them ── */}
         <div style={{
           position: 'absolute',
           top: 0, left: 0, right: 0,
-          height: '50svh',
+          height: '53svh',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           zIndex: 2, pointerEvents: 'none', overflow: 'visible',
         }}>
@@ -242,7 +242,7 @@ function HeroSection() {
             border: '1px dashed rgba(212,175,55,0.18)', animation: 'spinSlow 22s linear infinite',
             top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
           }} />
-          {/* Packet image — bigger */}
+          {/* Packet image — width capped by height so it can never overflow the zone unevenly */}
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
               key={current} custom={direction} variants={mobileSlideVariants}
@@ -257,7 +257,7 @@ function HeroSection() {
                     width: '132vw',
                     maxWidth: 'none',
                     height: 'auto',
-                    marginTop: '1svh',
+                    maxHeight: '46svh',
                     filter: 'drop-shadow(0 28px 55px rgba(0,0,0,0.82)) drop-shadow(0 6px 22px rgba(212,168,55,0.50))',
                     display: 'block',
                   }}
