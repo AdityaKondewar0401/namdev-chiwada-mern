@@ -1,6 +1,7 @@
 const Order = require('../models/Order');
 const Cart = require('../models/Cart');
-const User = require('../models/User'); // NEW — needed to persist checkout consent
+const User = require('../models/User');
+const { sendOrderConfirmation } = require('../services/emailService');
 
 const PROMO_CODES = {
   NAMDEV10: { type: 'percent', value: 10 },
@@ -22,7 +23,7 @@ exports.placeOrder = async (req, res, next) => {
       razorpayPaymentId,
       promoCode,
       notes,
-      marketingConsent, // NEW
+      marketingConsent,
     } = req.body;
 
     if (!shippingAddress) {
@@ -143,10 +144,9 @@ exports.placeOrder = async (req, res, next) => {
     cart.items = [];
     await cart.save();
 
-    // NEW: sync marketing consent captured at checkout onto the user's
-    // profile. Only touches the field when the frontend explicitly sent
-    // a boolean — never silently flips consent as a side effect of
-    // unrelated order fields being present/absent.
+    // Sync marketing consent captured at checkout onto the user's profile.
+    // Only touches the field when the frontend explicitly sent a boolean,
+    // so unrelated order fields never silently reset consent.
     if (typeof marketingConsent === 'boolean') {
       const currentUser = await User.findById(req.user._id).select('marketingConsent');
       const alreadyConsented = Boolean(
@@ -160,15 +160,23 @@ exports.placeOrder = async (req, res, next) => {
           email: marketingConsent,
           sms: marketingConsent,
           whatsapp: marketingConsent,
-          // Only stamp a fresh consentedAt when this is a NEW opt-in.
-          // If they were already consented, keep the original timestamp.
-          // If they're opting out, clear it — no timestamp for "no consent".
           consentedAt: marketingConsent
             ? (alreadyConsented ? currentUser.marketingConsent.consentedAt : new Date())
             : null,
           source: marketingConsent ? (currentUser?.marketingConsent?.source || 'checkout') : null,
         },
       });
+    }
+
+    // Send order confirmation email — TRANSACTIONAL, so it always sends
+    // regardless of marketingConsent. Wrapped so an email failure (bad
+    // SMTP creds, Gmail hiccup, etc.) never breaks the actual order —
+    // the customer still gets their order placed even if the email fails.
+    try {
+      const userForEmail = await User.findById(req.user._id).select('email');
+      await sendOrderConfirmation(order, userForEmail?.email);
+    } catch (emailErr) {
+      console.error('Order confirmation email failed to send:', emailErr.message);
     }
 
     res.status(201).json({
