@@ -145,7 +145,7 @@ function HeroSection() {
   const prev = useCallback(() => goTo((current - 1 + PRODUCTS.length) % PRODUCTS.length, -1), [current, goTo]);
 
   useEffect(() => {
-    autoRef.current = setInterval(next, 3200);
+    autoRef.current = setInterval(next, 3500);
     return () => clearInterval(autoRef.current);
   }, [next]);
 
@@ -160,7 +160,7 @@ function HeroSection() {
   const mobileSlideVariants = {
     enter: { opacity: 0, x: -80, y: 0 },
     center: { opacity: 1, x: 0, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } },
-    exit: { opacity: 0, x: -90, y: 0, transition: { duration: 0.4, ease: [0.4, 0, 1, 1] } },
+    exit: { opacity: 0, x: 90, y: 0, transition: { duration: 0.3, ease: [0.55, 0, 1, 0.45] } },
   };
 
   const desktopSlideVariants = {
