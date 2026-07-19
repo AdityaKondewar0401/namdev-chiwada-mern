@@ -145,7 +145,7 @@ function HeroSection() {
   const prev = useCallback(() => goTo((current - 1 + PRODUCTS.length) % PRODUCTS.length, -1), [current, goTo]);
 
   useEffect(() => {
-    autoRef.current = setInterval(next, 3500);
+    autoRef.current = setInterval(next, 5500);
     return () => clearInterval(autoRef.current);
   }, [next]);
 
@@ -249,8 +249,8 @@ function HeroSection() {
               initial="enter" animate="center" exit="exit"
               style={{ position: 'relative', zIndex: 3, pointerEvents: 'auto' }}
             >
-              {/* Float wrapper — separate from slide so y doesn't mix with x transition */}
-              <div style={{ animation: 'heroFloat 4s ease-in-out infinite' }}>
+              {/* Float animation removed on mobile per feedback — packet now stays fully static during the hold */}
+              <div>
                 <img
                   src={PRODUCTS[current].img} alt="Namdev Chiwada" draggable={false}
                   style={{
