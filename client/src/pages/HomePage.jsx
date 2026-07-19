@@ -158,9 +158,9 @@ function HeroSection() {
   };
 
   const mobileSlideVariants = {
-    enter: (dir) => ({ opacity: 0, x: dir > 0 ? 80 : -80 }),
-    center: { opacity: 1, x: 0, transition: { duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] } },
-    exit: (dir) => ({ opacity: 0, x: dir > 0 ? -80 : 80, transition: { duration: 0.3 } }),
+    enter: { opacity: 0, x: -80, y: 0 },
+    center: { opacity: 1, x: 0, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } },
+    exit: { opacity: 0, x: -90, y: 0, transition: { duration: 0.4, ease: [0.4, 0, 1, 1] } },
   };
 
   const desktopSlideVariants = {
