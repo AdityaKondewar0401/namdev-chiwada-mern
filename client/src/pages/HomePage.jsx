@@ -145,7 +145,7 @@ function HeroSection() {
   const prev = useCallback(() => goTo((current - 1 + PRODUCTS.length) % PRODUCTS.length, -1), [current, goTo]);
 
   useEffect(() => {
-    autoRef.current = setInterval(next, 5500);
+    autoRef.current = setInterval(next, 3500);
     return () => clearInterval(autoRef.current);
   }, [next]);
 
