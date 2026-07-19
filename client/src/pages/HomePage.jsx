@@ -634,7 +634,7 @@ function CTASection() {
         <p className="text-brown-mid/70 mb-6 md:mb-8 leading-relaxed" style={{ fontSize: 'clamp(0.85rem,1.8vw,1rem)' }}>
           Looking for premium Maharashtrian snacks for Diwali, weddings, or corporate events? We offer custom gift hampers in bulk.
         </p>
-        <a href="https://wa.me/919975333427" target="_blank" rel="noreferrer"
+        <a href="https://wa.me/919130160491" target="_blank" rel="noreferrer"
           className="inline-block px-6 md:px-8 py-3 md:py-3.5 rounded-full font-bold text-white transition-all hover:-translate-y-0.5 w-full sm:w-auto"
           style={{ background: '#25D366', boxShadow: '0 4px 20px rgba(37,211,102,0.3)', fontSize: 'clamp(0.85rem,1.8vw,1rem)' }}>
           💬 WhatsApp Us for Bulk Orders

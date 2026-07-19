@@ -5,7 +5,7 @@ import { orderAPI } from '../services/api';
 import PageWrapper from '../components/PageWrapper';
 
 // ── Constants ──────────────────────────────────────────
-const WHATSAPP_NUMBER = '919975333427'; // ← Replace with your actual WhatsApp number (with country code, no +)
+const WHATSAPP_NUMBER = '919130160491'; // ← Replace with your actual WhatsApp number (with country code, no +)
 
 const STATUS_COLORS = {
   pending:    'bg-yellow-100 text-yellow-700 border-yellow-200',

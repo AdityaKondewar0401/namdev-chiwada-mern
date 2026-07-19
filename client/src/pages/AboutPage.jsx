@@ -884,7 +884,7 @@ function AboutCTA() {
               </Link>
             </motion.div>
             <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
-              <a href="https://wa.me/919975333427" target="_blank" rel="noreferrer"
+              <a href="https://wa.me/919130160491" target="_blank" rel="noreferrer"
                 className="inline-block px-8 py-4 rounded-full font-bold text-white text-base"
                 style={{ border: '2px solid rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.08)' }}>
                 💬 Talk to Us

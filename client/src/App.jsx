@@ -43,7 +43,7 @@ function Layout({ children, hideFooter = false }) {
       <main>{children}</main>
       {!hideFooter && <Footer />}
       <WhatsAppFloat
-        phone="919975333427"
+        phone="919130160491"
         message="Hi! I have a query about my order."
       />
     </>
