@@ -43,7 +43,7 @@ const TAGLINES = [
 // Inter for body text, Noto Serif Devanagari for Marathi copy.
 // Loaded once at the top of the page.
 const heroFontImport = `
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;0,900;1,700;1,800&family=Inter:wght@400;500;600;700;800&family=Noto+Serif+Devanagari:wght@500;600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&family=Inter:wght@400;500;600;700;800&family=Noto+Serif+Devanagari:wght@500;600&display=swap');
 `;
 
 function preloadImages() {
@@ -282,14 +282,11 @@ function HeroSection() {
             ● SINCE 1873 · SOLAPUR, MAHARASHTRA
           </div>
 
-          {/* Heading — Playfair Display, exact-replica styling of reference: bold white line 1, italic gold line 2 with leaf accent */}
+          {/* Heading — Playfair Display, upright and clean for maximum readability */}
           <div className="relative text-center" style={{ marginBottom: 4, width: '100%', maxWidth: '94vw' }}>
             <h1
               style={{
-                fontWeight: 800,
-                fontSize: 'clamp(2.2rem,9.5vw,3.6rem)',
-                lineHeight: 1.05,
-                letterSpacing: '-0.01em',
+                lineHeight: 1.12,
                 position: 'relative',
                 zIndex: 1,
                 width: '100%',
@@ -301,8 +298,10 @@ function HeroSection() {
                 fontFamily: "'Playfair Display', serif",
                 fontWeight: 800,
                 fontStyle: 'normal',
+                fontSize: 'clamp(2rem,8.8vw,3.2rem)',
+                letterSpacing: '-0.005em',
                 color: '#fff',
-                textShadow: '0 10px 40px rgba(0,0,0,0.4), 0 2px 10px rgba(0,0,0,0.3)',
+                textShadow: '0 6px 24px rgba(0,0,0,0.4)',
               }}>
                 Authentic Taste,
               </span>
@@ -310,13 +309,14 @@ function HeroSection() {
                 display: 'block',
                 textAlign: 'center',
                 fontFamily: "'Playfair Display', serif",
-                fontWeight: 700,
-                fontStyle: 'italic',
+                fontWeight: 800,
+                fontStyle: 'normal',
+                fontSize: 'clamp(2rem,8.8vw,3.2rem)',
+                letterSpacing: '-0.005em',
                 color: '#e7bf63',
-                textShadow: '0 10px 40px rgba(224,112,0,0.35)',
+                textShadow: '0 6px 24px rgba(224,112,0,0.3)',
               }}>
-                Timeless Tradition.{' '}
-                <span style={{ fontSize: '0.6em', fontStyle: 'normal' }}>🌿</span>
+                Timeless Tradition
               </span>
             </h1>
           </div>
