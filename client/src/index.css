@@ -65,9 +65,9 @@
   .badge-blue { @apply bg-blue-500 text-white; }
 }
 
-/* Hero gradient animation */
+/* Hero gradient animation — now matches the logo's red + gold palette */
 .hero-gradient {
-  background: linear-gradient(135deg, #2a1200 0%, #3d1c00 25%, #5c2800 50%, #7a3300 75%, #3d1c00 100%);
+  background: linear-gradient(135deg, #3a0808 0%, #6b0f0f 25%, #a31515 50%, #d4af37 75%, #6b0f0f 100%);
   background-size: 300% 300%;
   animation: gradientShift 8s ease infinite;
 }
