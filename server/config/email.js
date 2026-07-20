@@ -74,4 +74,9 @@ function getTransporter() {
   return transporterPromise;
 }
 
+// Trigger creation (and the verify() check inside it) immediately on
+// startup too, so you can confirm the connection works just from the
+// deploy logs — without needing to place a real order first.
+getTransporter();
+
 module.exports = getTransporter;
