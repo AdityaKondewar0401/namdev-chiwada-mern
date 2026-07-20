@@ -1,5 +1,7 @@
 const { sendViaBrevo } = require('../config/email');
 
+const LOGO_URL = `${process.env.CLIENT_URL || 'https://namdev-chiwada-mern.vercel.app'}/images/logo.png`;
+
 /*
   Order confirmation is a TRANSACTIONAL email — it always sends regardless
   of marketingConsent, since the user needs this to know their order went
@@ -16,63 +18,170 @@ async function sendOrderConfirmation(order, userEmail) {
     .map(
       (item) => `
     <tr>
-      <td style="padding:8px 0; color:#2d1a00; font-size:14px;">
-        ${item.name}${item.size ? ` (${item.size})` : ''} × ${item.qty}
+      <td style="padding:14px 0; color:#1a1a1a; font-size:15px; font-weight:600;">
+        ${item.name}
+        ${item.size ? `<span style="color:#aaa; font-weight:400; font-size:13px;"> · ${item.size}</span>` : ''}
+        <span style="color:#aaa; font-weight:400; font-size:13px;"> × ${item.qty}</span>
       </td>
-      <td style="padding:8px 0; text-align:right; color:#2d1a00; font-size:14px;">
+      <td style="padding:14px 0; text-align:right; color:#1a1a1a; font-size:15px; font-weight:700; white-space:nowrap;">
         ₹${(item.price * item.qty).toLocaleString()}
       </td>
-    </tr>`
+    </tr>
+    <tr><td colspan="2" style="border-bottom:1px solid #f0f0f0;"></td></tr>`
     )
     .join('');
 
   const addr = order.shippingAddress || {};
+  const baseUrl = process.env.CLIENT_URL || 'https://namdev-chiwada-mern.vercel.app';
+  const orderShort = String(order._id).slice(-8).toUpperCase();
 
   const html = `
-  <div style="font-family: 'DM Sans', Arial, sans-serif; max-width: 560px; margin: 0 auto; background:#fffdf7; border-radius:16px; overflow:hidden; border:1px solid rgba(224,112,0,0.15);">
-    <div style="background: linear-gradient(135deg,#e07000,#ff9010); padding: 28px 24px; text-align:center;">
-      <h1 style="color:#fff; margin:0; font-size:22px; font-family: Georgia, serif;">Namdev Chiwada</h1>
-      <p style="color:rgba(255,255,255,0.85); margin:4px 0 0; font-size:13px;">Since 1873 · Solapur, Maharashtra</p>
-    </div>
-    <div style="padding: 28px 24px;">
-      <h2 style="color:#2d1a00; font-size:18px; margin:0 0 8px;">Order Confirmed! 🎉</h2>
-      <p style="color:#7a5c3a; font-size:14px; line-height:1.6; margin:0 0 20px;">
-        Thank you for your order, ${addr.fullName || 'valued customer'}! We're preparing your chiwda with the same care we have since 1873.
-      </p>
+<div style="font-family: Arial, Helvetica, sans-serif; max-width: 600px; margin: 0 auto; background:#faf9f6;">
 
-      <table style="width:100%; border-collapse:collapse; margin-bottom:16px;">
-        ${itemsHtml}
-      </table>
+  <!-- Top mini bar -->
+  <table role="presentation" width="100%" style="background:#1a1a1a;">
+    <tr>
+      <td style="padding:14px 24px; text-align:center;">
+        <img src="${LOGO_URL}" alt="Namdev Chiwada" width="36" style="vertical-align:middle; border-radius:6px;" />
+        <span style="color:#fff; font-size:13px; font-weight:700; letter-spacing:0.08em; vertical-align:middle; margin-left:10px;">NAMDEV CHIWADA</span>
+      </td>
+    </tr>
+  </table>
 
-      <div style="border-top:1px solid rgba(224,112,0,0.2); padding-top:12px;">
-        <table style="width:100%;">
+  <!-- HUGE bold hero -->
+  <table role="presentation" width="100%" style="background:linear-gradient(135deg,#ff9010,#e07000); background-color:#e07000;">
+    <tr>
+      <td style="padding:52px 24px 44px; text-align:center;">
+        <div style="font-size:52px; line-height:1; margin-bottom:14px;">🎉</div>
+        <div style="color:#fff; font-size:34px; font-weight:900; line-height:1.15; letter-spacing:-0.02em;">
+          You're all set,<br/>${(addr.fullName || 'friend').split(' ')[0]}!
+        </div>
+        <div style="color:rgba(255,255,255,0.9); font-size:14px; margin-top:12px; font-weight:500;">
+          Order #${orderShort} · Confirmed just now
+        </div>
+      </td>
+    </tr>
+  </table>
+
+  <!-- Status timeline strip -->
+  <table role="presentation" width="100%" style="background:#fff; border-bottom:1px solid #f0f0f0;">
+    <tr>
+      <td style="padding:22px 16px;">
+        <table role="presentation" width="100%">
           <tr>
-            <td style="font-weight:bold; color:#2d1a00; font-size:15px;">Total</td>
-            <td style="text-align:right; font-weight:bold; color:#e07000; font-size:15px;">
+            <td align="center" style="width:25%;">
+              <div style="width:36px; height:36px; border-radius:50%; background:#1a1a1a; color:#fff; line-height:36px; font-size:16px; margin:0 auto 6px;">✓</div>
+              <div style="font-size:10px; font-weight:700; color:#1a1a1a; letter-spacing:0.03em;">PLACED</div>
+            </td>
+            <td align="center" style="width:25%;">
+              <div style="width:36px; height:36px; border-radius:50%; background:#ffe7cc; color:#e07000; line-height:36px; font-size:16px; margin:0 auto 6px;">🔥</div>
+              <div style="font-size:10px; font-weight:700; color:#e07000; letter-spacing:0.03em;">PREPARING</div>
+            </td>
+            <td align="center" style="width:25%;">
+              <div style="width:36px; height:36px; border-radius:50%; background:#f5f5f5; color:#ccc; line-height:36px; font-size:16px; margin:0 auto 6px;">🛵</div>
+              <div style="font-size:10px; font-weight:700; color:#ccc; letter-spacing:0.03em;">ON THE WAY</div>
+            </td>
+            <td align="center" style="width:25%;">
+              <div style="width:36px; height:36px; border-radius:50%; background:#f5f5f5; color:#ccc; line-height:36px; font-size:16px; margin:0 auto 6px;">📦</div>
+              <div style="font-size:10px; font-weight:700; color:#ccc; letter-spacing:0.03em;">DELIVERED</div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+
+  <!-- Items — minimal list, no card border -->
+  <table role="presentation" width="100%" style="background:#fff;">
+    <tr>
+      <td style="padding:32px 28px 8px;">
+        <div style="font-size:11px; font-weight:800; letter-spacing:0.1em; color:#aaa; margin-bottom:8px;">YOUR ORDER</div>
+        <table role="presentation" width="100%" style="border-collapse:collapse;">
+          ${itemsHtml}
+        </table>
+      </td>
+    </tr>
+  </table>
+
+  <!-- Big total moment -->
+  <table role="presentation" width="100%" style="background:#fff;">
+    <tr>
+      <td style="padding:20px 28px 32px;">
+        <table role="presentation" width="100%">
+          <tr>
+            <td style="font-size:16px; font-weight:700; color:#1a1a1a;">Total paid</td>
+            <td style="text-align:right; font-size:30px; font-weight:900; color:#e07000; letter-spacing:-0.02em;">
               ₹${(order.total || 0).toLocaleString()}
             </td>
           </tr>
         </table>
-      </div>
+        ${(order.shippingCharge ?? 0) === 0 ? `
+        <div style="display:inline-block; background:#e8f9f0; color:#1ea064; font-size:11px; font-weight:800; padding:5px 12px; border-radius:999px; margin-top:8px;">
+          🚚 FREE SHIPPING
+        </div>` : ''}
+      </td>
+    </tr>
+  </table>
 
-      <div style="margin-top:24px; padding:16px; background:rgba(224,112,0,0.05); border-radius:10px;">
-        <p style="color:#7a5c3a; font-size:13px; margin:0 0 6px;"><strong>Payment method:</strong> ${order.paymentMethod || 'N/A'}</p>
-        <p style="color:#7a5c3a; font-size:13px; margin:0;">
-          <strong>Delivery address:</strong><br/>
-          ${addr.line1 || ''}${addr.line2 ? `, ${addr.line2}` : ''}<br/>
-          ${addr.city || ''}, ${addr.state || ''} - ${addr.pincode || ''}
-        </p>
-      </div>
+  <!-- CTA — one big bold button -->
+  <table role="presentation" width="100%" style="background:#fff;">
+    <tr>
+      <td style="padding:0 28px 36px; text-align:center;">
+        <a href="${baseUrl}/orders/${order._id}"
+           style="display:block; background:#1a1a1a; color:#fff; text-decoration:none; font-weight:800; font-size:15px; padding:18px; border-radius:14px; letter-spacing:0.01em;">
+          TRACK MY ORDER →
+        </a>
+      </td>
+    </tr>
+  </table>
 
-      <p style="color:#9a7c5a; font-size:12px; margin-top:24px; text-align:center;">
-        Questions about your order? Reply to this email or WhatsApp us at +91 99753 33427.
-      </p>
-    </div>
-  </div>`;
+  <!-- Delivery details, understated -->
+  <table role="presentation" width="100%" style="background:#faf9f6; border-top:1px solid #f0f0f0;">
+    <tr>
+      <td style="padding:24px 28px;">
+        <table role="presentation" width="100%">
+          <tr>
+            <td style="font-size:11px; font-weight:800; letter-spacing:0.08em; color:#aaa; padding-bottom:4px;">DELIVERING TO</td>
+          </tr>
+          <tr>
+            <td style="font-size:13px; color:#666; line-height:1.6;">
+              ${addr.fullName || ''}<br/>
+              ${addr.line1 || ''}${addr.line2 ? `, ${addr.line2}` : ''}<br/>
+              ${addr.city || ''}, ${addr.state || ''} - ${addr.pincode || ''}
+            </td>
+          </tr>
+          <tr>
+            <td style="font-size:11px; font-weight:800; letter-spacing:0.08em; color:#aaa; padding-top:16px; padding-bottom:4px;">PAYMENT</td>
+          </tr>
+          <tr>
+            <td style="font-size:13px; color:#666;">
+              ${order.paymentMethod === 'ONLINE' ? '💳 Paid Online' : '💵 Cash on Delivery'}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+
+  <!-- Playful footer -->
+  <table role="presentation" width="100%" style="background:#1a1a1a;">
+    <tr>
+      <td style="padding:28px 24px; text-align:center;">
+        <div style="color:#fff; font-size:14px; font-weight:700; margin-bottom:4px;">
+          Since 1873. Still crunchy. Still Solapur. 🌾
+        </div>
+        <div style="color:rgba(255,255,255,0.5); font-size:12px; margin-top:10px;">
+          Questions? Reply here or WhatsApp
+          <a href="https://wa.me/919975333427" style="color:#ff9010; text-decoration:none; font-weight:700;">+91 99753 33427</a>
+        </div>
+      </td>
+    </tr>
+  </table>
+</div>`;
 
   await sendViaBrevo({
     to: userEmail,
-    subject: `Order Confirmed — Namdev Chiwada (₹${(order.total || 0).toLocaleString()})`,
+    subject: `🎉 Order Confirmed — ₹${(order.total || 0).toLocaleString()} · Namdev Chiwada`,
     html,
   });
 }
