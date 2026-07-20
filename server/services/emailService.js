@@ -1,4 +1,4 @@
-const transporter = require('../config/email');
+const getTransporter = require('../config/email');
 
 const FROM = `"Namdev Chiwada" <${process.env.EMAIL_USER}>`;
 
@@ -71,6 +71,8 @@ async function sendOrderConfirmation(order, userEmail) {
       </p>
     </div>
   </div>`;
+
+  const transporter = await getTransporter();
 
   await transporter.sendMail({
     from: FROM,
