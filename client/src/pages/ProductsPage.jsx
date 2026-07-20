@@ -218,7 +218,7 @@ export default function ProductsPage() {
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search chiwada, bakarvadi..."
+                placeholder="Search chiwda, bakarvadi..."
                 className="flex-1 px-4 py-3 rounded-full bg-white/10 border border-white/25 text-white placeholder-white/50 outline-none focus:border-white/60 text-sm"
               />
               <button type="submit"

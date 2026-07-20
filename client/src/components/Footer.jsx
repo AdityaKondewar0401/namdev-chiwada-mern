@@ -10,7 +10,7 @@ export default function Footer() {
             <div className="mb-4">
               <img
                 src="/images/logo.png"
-                alt="Namdev Chiwada"
+                alt="Namdev Chiwda"
                 className="h-16 w-auto object-contain"
               />
             </div>
@@ -41,7 +41,7 @@ export default function Footer() {
           <div className="md:mt-0 mt-4">
             <div className="text-xs font-bold tracking-widest uppercase text-saffron mb-5">Our Products</div>
             <div className="flex flex-col gap-3">
-              {['Special Namkeen', 'Dagdi Chiwada', 'Maka Chiwada', 'Bakarwadi', ].map((p) => (
+              {['Special Namkeen', 'Dagdi Chiwda', 'Maka Chiwda', 'Bakarwadi', ].map((p) => (
                 <Link key={p} to="/products" className="text-white/70 hover:text-white text-sm transition-colors">{p}</Link>
               ))}
             </div>
@@ -53,7 +53,7 @@ export default function Footer() {
             <div className="flex flex-col gap-4">
               {[
                 { icon: '📍', text: '205/A, Suhas Building, Killa Road, Solapur – 413007' },
-                { icon: '📞', text: '+91 99753 33427' },
+                { icon: '📞', text: '+91 9130160491' },
                 { icon: '✉️', text: 'namdevchiwada@gmail.com' },
                 { icon: '🕐', text: 'Mon–Sat: 9AM–8PM · Sun: 10AM–6PM' },
               ].map(({ icon, text }) => (
@@ -67,7 +67,7 @@ export default function Footer() {
         </div>
 
         <div className="pt-7 flex flex-col sm:flex-row items-center justify-between gap-3 text-white/40 text-xs">
-          <span>© {year} Namdev Chiwada. All rights reserved.</span>
+          <span>© {year} Namdev Chiwda. All rights reserved.</span>
           <span>Made with ❤️ in Solapur</span>
         </div>
       </div>

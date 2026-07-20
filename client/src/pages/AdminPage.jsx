@@ -251,7 +251,7 @@ function ProductFormTab({ editProduct, onSave, onCancel }) {
         <div className="bg-white rounded-2xl p-6" style={{ boxShadow: '0 4px 20px rgba(45,26,0,0.06)', border: '1px solid rgba(224,112,0,0.08)' }}>
           <h3 className="font-bold text-brown-dark mb-4 text-sm uppercase tracking-wider">Basic Information</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field label="Product Name *" fieldKey="name" placeholder="Namdev Chiwada" form={form} onChange={f} />
+            <Field label="Product Name *" fieldKey="name" placeholder="Namdev Chiwda" form={form} onChange={f} />
             <Field label="Marathi Name" fieldKey="namMarathi" placeholder="नामदेव चिवडा" form={form} onChange={f} />
             <Field label="Sub Title" fieldKey="sub" placeholder="House Signature Blend" form={form} onChange={f} />
             <Field label="Short Intro" fieldKey="intro" placeholder="1-line card description" form={form} onChange={f} />
@@ -1109,7 +1109,7 @@ export default function AdminPage() {
           <div className="bg-white rounded-2xl overflow-hidden lg:sticky lg:top-20"
             style={{ boxShadow: '0 4px 20px rgba(45,26,0,0.06)', border: '1px solid rgba(224,112,0,0.08)' }}>
             <div className="p-4 border-b" style={{ borderColor: 'rgba(224,112,0,0.1)', background: 'linear-gradient(135deg,#fff0d6,#fffdf7)' }}>
-              <div className="font-bold text-brown-dark text-sm">🍛 Namdev Chiwada</div>
+              <div className="font-bold text-brown-dark text-sm">🍛 Namdev Chiwda</div>
               <div className="text-xs text-brown-mid/60">Admin Dashboard</div>
             </div>
             <div className="p-2">

@@ -18,7 +18,7 @@ const TIMELINE = [
     era: 'पहिली झलक',
     marathiHeading: 'शेंगा चुरमुऱ्याचा चिवडा',
     marathiQuote: 'या शेगा चुरमुऱ्याचा चिवडा करून विकला तर...',
-    english: 'Hungry and penniless near Madla Maruti market, Bappa stared at roasted peanuts and puffed rice in his hands. A spark of inspiration — what if he made chiwada from this? Namdev Chiwada was born from that single thought.',
+    english: 'Hungry and penniless near Madla Maruti market, Bappa stared at roasted peanuts and puffed rice in his hands. A spark of inspiration — what if he made chiwda from this? Namdev Chiwda was born from that single thought.',
     icon: '💡',
     side: 'right',
     color: '#d4af37',
@@ -46,7 +46,7 @@ const TIMELINE = [
     year: '1873 – आजपर्यंत',
     marathiHeading: 'पिढ्यानपिढ्यांची चव',
     marathiQuote: 'बाप्पा देखील आईच्या मायेने चिवडा बनवायचे...',
-    english: 'Six generations later, the same recipe. The same masala. The same love. What began as one man\'s survival story became Solapur\'s most cherished culinary tradition — Namdev Chiwada.',
+    english: 'Six generations later, the same recipe. The same masala. The same love. What began as one man\'s survival story became Solapur\'s most cherished culinary tradition — Namdev Chiwda.',
     icon: '🌱',
     side: 'left',
     color: '#2d5a1b',
@@ -759,7 +759,7 @@ function FounderSection() {
                   आमचे बाप्पा
                 </div>
                 <div className="text-sm font-semibold tracking-wide" style={{ color: '#e07000' }}>
-                  Founder · Namdev Chiwada
+                  Founder · Namdev Chiwda
                 </div>
                 <div className="mt-6 h-px w-24 mx-auto" style={{ background: 'linear-gradient(to right,transparent,#e07000,transparent)' }} />
                 <div className="mt-4 font-serif text-4xl" style={{ color: 'rgba(224,112,0,0.2)' }}>"</div>
@@ -807,7 +807,7 @@ function FounderSection() {
             {[
               { marathi: '"माणसाला घडविणारे हे त्याचे स्वतःचे विचारच असतात"', english: 'A man is shaped by his own thoughts — not his circumstances.' },
               { marathi: '"बाप्पा देखील आईच्या मायेने चिवडा बनवायचे"', english: 'Bappa made chiwda with a mother\'s love — and people could taste the difference.' },
-              { marathi: '"दत्त गुरूची कृपा झाली, मार्ग सापडला"', english: 'When all seemed lost, a divine inspiration struck — and Namdev Chiwada was born.' },
+              { marathi: '"दत्त गुरूची कृपा झाली, मार्ग सापडला"', english: 'When all seemed lost, a divine inspiration struck — and Namdev Chiwda was born.' },
             ].map((q, i) => (
               <motion.div key={i}
                 initial={{ opacity: 0, x: 20 }}
@@ -873,7 +873,7 @@ function AboutCTA() {
             एक चव जी पिढ्यानपिढ्या टिकून आहे
           </p>
           <p className="text-white/60 text-sm mb-8">
-            Every pack of Namdev Chiwada carries 150 years of a family's love, struggle, and craft.
+            Every pack of Namdev Chiwda carries 150 years of a family's love, struggle, and craft.
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
             <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>

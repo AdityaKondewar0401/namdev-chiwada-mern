@@ -19,7 +19,7 @@ function AuthCard({ title, subtitle, children }) {
             </div>
             <div className="text-left">
               <div className="font-serif font-black text-brown-dark text-xl leading-none">Namdev</div>
-              <div className="text-xs text-saffron-DEFAULT tracking-widest uppercase font-semibold">Chiwada</div>
+              <div className="text-xs text-saffron-DEFAULT tracking-widest uppercase font-semibold">Chiwda</div>
             </div>
           </Link>
         </div>
@@ -107,7 +107,7 @@ export function LoginPage() {
 
   return (
     <PageWrapper>
-      <AuthCard title="Welcome Back" subtitle="Sign in to your Namdev Chiwada account">
+      <AuthCard title="Welcome Back" subtitle="Sign in to your Namdev Chiwda account">
         <form onSubmit={handleSubmit} className="space-y-4">
 
           <div>
@@ -163,7 +163,7 @@ export function RegisterPage() {
 
   return (
     <PageWrapper>
-      <AuthCard title="Create Account" subtitle="Join Namdev Chiwada — it's free!">
+      <AuthCard title="Create Account" subtitle="Join Namdev Chiwda — it's free!">
         <form onSubmit={handleSubmit} className="space-y-4">
 
           {[

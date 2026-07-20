@@ -40,7 +40,7 @@ export default function Navbar() {
           <div className="marquee-track flex gap-0 whitespace-nowrap" style={{ width: 'max-content' }}>
             {[...Array(4)].map((_, i) => (
               <span key={i} className="inline-flex items-center gap-2 px-8">
-                Welcome to the only official site of Namdev Chiwada. Please beware of other fraudulent sites with our name.
+                Welcome to the only official site of Namdev Chiwda. Please beware of other fraudulent sites with our name.
                 <span className="text-white/30 mx-2">|</span>
               </span>
             ))}
@@ -95,7 +95,7 @@ export default function Navbar() {
           <Link to="/" className="flex items-center group flex-shrink-0">
             <img
               src="/images/logo.png"
-              alt="Namdev Chiwada"
+              alt="Namdev Chiwda"
               className="transition-transform duration-300 group-hover:scale-105 h-[64px] w-[108px] md:h-[95px] md:w-[160px]"
               style={{ objectFit: 'contain', imageRendering: '-webkit-optimize-contrast' }}
             />
@@ -248,7 +248,7 @@ export default function Navbar() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search for chiwada, farsan, bakarwadi…"
+                  placeholder="Search for chiwda, farsan, bakarwadi…"
                   className="flex-1 bg-transparent text-sm text-brown-dark placeholder:text-brown-mid/40 focus:outline-none"
                 />
                 <button type="submit" className="text-xs font-bold text-saffron flex-shrink-0">Go</button>
@@ -294,7 +294,7 @@ export default function Navbar() {
                     style={{ background: 'linear-gradient(135deg,#e07000,#ff9010)' }}>
                     N
                   </div>
-                  <span className="text-white font-serif font-bold">Namdev Chiwada</span>
+                  <span className="text-white font-serif font-bold">Namdev Chiwda</span>
                 </div>
                 <button
                   onClick={() => setMenuOpen(false)}
@@ -407,7 +407,7 @@ export default function Navbar() {
               <div className="flex-shrink-0 px-5 py-4"
                 style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
                 <p className="text-center text-xs" style={{ color: 'rgba(255,255,255,0.22)' }}>
-                  © Namdev Chiwada · Since 1873
+                  © Namdev Chiwda · Since 1873
                 </p>
               </div>
             </motion.div>

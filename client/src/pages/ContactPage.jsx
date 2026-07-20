@@ -90,7 +90,7 @@ export default function ContactPage() {
               {/* Map placeholder */}
               <div className="mt-6 rounded-xl2 bg-cream-mid border-2 border-saffron/10 h-48 flex flex-col items-center justify-center gap-2 text-brown-mid/60 overflow-hidden">
                 <div className="text-3xl">📍</div>
-                <div className="font-bold text-brown-mid">Namdev Chiwada, Solapur</div>
+                <div className="font-bold text-brown-mid">Namdev Chiwda, Solapur</div>
                 <div className="text-xs">Near DCC Bank</div>
                 <a href="https://www.google.com/maps/place/17%C2%B040'34.8%22N+75%C2%B054'08.4%22E/@17.6762213,75.9021686,19.98z/data=!4m4!3m3!8m2!3d17.6763333!4d75.9023333?entry=ttu&g_ep=EgoyMDI2MDQxMi4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noreferrer"
                   className="text-saffron text-xs font-semibold hover:text-saffron-light transition-colors mt-1">

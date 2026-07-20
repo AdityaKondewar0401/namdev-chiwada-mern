@@ -5,7 +5,7 @@ import useReveal from '../hooks/useReveal';
 import NamkeenSection from '../components/NamkeenSection';
 import PageWrapper from '../components/PageWrapper';
 
-const MARQUEE_ITEMS = ['Dagdi-Poha Chiwada', 'Maka Chiwada', 'Bakarwadi', 'Lasun Sev', 'Shengdana Chutney', 'Special Farsan', 'Authentic Taste'];
+const MARQUEE_ITEMS = ['Dagdi-Poha Chiwda', 'Maka Chiwda', 'Bakarwadi', 'Lasun Sev', 'Shengdana Chutney', 'Special Farsan', 'Authentic Taste'];
 const TRUST = ['150+ Years Legacy', 'No Artificial Colors', 'FSSAI Licensed'];
 // NEW: icon-based trust badges for the redesigned mobile hero (item 7)
 const MOBILE_TRUST = [
@@ -22,7 +22,7 @@ const FEATURES = [
 const TESTIMONIALS = [
   { name: 'Vedant Lavate', city: 'Kolhapur', text: 'The Special Namkeen takes me back to my childhood in Solapur. Absolutely authentic!', rating: 5 },
   { name: 'Aditya Pawar', city: 'SambajiNagar', text: 'Ordered the Bakarwadi for Diwali gifting — everyone loved it. Will order again!', rating: 5 },
-  { name: 'Umesh Chakure', city: 'Latur', text: 'The Dagdi Chiwada is perfectly crispy with just the right amount of spice. Love it!', rating: 5 },
+  { name: 'Umesh Chakure', city: 'Latur', text: 'The Dagdi Chiwda is perfectly crispy with just the right amount of spice. Love it!', rating: 5 },
 ];
 
 const PRODUCTS = [
@@ -525,7 +525,7 @@ function LegacyGlimpseSection() {
   const isInView = useInView(ref, { once: true, margin: '-60px' });
   const milestones = [
     { icon: '🚶', label: 'Left his village', sub: 'Rani Savargaon' },
-    { icon: '💡', label: 'Had an idea', sub: 'First chiwada made' },
+    { icon: '💡', label: 'Had an idea', sub: 'First chiwda made' },
     { icon: '📦', label: 'Sold door to door', sub: 'Box on his head' },
     { icon: '🏛️', label: 'Built a home', sub: 'In just 3 years' },
     { icon: '🌱', label: '6 generations', sub: 'Same taste today' },

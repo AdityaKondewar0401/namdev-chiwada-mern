@@ -1,6 +1,6 @@
 export default function WhatsAppFloat() {
   const handleClick = () => {
-    const msg = encodeURIComponent("Namaste! I'd like to place an order / inquire about Namdev Chiwada products.");
+    const msg = encodeURIComponent("Namaste! I'd like to place an order / inquire about Namdev Chiwda products.");
     window.open(`https://wa.me/919130160491?text=${msg}`, '_blank');
   };
   return (

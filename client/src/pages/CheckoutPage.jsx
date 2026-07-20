@@ -457,7 +457,7 @@ function CheckoutPage() {
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID,
         amount, currency,
-        name: 'Namdev Chiwada',
+        name: 'Namdev Chiwda',
         description: 'Secure Checkout',
         image: '/logo.png',
         order_id,

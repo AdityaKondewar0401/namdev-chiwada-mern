@@ -54,7 +54,7 @@ function WhatsAppSupportBox({ order }) {
   ];
 
   const buildWhatsAppUrl = (text) => {
-    const fullMsg = `Hi Namdev Chiwada! 👋\n\nOrder ID: #${shortId}\nDate: ${new Date(order.createdAt).toLocaleDateString('en-IN')}\nAmount: ₹${order.total}\n\nIssue: ${text}`;
+    const fullMsg = `Hi Namdev Chiwda! 👋\n\nOrder ID: #${shortId}\nDate: ${new Date(order.createdAt).toLocaleDateString('en-IN')}\nAmount: ₹${order.total}\n\nIssue: ${text}`;
     return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(fullMsg)}`;
   };
 
