@@ -172,7 +172,7 @@ async function sendOrderConfirmation(order, userEmail) {
         </div>
         <div style="color:rgba(255,255,255,0.5); font-size:12px; margin-top:10px;">
           Questions? Reply here or WhatsApp
-          <a href="https://wa.me/919975333427" style="color:#ff9010; text-decoration:none; font-weight:700;">+91 99753 33427</a>
+          <a href="https://wa.me/919130160491" style="color:#ff9010; text-decoration:none; font-weight:700;">+91 99753 33427</a>
         </div>
       </td>
     </tr>
