@@ -1,82 +1,82 @@
-const nodemailer = require('nodemailer');
-const dns = require('dns');
-
 /*
-  Render's network has unreliable IPv6 outbound connectivity, and simply
-  setting `family: 4` on the transporter did NOT stop Node from resolving
-  and attempting an IPv6 address for smtp.gmail.com (confirmed via repeated
-  ENETUNREACH errors in production logs even with family:4 set).
+  Brevo (formerly Sendinblue) transactional email — sent via their HTTPS
+  API instead of raw SMTP.
 
-  The reliable fix: manually resolve Gmail's real IPv4 address ourselves
-  and connect directly to that IP, skipping hostname-based resolution at
-  connect-time entirely. `tls.servername` is set so the TLS certificate
-  (issued for smtp.gmail.com) still validates correctly against the IP.
+  WHY: Render blocks outbound SMTP traffic on both port 465 and 587,
+  confirmed via repeated ENETUNREACH / connection timeout errors even
+  after forcing IPv4 and connecting directly to Gmail's resolved IP.
+  HTTPS (port 443) is never blocked, so routing email through Brevo's
+  API sidesteps the problem completely.
 
-  Because DNS resolution is async, the transporter is created lazily and
-  cached — call getTransporter() (returns a Promise) wherever you need it,
-  rather than requiring a ready-made transporter object directly.
+  SETUP REQUIRED (see .env):
+  - BREVO_API_KEY: from Brevo dashboard → Settings → SMTP & API → API Keys
+  - EMAIL_USER: the sender address you verified in Brevo
+    (Settings → Senders, Domains & Dedicated IPs → Senders)
 */
-dns.setDefaultResultOrder('ipv4first');
 
-let transporterPromise = null;
+const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email';
+const BREVO_API_KEY = process.env.BREVO_API_KEY;
 
-function getTransporter() {
-  if (transporterPromise) return transporterPromise;
+const SENDER = {
+  name: 'Namdev Chiwada',
+  email: process.env.EMAIL_USER,
+};
 
-  transporterPromise = (async () => {
-    let host = 'smtp.gmail.com';
-
-    try {
-      const addresses = await dns.promises.resolve4('smtp.gmail.com');
-      if (addresses && addresses.length > 0) {
-        host = addresses[0];
-      }
-    } catch (err) {
-      console.warn(
-        '⚠️ Could not resolve IPv4 address for smtp.gmail.com, falling back to hostname (may fail on Render):',
-        err.message
-      );
-    }
-
-    /*
-      IMPORTANT: EMAIL_PASS must be a Gmail "App Password" (16 characters),
-      NOT your normal Gmail login password. Generate one at:
-      https://myaccount.google.com/apppasswords
-      (requires 2-Step Verification to be enabled on the account first)
-    */
-    const transporter = nodemailer.createTransport({
-      host,
-      port: 587,
-      secure: false,
-      requireTLS: true,
-      tls: {
-        servername: 'smtp.gmail.com', // keeps cert validation correct despite connecting via raw IP
-      },
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
-
-    // Fail loudly at startup if credentials/connection are wrong, rather
-    // than silently failing on the first real order.
-    transporter.verify((err) => {
-      if (err) {
-        console.error('❌ Email transporter failed to verify:', err.message);
-      } else {
-        console.log('✅ Email transporter ready');
-      }
-    });
-
-    return transporter;
-  })();
-
-  return transporterPromise;
+if (!BREVO_API_KEY) {
+  console.warn('⚠️ BREVO_API_KEY is not set — emails will fail to send.');
 }
 
-// Trigger creation (and the verify() check inside it) immediately on
-// startup too, so you can confirm the connection works just from the
-// deploy logs — without needing to place a real order first.
-getTransporter();
+/*
+  Sends a single transactional email via Brevo's API.
+  Throws on failure so callers can catch and log it without crashing
+  the request that triggered the email (e.g. placing an order).
+*/
+async function sendViaBrevo({ to, subject, html }) {
+  const res = await fetch(BREVO_API_URL, {
+    method: 'POST',
+    headers: {
+      accept: 'application/json',
+      'api-key': BREVO_API_KEY,
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      sender: SENDER,
+      to: [{ email: to }],
+      subject,
+      htmlContent: html,
+    }),
+  });
 
-module.exports = getTransporter;
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Brevo API error (${res.status}): ${errText}`);
+  }
+
+  return res.json();
+}
+
+/*
+  Startup check — confirms the API key itself is valid by hitting Brevo's
+  account info endpoint (does NOT send a real email). Logs the same
+  ✅ / ❌ pattern as the old SMTP verify() did, so deploy logs still tell
+  you immediately whether email sending is actually working.
+*/
+async function verifyBrevoConnection() {
+  try {
+    const res = await fetch('https://api.brevo.com/v3/account', {
+      headers: { 'api-key': BREVO_API_KEY, accept: 'application/json' },
+    });
+    if (res.ok) {
+      console.log('✅ Brevo API key verified — email sending ready');
+    } else {
+      const errText = await res.text();
+      console.error(`❌ Brevo API key verification failed (${res.status}):`, errText);
+    }
+  } catch (err) {
+    console.error('❌ Brevo API verification request failed:', err.message);
+  }
+}
+
+verifyBrevoConnection();
+
+module.exports = { sendViaBrevo };

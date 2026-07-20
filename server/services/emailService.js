@@ -1,6 +1,4 @@
-const getTransporter = require('../config/email');
-
-const FROM = `"Namdev Chiwada" <${process.env.EMAIL_USER}>`;
+const { sendViaBrevo } = require('../config/email');
 
 /*
   Order confirmation is a TRANSACTIONAL email — it always sends regardless
@@ -46,7 +44,7 @@ async function sendOrderConfirmation(order, userEmail) {
         ${itemsHtml}
       </table>
 
-      <div style="border-top:1px solid rgba(224,112,0,0.2); padding-top:12px; display:flex; justify-content:space-between;">
+      <div style="border-top:1px solid rgba(224,112,0,0.2); padding-top:12px;">
         <table style="width:100%;">
           <tr>
             <td style="font-weight:bold; color:#2d1a00; font-size:15px;">Total</td>
@@ -72,10 +70,7 @@ async function sendOrderConfirmation(order, userEmail) {
     </div>
   </div>`;
 
-  const transporter = await getTransporter();
-
-  await transporter.sendMail({
-    from: FROM,
+  await sendViaBrevo({
     to: userEmail,
     subject: `Order Confirmed — Namdev Chiwada (₹${(order.total || 0).toLocaleString()})`,
     html,
