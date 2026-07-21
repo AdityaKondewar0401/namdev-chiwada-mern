@@ -7,7 +7,7 @@ import PageWrapper from '../components/PageWrapper';
 
 const CONTACT_ITEMS = [
   { icon: '📍', label: 'Address', value: '205/A ,Suhas Building, Killa Road, Near DCC Bank,\nSolapur, Maharashtra – 413007' },
-  { icon: '📞', label: 'Phone / WhatsApp', value: '+91 99753 33427', link: 'tel:+919130160491' },
+  { icon: '📞', label: 'Phone / WhatsApp', value: '+91 9130160491H', link: 'tel:+919130160491' },
   { icon: '✉️', label: 'Email', value: 'namdevchiwada@gmail.com', link: 'mailto:namdevchiwada@gmail.com' },
   { icon: '🕐', label: 'Business Hours', value: 'Mon–Sat: 9:00 AM – 8:00 PM\nSunday: 10:00 AM – 6:00 PM' },
 ];
