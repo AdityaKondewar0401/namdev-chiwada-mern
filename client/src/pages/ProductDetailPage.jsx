@@ -38,14 +38,22 @@ export default function ProductDetailPage() {
   const mobileScrollRef = useRef(null);
   const relatedSentinelRef = useRef(null);
 
-  // The sticky "Add to Cart" bar belongs to *this* product only — hide it
-  // the moment "Related Products" scrolls into view, and bring it back if
-  // the person scrolls back up into the product's own content.
+  // The sticky "Add to Cart" bar belongs to *this* product only — once the
+  // person scrolls past the start of "Related Products", it should stay
+  // hidden for good (not just while the sentinel is crossing the viewport).
+  // Checking boundingClientRect.top (rather than just isIntersecting) is
+  // what makes that "stay hidden" behavior work: isIntersecting alone flips
+  // back to false again once the sentinel scrolls fully off the TOP of the
+  // screen too, which was incorrectly bringing the bar back once deep into
+  // the related products list.
   useEffect(() => {
     const el = relatedSentinelRef.current;
     if (!el) return;
     const observer = new IntersectionObserver(
-      ([entry]) => setStickyVisible(!entry.isIntersecting),
+      ([entry]) => {
+        const scrolledPast = entry.boundingClientRect.top < 0;
+        setStickyVisible(!scrolledPast);
+      },
       { rootMargin: '0px 0px -10% 0px' }
     );
     observer.observe(el);
