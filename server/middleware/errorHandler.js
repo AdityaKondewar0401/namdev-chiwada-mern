@@ -1,4 +1,13 @@
 const errorHandler = (err, req, res, next) => {
+  // Previously this handler silently swallowed every error — it built a
+  // sanitized JSON response for the client but never logged the actual
+  // error/stack trace anywhere, which meant real 500s (like a genuine
+  // server crash) were completely invisible in production logs (Render,
+  // etc.) with nothing to go on but "Internal Server Error" in the browser
+  // console. Log it server-side first, then still return the same
+  // sanitized response to the client as before.
+  console.error(`❌ Error on ${req.method} ${req.originalUrl}:`, err.stack || err);
+
   let statusCode = err.statusCode || 500;
   let message = err.message || 'Server Error';
 
