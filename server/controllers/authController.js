@@ -96,17 +96,30 @@ exports.login = async (req, res, next) => {
 
     const user = await User.findOne({ email }).select('+password');
 
-    if (!user || !(await user.matchPassword(password))) {
+    if (!user) {
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password',
       });
     }
 
+    // MUST run before matchPassword(): a Google-only account has no
+    // password hash at all, so user.password is undefined here. Calling
+    // bcrypt.compare(password, undefined) crashes with
+    // "Illegal arguments: string, undefined" instead of failing
+    // gracefully — this check used to exist AFTER the matchPassword call
+    // below, which meant it never actually got reached before the crash.
     if (!user.password) {
       return res.status(400).json({
         success: false,
         message: 'This email is registered with Google. Please use Google login.',
+      });
+    }
+
+    if (!(await user.matchPassword(password))) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password',
       });
     }
 
@@ -230,6 +243,16 @@ exports.changePassword = async (req, res, next) => {
     const { currentPassword, newPassword } = req.body;
 
     const user = await User.findById(req.user._id).select('+password');
+
+    // Same crash risk as login: a Google-only account has no password
+    // hash, so bcrypt.compare(currentPassword, undefined) would throw
+    // "Illegal arguments: string, undefined" instead of failing cleanly.
+    if (!user.password) {
+      return res.status(400).json({
+        success: false,
+        message: 'This account uses Google sign-in and has no password to change.',
+      });
+    }
 
     if (!(await user.matchPassword(currentPassword))) {
       return res.status(400).json({
