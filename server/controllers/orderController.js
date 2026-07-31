@@ -4,6 +4,62 @@ const User = require('../models/User');
 const Promo = require('../models/Promo');
 const { sendOrderConfirmation } = require('../services/emailService');
 const { calculateCartTotals, applyPromoToSubtotal } = require('../utils/pricing');
+const shadowfaxService = require('../services/shadowfaxService');
+const { getShadowfaxConfig } = require('../config/shadowfax');
+const { calcTotalWeightGrams } = require('../utils/weight');
+
+/* =========================================
+   SHADOWFAX INTEGRATION HELPER
+   Creates the forward delivery request with Shadowfax right after an
+   order is persisted, and stores the returned AWB/tracking info on the
+   order. This never blocks or fails order placement — a shipping-provider
+   outage must not stop a customer's order from going through (same
+   philosophy as the transactional-email try/catch below). If creation
+   fails, the failure reason is stored on order.courier.error so admins
+   can see it and retry manually (see routes/shipping.js resync/create
+   endpoints).
+========================================= */
+async function createShadowfaxShipmentForOrder(order) {
+  try {
+    const cfg = getShadowfaxConfig();
+    if (!cfg.authToken) {
+      order.courier.error = 'SHADOWFAX_AUTH_TOKEN not configured — shipment not created.';
+      await order.save();
+      return;
+    }
+
+    const result = await shadowfaxService.createWarehouseOrder(order);
+
+    order.courier.awbNumber = result.awbNumber;
+    order.courier.shadowfaxOrderId = result.shadowfaxOrderId;
+    order.courier.status = result.status;
+    order.courier.statusDisplay = result.statusDisplay;
+    order.courier.actualWeightGrams = calcTotalWeightGrams(order.items, cfg.defaultItemWeightGrams);
+    order.courier.error = undefined;
+    order.courier.lastSyncedAt = new Date();
+
+    // Shadowfax's order-CREATION response never includes a customer
+    // tracking URL — that only comes back from their separate tracking
+    // endpoint (see shadowfaxService.trackOrder). Fetch it once right away
+    // so the "Track shipment" link is visible immediately instead of only
+    // appearing after an admin manually hits "Resync". Best-effort: if this
+    // one extra call fails (rare — the shipment itself was already created
+    // successfully above), it just means the link is missing until the
+    // next resync, not that the order/shipment creation failed.
+    try {
+      const { trackingUrl } = await shadowfaxService.trackOrder(result.awbNumber);
+      if (trackingUrl) order.courier.trackingUrl = trackingUrl;
+    } catch (trackErr) {
+      console.warn(`Could not fetch tracking URL for order ${order._id} (AWB ${result.awbNumber}):`, trackErr.message);
+    }
+
+    await order.save();
+  } catch (err) {
+    console.error(`Shadowfax shipment creation failed for order ${order._id}:`, err.message);
+    order.courier.error = err.message;
+    await order.save().catch(() => {});
+  }
+}
 
 /* =========================================
    PLACE ORDER
@@ -49,6 +105,43 @@ exports.placeOrder = async (req, res, next) => {
         message:
           'Online payment must be completed before placing order',
       });
+    }
+
+    // ── Shadowfax pre-flight: courier/package weight cap ──
+    // A single AWB = a single package, and Shadowfax pickup for this
+    // warehouse is capped at 7kg per order. Checked here (authoritative)
+    // in addition to the client-side check in CheckoutPage, since the
+    // client check is UX only.
+    const cfg = getShadowfaxConfig();
+    const totalWeightGrams = calcTotalWeightGrams(cart.items, cfg.defaultItemWeightGrams);
+    if (totalWeightGrams > cfg.maxOrderWeightGrams) {
+      return res.status(400).json({
+        success: false,
+        message: `This order weighs ${(totalWeightGrams / 1000).toFixed(2)}kg, which is over the ${(cfg.maxOrderWeightGrams / 1000).toFixed(1)}kg limit for a single shipment. Please split it into two orders.`,
+      });
+    }
+
+    // ── Shadowfax pre-flight: delivery pincode serviceability ──
+    // Re-validated here even though CheckoutPage already checks this
+    // before submit — the server check is the authoritative one, exactly
+    // like the pricing recalculation below.
+    const deliveryPincode = shippingAddress.pincode;
+    if (deliveryPincode) {
+      try {
+        const { serviceable } = await shadowfaxService.checkPincodeServiceability(deliveryPincode);
+        if (!serviceable) {
+          return res.status(400).json({
+            success: false,
+            message: `Sorry, we currently can't deliver to pincode ${deliveryPincode}.`,
+          });
+        }
+      } catch (svcErr) {
+        // If the serviceability check itself fails (Shadowfax outage,
+        // bad token, etc.), don't block checkout on it — log and
+        // continue. The shipment-creation step below will surface a
+        // clearer error if the pincode really is invalid.
+        console.warn('Shadowfax pincode check failed, continuing:', svcErr.message);
+      }
     }
 
     // Recalculate everything from the persisted cart — this is the
@@ -128,6 +221,15 @@ exports.placeOrder = async (req, res, next) => {
         },
       });
     }
+
+    // ── Fire the Shadowfax forward order creation now that the order
+    // exists. For COD this runs immediately after placement; for ONLINE
+    // this runs only once paymentStatus is already 'paid' (enforced by
+    // the check above), i.e. "after payment success" per the shipping
+    // integration requirements. Never blocks the order response — a
+    // Shadowfax outage must not prevent the customer's order from going
+    // through; failures are recorded on order.courier.error for retry.
+    await createShadowfaxShipmentForOrder(order);
 
     // Send order confirmation email — TRANSACTIONAL, so it always sends
     // regardless of marketingConsent. Wrapped so an email failure (bad
@@ -248,6 +350,10 @@ exports.getAllOrders = async (
 
 /* =========================================
    UPDATE ORDER STATUS
+   Admin-only status changes. Setting status to "cancelled" now also
+   cancels the underlying Shadowfax shipment (if one exists) so the two
+   systems don't drift apart — an admin cancelling in this dashboard is
+   the one place in the app that should also cancel the courier request.
 ========================================= */
 exports.updateOrderStatus =
   async (
@@ -272,6 +378,27 @@ exports.updateOrderStatus =
           message:
             'Order not found',
         });
+      }
+
+      if (status === 'cancelled' && order.courier?.awbNumber) {
+        try {
+          const result = await shadowfaxService.cancelOrder(
+            order.courier.awbNumber,
+            'Cancelled by admin'
+          );
+          order.courier.status = 'cancelled_by_customer';
+          order.courier.statusDisplay = result.responseMsg || 'Cancelled';
+          order.courier.cancelReason = 'Cancelled by admin';
+          order.courier.lastSyncedAt = new Date();
+          await order.save();
+        } catch (courierErr) {
+          console.error(
+            `Shadowfax cancellation failed for order ${order._id}:`,
+            courierErr.message
+          );
+          order.courier.error = `Cancellation failed: ${courierErr.message}`;
+          await order.save().catch(() => {});
+        }
       }
 
       res.json({

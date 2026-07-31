@@ -62,6 +62,7 @@ app.use('/api/cart',     require('./routes/cart'));
 app.use('/api/orders',   require('./routes/orders'));
 app.use('/api/wishlist', require('./routes/wishlist'));
 app.use('/api/payment', require('./routes/payment'));
+app.use('/api/shipping', require('./routes/shipping'));
 app.use('/api/partners', require('./routes/partners'));
 app.use('/api/partner', require('./routes/partnerPortal'));
 app.use('/api/consignments', require('./routes/consignments'));

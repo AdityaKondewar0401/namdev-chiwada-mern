@@ -3,10 +3,26 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-import { orderAPI } from '../services/api';
+import { orderAPI, shippingAPI } from '../services/api';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 import PageWrapper from '../components/PageWrapper';
+
+// Mirrors server/utils/weight.js — parses a cart line's `size` label
+// ("250g", "1kg", ...) into grams so we can warn the shopper about the
+// 7kg single-shipment cap before they even reach payment. The server
+// re-checks this authoritatively in orderController.placeOrder; this
+// copy is UX-only.
+const MAX_ORDER_WEIGHT_GRAMS = 7000;
+function parseWeightToGrams(sizeLabel) {
+  if (typeof sizeLabel !== 'string' || !sizeLabel.trim()) return 250;
+  const match = sizeLabel.trim().toLowerCase().match(/([\d.]+)\s*(kg|g|gm|gms|grams?|kgs?)?/);
+  if (!match || !match[1]) return 250;
+  const value = parseFloat(match[1]);
+  if (!Number.isFinite(value)) return 250;
+  const isKg = (match[2] || 'g').startsWith('kg');
+  return Math.round(isKg ? value * 1000 : value);
+}
 
 // ─────────────────────────────────────────────
 // CheckoutPage — REFINED, not rewritten
@@ -570,6 +586,49 @@ function CheckoutPage() {
     )
   );
 
+  // ── Shadowfax delivery-pincode serviceability check ──
+  // `serviceability` shape: { status: 'idle'|'checking'|'ok'|'unserviceable'|'unknown' }
+  // 'unknown' means the check itself failed (Shadowfax outage/etc.) — we
+  // don't block checkout on that, only on a confirmed 'unserviceable'.
+  const [serviceability, setServiceability] = useState({ status: 'idle' });
+
+  useEffect(() => {
+    if (!/^\d{6}$/.test(address.pincode)) {
+      setServiceability({ status: 'idle' });
+      return;
+    }
+    let cancelled = false;
+    setServiceability({ status: 'checking' });
+    const timer = setTimeout(async () => {
+      try {
+        const res = await shippingAPI.checkPincode(address.pincode);
+        if (cancelled) return;
+        if (res.data.serviceable === true) {
+          setServiceability({ status: 'ok' });
+        } else if (res.data.serviceable === false) {
+          setServiceability({ status: 'unserviceable' });
+        } else {
+          setServiceability({ status: 'unknown' });
+        }
+      } catch {
+        if (!cancelled) setServiceability({ status: 'unknown' });
+      }
+    }, 500); // debounce while typing
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [address.pincode]);
+
+  // Total order weight (grams), used to warn about Shadowfax's 7kg
+  // single-shipment limit before checkout — the server enforces this
+  // authoritatively in orderController.placeOrder.
+  const totalWeightGrams = cart.reduce(
+    (sum, item) => sum + parseWeightToGrams(item.size) * (item.qty || 1),
+    0
+  );
+  const overWeightLimit = totalWeightGrams > MAX_ORDER_WEIGHT_GRAMS;
+
   // Carry a promo applied on the Cart page forward into Checkout.
   // We don't trust the discount value passed via router state —
   // we re-validate the code against the server so a disabled/expired
@@ -630,6 +689,9 @@ function CheckoutPage() {
     if (!address.city.trim()) e.city = 'City is required';
     if (!address.state) e.state = 'State is required';
     if (!/^\d{6}$/.test(address.pincode)) e.pincode = 'Enter valid 6-digit pincode';
+    else if (serviceability.status === 'unserviceable') {
+      e.pincode = "Sorry, we can't deliver to this pincode yet.";
+    }
     setErrors(e);
 
     // Scroll to and focus the first invalid field instead of leaving
@@ -750,6 +812,14 @@ function CheckoutPage() {
     e.preventDefault();
     if (!validate()) return;
     if (cart.length === 0) { toast.error('Your cart is empty.'); return; }
+    if (overWeightLimit) {
+      toast.error(`This order weighs ${(totalWeightGrams / 1000).toFixed(2)}kg — over our 7kg single-shipment limit. Please split it into two orders.`);
+      return;
+    }
+    if (serviceability.status === 'checking') {
+      toast.error('Still checking delivery availability for your pincode — try again in a moment.');
+      return;
+    }
     if (paymentMethod === 'cod') {
       await placeCODOrder();
     } else {
@@ -839,9 +909,37 @@ function CheckoutPage() {
                       <Field label="City" name="city" half value={address.city} onChange={handleAddressChange} placeholder="Solapur" error={errors.city} />
                       <Field label="Pincode" name="pincode" half value={address.pincode} onChange={handleAddressChange} placeholder="413001" error={errors.pincode} />
                     </div>
+
+                    {/* Shadowfax delivery-pincode serviceability status */}
+                    {/^\d{6}$/.test(address.pincode) && !errors.pincode && (
+                      <div style={{ fontSize: 13, fontWeight: 600, marginTop: -6 }}>
+                        {serviceability.status === 'checking' && (
+                          <span style={{ color: '#9a7c5a' }}>⏳ Checking delivery availability…</span>
+                        )}
+                        {serviceability.status === 'ok' && (
+                          <span style={{ color: '#15803d' }}>✅ Delivery available to this pincode</span>
+                        )}
+                        {serviceability.status === 'unserviceable' && (
+                          <span style={{ color: '#dc2626' }}>🚫 We currently can't deliver to this pincode</span>
+                        )}
+                        {serviceability.status === 'unknown' && (
+                          <span style={{ color: '#9a7c5a' }}>⚠️ Couldn't verify delivery availability — you can still continue</span>
+                        )}
+                      </div>
+                    )}
+
                     <select name="state" value={address.state} onChange={handleAddressChange} className="state-select">
                       {STATES.map(s => <option key={s}>{s}</option>)}
                     </select>
+
+                    {overWeightLimit && (
+                      <div style={{
+                        background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c',
+                        borderRadius: 10, padding: '10px 14px', fontSize: 13, fontWeight: 600,
+                      }}>
+                        ⚠️ This order weighs {(totalWeightGrams / 1000).toFixed(2)}kg, over our 7kg single-shipment limit. Please split it into two orders.
+                      </div>
+                    )}
                   </div>
                 </motion.div>
 
@@ -1054,7 +1152,7 @@ function CheckoutPage() {
                     <span style={{ fontFamily: "'Lora', serif", fontWeight: 700, fontSize: 18, color: '#e07000', letterSpacing: '0.01em' }}>₹{total.toLocaleString()}</span>
                   </div>
 
-                  <button type="submit" className="submit-btn" disabled={processing}>
+                  <button type="submit" className="submit-btn" disabled={processing || overWeightLimit || serviceability.status === 'unserviceable'}>
                     {processing
                       ? '⏳ Processing...'
                       : paymentMethod === 'razorpay'
@@ -1096,7 +1194,7 @@ function CheckoutPage() {
                 </div>
 
               </div>
-              <button type="submit" className="submit-btn" disabled={processing}>
+              <button type="submit" className="submit-btn" disabled={processing || overWeightLimit || serviceability.status === 'unserviceable'}>
                 {processing
                   ? '⏳ Processing...'
                   : paymentMethod === 'razorpay'

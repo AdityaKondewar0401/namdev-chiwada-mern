@@ -16,13 +16,16 @@ const { protect, admin } = require('../middleware/auth');
 router.get('/featured', getFeaturedProducts);
 router.get('/search', searchProducts);
 router.get('/', getProducts);
-router.post('/seed', seedProducts);
 
 router.get('/:id', getProduct);
 
-// Dev only — remove in production
-
 // Admin only routes
+// NOTE: /seed wipes the ENTIRE product catalog (Product.deleteMany({}) then
+// reseeds — see productController.seedProducts) and was previously mounted
+// with NO auth at all, meaning anyone who found the URL could destroy the
+// live catalog. Locked behind protect+admin like every other destructive
+// product route below.
+router.post('/seed', protect, admin, seedProducts);
 router.post('/', protect, admin, createProduct);
 router.put('/:id', protect, admin, updateProduct);
 router.delete('/:id', protect, admin, deleteProduct);

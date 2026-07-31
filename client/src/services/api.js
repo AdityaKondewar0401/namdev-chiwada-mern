@@ -119,6 +119,33 @@ export const orderAPI = {
 };
 
 /* ===============================
+   Shipping (Shadowfax)
+================================= */
+export const shippingAPI = {
+  // Public — no auth required. Returns { serviceable, services }.
+  // `serviceable` is `null` (not true/false) if the check itself failed,
+  // so the caller can tell "not serviceable" apart from "couldn't check".
+  checkPincode: (pincode) =>
+    api.get('/api/shipping/check-pincode', { params: { pincode } }),
+
+  // Admin-only order-level shipment actions
+  resyncTracking: (orderId) =>
+    api.post(`/api/shipping/orders/${orderId}/resync`),
+
+  createShipment: (orderId) =>
+    api.post(`/api/shipping/orders/${orderId}/create-shipment`),
+
+  cancelShipment: (orderId, remarks) =>
+    api.post(`/api/shipping/orders/${orderId}/cancel-shipment`, { remarks }),
+
+  escalate: (orderId, issueCategory) =>
+    api.post(`/api/shipping/orders/${orderId}/escalate`, { issueCategory }),
+
+  getPod: (orderId) =>
+    api.get(`/api/shipping/orders/${orderId}/pod`),
+};
+
+/* ===============================
    Wishlist
 ================================= */
 export const wishlistAPI = {

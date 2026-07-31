@@ -290,6 +290,53 @@ function OrderDetail({ id }) {
         </div>
       </motion.div>
 
+      {/* ── Courier tracking (Shadowfax) — only shown once a shipment
+          actually exists for this order. AWB/status are synced by the
+          Shadowfax Push Callback webhook (see server/routes/shipping.js),
+          so this reflects the courier's live status, not just our own
+          internal order.status. ── */}
+      {order.courier?.awbNumber && (
+        <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.16 }}
+          className="bg-white rounded-2xl border border-saffron/10 p-6"
+          style={{ boxShadow: '0 4px 24px rgba(45,26,0,0.07)' }}>
+          <h3 className="font-serif font-bold text-brown-dark text-lg mb-3 flex items-center gap-2">
+            🚚 Courier Tracking
+          </h3>
+          <div className="flex flex-wrap items-center gap-2 mb-2">
+            <span className="px-3 py-1.5 rounded-full text-xs font-bold bg-cream-mid text-brown-dark font-mono">
+              AWB: {order.courier.awbNumber}
+            </span>
+            {order.courier.statusDisplay && (
+              <span className="px-3 py-1.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 capitalize">
+                {order.courier.statusDisplay}
+              </span>
+            )}
+          </div>
+          {order.courier.trackingUrl && (
+            <a href={order.courier.trackingUrl} target="_blank" rel="noreferrer"
+              className="inline-flex items-center gap-1 text-sm font-semibold text-saffron hover:underline mt-1">
+              Track shipment ↗
+            </a>
+          )}
+          {order.courier.history?.length > 0 && (
+            <div className="mt-4 space-y-2 border-t border-saffron/10 pt-4">
+              {order.courier.history.slice().reverse().map((h, i) => (
+                <div key={i} className="flex flex-col sm:flex-row sm:items-start gap-0.5 sm:gap-3 text-xs">
+                  <span className="text-brown-mid/50 flex-shrink-0 sm:w-32">
+                    {h.eventTimestamp ? new Date(h.eventTimestamp).toLocaleString('en-IN') : ''}
+                  </span>
+                  <span className="text-brown-dark min-w-0 flex-1">
+                    <span className="font-semibold">{h.status}</span>
+                    {h.location ? ` · ${h.location}` : ''}
+                    {h.remarks ? ` — ${h.remarks}` : ''}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </motion.div>
+      )}
+
       {/* ── Card 2: Items + Pricing ── */}
       <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}
         className="bg-white rounded-2xl border border-saffron/10"

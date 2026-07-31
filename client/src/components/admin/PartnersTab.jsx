@@ -197,14 +197,14 @@ export default function PartnersTab() {
             <button
               onClick={() => copyToClipboard(inviteInfo.link, 'Invite link')}
               className="text-xs font-bold px-3 py-2 rounded-xl text-white"
-              style={{ background: 'linear-gradient(135deg,#e07000,#ff9010)', minHeight: 36 }}
+              style={{ background: 'linear-gradient(135deg,#e07000,#ff9010)', minHeight: 40 }}
             >
               Copy
             </button>
             <button
               onClick={() => setInviteInfo(null)}
               className="text-xs font-bold px-3 py-2 rounded-xl border border-brown-mid/20 text-brown-mid"
-              style={{ minHeight: 36 }}
+              style={{ minHeight: 40 }}
             >
               Dismiss
             </button>
@@ -395,7 +395,7 @@ export default function PartnersTab() {
                 <button
                   onClick={() => handleGetInviteLink(partner)}
                   className="text-xs font-bold px-3 py-1.5 rounded-xl border transition-all"
-                  style={{ borderColor: 'rgba(224,112,0,0.2)', color: '#e07000', minHeight: 36 }}
+                  style={{ borderColor: 'rgba(224,112,0,0.2)', color: '#e07000', minHeight: 40 }}
                   title="Get this partner's set-password link to share manually"
                 >
                   🔗 Invite Link
@@ -404,7 +404,7 @@ export default function PartnersTab() {
               <button
                 onClick={() => openEditForm(partner)}
                 className="text-xs font-bold px-3 py-1.5 rounded-xl border transition-all"
-                style={{ borderColor: 'rgba(224,112,0,0.2)', color: '#e07000', minHeight: 36 }}
+                style={{ borderColor: 'rgba(224,112,0,0.2)', color: '#e07000', minHeight: 40 }}
               >
                 Edit
               </button>
@@ -412,7 +412,7 @@ export default function PartnersTab() {
                 <button
                   onClick={() => handleDeactivate(partner)}
                   className="text-xs font-bold px-3 py-1.5 rounded-xl transition-all"
-                  style={{ background: '#fef2f2', color: '#dc2626', minHeight: 36 }}
+                  style={{ background: '#fef2f2', color: '#dc2626', minHeight: 40 }}
                 >
                   Deactivate
                 </button>

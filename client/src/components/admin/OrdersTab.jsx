@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../services/api';
+import { shippingAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 import { STATUS_OPTIONS, STATUS_CONFIG, PAYMENT_ICONS } from './adminConstants';
 
@@ -10,10 +11,24 @@ import { STATUS_OPTIONS, STATUS_CONFIG, PAYMENT_ICONS } from './adminConstants';
 // they're comfortably tappable on a phone (both were a bit tight —
 // under 40px tall — in the original).
 // ─────────────────────────────────────────────
-function OrderCard({ order, onUpdateStatus }) {
+function OrderCard({ order, onUpdateStatus, onOrderUpdated }) {
   const [expanded, setExpanded] = useState(false);
+  const [courierBusy, setCourierBusy] = useState(false);
   const status = order.status?.toLowerCase() || 'pending';
   const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
+
+  async function runCourierAction(action, successMsg) {
+    setCourierBusy(true);
+    try {
+      const res = await action();
+      onOrderUpdated(res.data.order);
+      toast.success(successMsg);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Shadowfax action failed');
+    } finally {
+      setCourierBusy(false);
+    }
+  }
 
   const date = new Date(order.createdAt);
   const dateStr = date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -83,6 +98,13 @@ function OrderCard({ order, onUpdateStatus }) {
                 <span style={{ fontSize: 11, color: '#9a7c5a' }}>📍 {order.shippingAddress.city}, {order.shippingAddress.state}</span>
               )}
               <span style={{ fontSize: 11, color: payMethod.toUpperCase() === 'ONLINE' ? '#15803d' : '#9a7c5a' }}>💰 {payStatus}</span>
+              {order.courier?.awbNumber ? (
+                <span style={{ fontSize: 11, color: '#1d4ed8', fontFamily: 'monospace', fontWeight: 700 }}>
+                  🚚 AWB {order.courier.awbNumber} {order.courier.statusDisplay ? `· ${order.courier.statusDisplay}` : ''}
+                </span>
+              ) : order.courier?.error ? (
+                <span style={{ fontSize: 11, color: '#dc2626', fontWeight: 700 }}>⚠️ Shipment not created</span>
+              ) : null}
             </div>
           </div>
 
@@ -208,6 +230,47 @@ function OrderCard({ order, onUpdateStatus }) {
                   </div>
                 )}
               </div>
+
+              {/* ── Shadowfax shipment panel ── */}
+              <div>
+                <div style={{ fontSize: 10, fontWeight: 700, color: '#9a7c5a', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Shipping (Shadowfax)</div>
+                <div style={{ background: 'white', borderRadius: 10, padding: '12px 14px', border: '1px solid rgba(224,160,80,0.1)', fontSize: 12, color: '#3d2800' }}>
+                  {order.courier?.awbNumber ? (
+                    <>
+                      <div style={{ fontWeight: 700, fontFamily: 'monospace' }}>AWB: {order.courier.awbNumber}</div>
+                      <div style={{ color: '#7a5c3a', marginTop: 2 }}>Status: {order.courier.statusDisplay || order.courier.status || '—'}</div>
+                      {order.courier.trackingUrl && (
+                        <a href={order.courier.trackingUrl} target="_blank" rel="noreferrer" style={{ color: '#e07000', fontWeight: 700, fontSize: 11 }}>
+                          Track shipment ↗
+                        </a>
+                      )}
+                      <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
+                        <button
+                          disabled={courierBusy}
+                          onClick={() => runCourierAction(() => shippingAPI.resyncTracking(order._id), 'Tracking synced')}
+                          style={{ fontSize: 11, fontWeight: 700, color: '#1d4ed8', background: '#dbeafe', border: '1px solid #bfdbfe', borderRadius: 8, padding: '6px 12px', minHeight: 40, cursor: 'pointer' }}
+                        >🔄 Resync</button>
+                        <button
+                          disabled={courierBusy || status === 'cancelled'}
+                          onClick={() => runCourierAction(() => shippingAPI.cancelShipment(order._id, 'Cancelled by admin'), 'Shipment cancelled')}
+                          style={{ fontSize: 11, fontWeight: 700, color: '#dc2626', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: '6px 12px', minHeight: 40, cursor: 'pointer' }}
+                        >✕ Cancel shipment</button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {order.courier?.error && (
+                        <div style={{ color: '#dc2626', fontWeight: 600, marginBottom: 8 }}>⚠️ {order.courier.error}</div>
+                      )}
+                      <button
+                        disabled={courierBusy}
+                        onClick={() => runCourierAction(() => shippingAPI.createShipment(order._id), 'Shipment created')}
+                        style={{ fontSize: 11, fontWeight: 700, color: '#15803d', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, padding: '6px 12px', minHeight: 40, cursor: 'pointer' }}
+                      >📦 Create Shadowfax shipment</button>
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
           </motion.div>
         )}
@@ -231,10 +294,18 @@ export default function OrdersTab() {
 
   const updateStatus = async (id, status) => {
     try {
-      await api.put(`/api/orders/${id}/status`, { status });
-      setOrders((prev) => prev.map((o) => (o._id === id ? { ...o, status } : o)));
+      const res = await api.put(`/api/orders/${id}/status`, { status });
+      // Use the full updated order back from the server (not just the
+      // status field) since setting status to "cancelled" also updates
+      // order.courier when a Shadowfax shipment exists (see
+      // orderController.updateOrderStatus).
+      setOrders((prev) => prev.map((o) => (o._id === id ? res.data.order : o)));
       toast.success('Order status updated!');
     } catch { toast.error('Failed to update status'); }
+  };
+
+  const handleOrderUpdated = (updatedOrder) => {
+    setOrders((prev) => prev.map((o) => (o._id === updatedOrder._id ? updatedOrder : o)));
   };
 
   const filtered = orders.filter((o) => {
@@ -305,7 +376,7 @@ export default function OrdersTab() {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {filtered.map((order) => <OrderCard key={order._id} order={order} onUpdateStatus={updateStatus} />)}
+          {filtered.map((order) => <OrderCard key={order._id} order={order} onUpdateStatus={updateStatus} onOrderUpdated={handleOrderUpdated} />)}
         </div>
       )}
     </div>

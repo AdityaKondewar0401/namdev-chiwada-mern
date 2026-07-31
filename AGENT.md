@@ -553,7 +553,7 @@ Route ordering matters: `/featured` and `/search` must stay before `/:id`.
 | GET | `/api/products/featured` | Public | Featured products, sorted by `sortOrder`, limit 4. |
 | GET | `/api/products/search?q=...` | Public | Regex search across `name`, `sub`, `desc`, `intro`, limit 10. |
 | GET | `/api/products` | Public | Query: `category`, `sort`, `search`, `featured`, `page`, `limit`. |
-| POST | `/api/products/seed` | Public | Destructive product reset from `config/seedData.js`. |
+| POST | `/api/products/seed` | Admin | Destructive product reset from `config/seedData.js`. Was public until a later security pass locked it behind `protect, admin` — wiping the live catalog required no auth at all before that. |
 | GET | `/api/products/:id` | Public | Finds by Mongo ObjectId first, then slug. Returns related products. |
 | POST | `/api/products` | Admin | Create product. Controller generates slug if absent. |
 | PUT | `/api/products/:id` | Admin | Update product with `findByIdAndUpdate`; no pre-save slug hook. |
@@ -1117,7 +1117,7 @@ Server:
 
 ## 24. Known Constraints and Traps
 
-1. `NamkeenDetailPage.jsx` is broken because it references undefined `PRODUCTS`. Do not extend `/namkeen/:id`; use `/products/:id`.
+1. ~~`NamkeenDetailPage.jsx` is broken because it references undefined `PRODUCTS`.~~ FIXED: `/namkeen/:id` now redirects to `/products/:id` via a `NamkeenRedirect` component in `App.jsx` instead of rendering the crashing component. `NamkeenDetailPage.jsx` itself is unreferenced dead code now — safe to delete, kept only so this diff stays reviewable as a redirect, not a deletion.
 2. `WishlistContext` receives populated objects from `GET /api/wishlist` but ID-based helpers expect strings. Normalize wishlist state before depending on it in new UI.
 3. `WishlistPage` fetches all products and filters by `wishlist.includes(p._id)`, so it is affected by the same object-vs-id issue.
 4. `NamkeenSection` uses local visual wishlist state only. `ProductCard` uses persistent `WishlistContext`.
@@ -1125,10 +1125,10 @@ Server:
 6. `logout` does not clear `nc_cart`, so the last loaded cart can remain in localStorage.
 7. Server cart add trusts client-sent size and price after product existence check. Validate product size/price server-side before any pricing-security change.
 8. `Order.items` schema uses `weight`, while UI/email reads `item.size` and `placeOrder` passes cart items with `size`. Fix as a coordinated migration.
-9. `ProductDetailPage` dispatches a `pdp-sticky-bar` event and `App` passes props to `WhatsAppFloat`, but `WhatsAppFloat` ignores both.
+9. ~~`ProductDetailPage` dispatches a `pdp-sticky-bar` event and `App` passes props to `WhatsAppFloat`, but `WhatsAppFloat` ignores both.~~ FIXED: `WhatsAppFloat` now listens for `pdp-sticky-bar` and honors its `phone`/`message` props. It also now hides itself on `/checkout`, since its fixed `bottom-24 right-5` position previously overlapped CheckoutPage's full-width mobile sticky Pay bar.
 10. Product detail copy still says free delivery at INR 500, while pricing utilities and cart/checkout use INR 499.
 11. Default promo names are protected from deletion but not seeded automatically.
-12. `POST /api/products/seed` is public and destructive. Do not use or expose casually.
+12. ~~`POST /api/products/seed` is public and destructive.~~ FIXED: now behind `protect, admin` like every other write route in `products.js`.
 13. `DELETE /api/upload/:publicId` is awkward for Cloudinary public IDs containing `/`.
 14. `ProductFormTab` removes uploaded image URLs from form state only; it does not call Cloudinary delete.
 15. `updateProduct` does not auto-regenerate slug on rename.
@@ -1195,3 +1195,62 @@ When adding or changing a feature:
 - For promo/payment changes, inspect `server/utils/pricing.js`, `orderController.js`, `paymentController.js`, `CartPage.jsx`, and `CheckoutPage.jsx`.
 - For deployment-sensitive changes, account for Vercel SPA fallback, API origin env vars, CORS, MongoDB, Cloudinary, Razorpay, Google, and Brevo env vars.
 - Do not incidentally fix known constraints. If a trap must be fixed, scope it deliberately across affected files.
+
+## 28. Shipping / Courier — Shadowfax (Forward Operations, Warehouse - Order Creation)
+
+The app ships from its own warehouse (Solapur), not a marketplace, so it
+integrates with Shadowfax's **Warehouse - Order Creation** model, not the
+Marketplace model. There is no reverse-logistics/returns flow — RTO details
+sent to Shadowfax always mirror the pickup warehouse address.
+
+Files:
+
+- `server/config/shadowfax.js` — env-driven config (base URL by
+  `SHADOWFAX_ENV`, pickup/RTO address, 7kg max-order-weight cap).
+- `server/utils/weight.js` — parses cart/order line `size` labels
+  ("250g", "1kg", ...) into grams and sums them per order.
+- `server/services/shadowfaxService.js` — the only place that calls the
+  Shadowfax API (native `fetch`, same convention as `config/email.js`
+  Brevo calls — no axios dependency added). Exposes pincode
+  serviceability, warehouse order creation, single/bulk tracking (v4),
+  order update, cancellation, escalation, and POD lookup, plus
+  `mapShadowfaxStatusToOrderStatus` (Shadowfax `status_id` -> our
+  `Order.status` enum).
+- `server/controllers/shippingController.js` + `server/routes/shipping.js`
+  (mounted at `/api/shipping`) — public pincode check
+  (`GET /check-pincode`), the Push Callback webhook
+  (`POST /webhook/shadowfax`, optionally verified against
+  `SHADOWFAX_WEBHOOK_TOKEN`), and admin-only manual actions (resync
+  tracking, create/cancel shipment, escalate, POD).
+- `Order.courier` (see `server/models/Order.js`) — `awbNumber`,
+  `shadowfaxOrderId`, `status`/`statusDisplay` (raw Shadowfax values,
+  not our own enum), `trackingUrl`, `history[]` (one entry per webhook
+  event), `error` (set if shipment creation/cancellation failed).
+
+Flow:
+
+1. `orderController.placeOrder` re-validates the delivery pincode and the
+   7kg weight cap (client-side copies exist in `CheckoutPage.jsx` for UX,
+   but these two server checks are authoritative) before creating the
+   order.
+2. Immediately after the order is created — for COD immediately, for
+   ONLINE only once `paymentStatus === 'paid'` — it calls
+   `createShadowfaxShipmentForOrder()`, which never blocks or fails order
+   placement; failures land in `order.courier.error` for admin retry via
+   `POST /api/shipping/orders/:id/create-shipment`.
+3. Shadowfax's Push Callback webhook updates `order.courier` and
+   forward-progresses `order.status` (via `mapShadowfaxStatusToOrderStatus`)
+   — it never regresses an order already `delivered` or `cancelled`.
+4. Admin setting an order's status to `cancelled` in `OrdersTab.jsx` also
+   cancels the Shadowfax shipment if one exists (`orderController.updateOrderStatus`).
+
+Traps:
+
+- Shadowfax's **staging** environment only whitelists a few test pincodes
+  (110009, 560077, 560007 per their docs) — real Solapur-area pincodes like
+  413007 will correctly report as unserviceable in staging. This is
+  expected; switch `SHADOWFAX_ENV=production` with a real production
+  token before relying on real customer pincodes.
+- `client_order_id` sent to Shadowfax is always this app's Mongo
+  `Order._id` — the webhook's `order_id` field is looked up against that,
+  not a separate order-number scheme.

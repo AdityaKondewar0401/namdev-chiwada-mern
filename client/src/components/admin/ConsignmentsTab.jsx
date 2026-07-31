@@ -402,7 +402,7 @@ export default function ConsignmentsTab() {
                       <button
                         onClick={() => handleMarkPaid(payment._id, c._id)}
                         className="font-bold text-saffron underline sm:no-underline sm:border sm:border-saffron/30 sm:rounded-lg sm:px-2.5 sm:py-1 text-left sm:text-center"
-                        style={{ minHeight: 32 }}
+                        style={{ minHeight: 40 }}
                       >
                         Mark paid
                       </button>

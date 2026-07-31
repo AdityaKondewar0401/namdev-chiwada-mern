@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation, Navigate, useParams } from 'react-router-dom';
 import { useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { AnimatePresence } from 'framer-motion';
@@ -20,13 +20,27 @@ import CheckoutPage from './pages/CheckoutPage';
 import OrdersPage from './pages/OrdersPage';
 import ContactPage from './pages/ContactPage';
 import AboutPage from './pages/AboutPage';
-import NamkeenDetailPage from './pages/NamkeenDetailPage';
 import AccountPage from './pages/AccountPage';
 import WishlistPage from './pages/WishlistPage';
 import AdminPage from './pages/AdminPage';
+// NamkeenDetailPage was a legacy static product-detail page that referenced
+// an undefined `PRODUCTS` global — visiting /namkeen/:id crashed with a
+// ReferenceError (hard white screen), not just a rendering bug. It's fully
+// superseded by ProductDetailPage (real API-backed data, wishlist, gallery,
+// mobile sticky add-to-cart bar), so the route below now redirects instead
+// of rendering the broken component. See AGENT.md §9 for the prior status
+// of this page.
 import PartnerSetPasswordPage from './pages/PartnerSetPasswordPage';
 import PartnerDashboardPage from './pages/PartnerDashboardPage';
 import { LoginPage, RegisterPage } from './pages/AuthPages';
+
+// Redirects the legacy /namkeen/:id URL to the real, working product page
+// instead of rendering the broken NamkeenDetailPage (see import comment
+// above). `replace` so it doesn't leave the dead URL in browser history.
+function NamkeenRedirect() {
+  const { id } = useParams();
+  return <Navigate to={`/products/${id}`} replace />;
+}
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -125,14 +139,7 @@ function AnimatedRoutes() {
           }
         />
 
-        <Route
-          path="/namkeen/:id"
-          element={
-            <Layout>
-              <NamkeenDetailPage />
-            </Layout>
-          }
-        />
+        <Route path="/namkeen/:id" element={<NamkeenRedirect />} />
 
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
