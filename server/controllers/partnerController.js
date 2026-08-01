@@ -109,11 +109,21 @@ exports.createPartner = async (req, res, next) => {
       type,
       contactPerson,
       phone,
-      email,
       address,
       gstin,
       defaultAdvancePercent,
     } = req.body;
+    // Normalize BEFORE the duplicate-check query below. The User schema
+    // lowercases email only at save time, not at query time — if this
+    // check queries the raw admin-typed value ("Sumzar12@Gmail.com") while
+    // an existing account was stored lowercase ("sumzar12@gmail.com"), the
+    // duplicate check misses it and a SECOND User document gets created
+    // for what is really the same person. That second doc is what later
+    // makes email/password login and Google login look like they're
+    // fighting over the account: whichever doc a given lookup happens to
+    // match first determines whether you see the partner's password/role
+    // or the other doc's.
+    const email = req.body.email ? req.body.email.trim().toLowerCase() : undefined;
 
     if (!businessName || !type) {
       return res.status(400).json({

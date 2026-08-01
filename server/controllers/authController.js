@@ -36,7 +36,16 @@ const sendTokenResponse = (user, statusCode, res) => {
 // ──────────────────────────────────────────────────────
 exports.register = async (req, res, next) => {
   try {
-    const { name, email, password, phone, marketingConsent } = req.body;
+    const { name, password, phone, marketingConsent } = req.body;
+    // Normalize BEFORE the duplicate-check query, not just at save time.
+    // The schema's `lowercase: true` only fires when a doc is written —
+    // it does nothing for a .findOne() query. If this dedupe check queries
+    // the raw, un-normalized value and someone (admin, signup form, Google
+    // payload) ever supplies the same email with different case/whitespace,
+    // this check misses the existing account and a second User document
+    // gets created with the "same" email in every way that matters, which
+    // is exactly how an account can end up silently duplicated.
+    const email = (req.body.email || '').trim().toLowerCase();
 
     if (!name || !email || !password) {
       return res.status(400).json({
@@ -85,7 +94,10 @@ exports.register = async (req, res, next) => {
 // ──────────────────────────────────────────────────────
 exports.login = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { password } = req.body;
+    // Same normalization as register() — must match exactly what's stored,
+    // since Mongo's default collation is case-sensitive.
+    const email = (req.body.email || '').trim().toLowerCase();
 
     if (!email || !password) {
       return res.status(400).json({
@@ -150,10 +162,16 @@ exports.googleLogin = async (req, res, next) => {
       audience: process.env.GOOGLE_CLIENT_ID,
     });
 
-    const { sub, email, name, picture } = ticket.getPayload();
+    const { sub, name, picture } = ticket.getPayload();
+    // Google's claim is basically always already lowercase, but normalize
+    // the same way register()/login() do — this must match byte-for-byte
+    // with what's stored, or the $or below silently fails to find the
+    // existing account and creates a duplicate User document instead of
+    // linking to it.
+    const email = (ticket.getPayload().email || '').trim().toLowerCase();
 
     let user = await User.findOne({
-      $or: [{ googleId: sub }, { email: email }],
+      $or: [{ googleId: sub }, { email }],
     });
 
     if (user) {
