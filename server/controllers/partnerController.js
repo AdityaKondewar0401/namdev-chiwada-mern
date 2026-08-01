@@ -164,8 +164,15 @@ exports.createPartner = async (req, res, next) => {
       });
     }
 
-    const partner = await Partner.create({
-      user: linkedUser ? linkedUser._id : null,
+    // IMPORTANT: only include `user` in this object when linkedUser exists.
+    // Partner.js's sparse unique index on `user` only exempts documents
+    // where the field is completely ABSENT — a document with an explicit
+    // `user: null` still counts as "present" for a sparse index, so a
+    // second phone-only partner (no email, no linkedUser) would collide
+    // with the first one's `null` and fail with a duplicate-key error.
+    // Omitting the key entirely keeps it truly unset, which is what the
+    // sparse index is actually designed to allow.
+    const partnerData = {
       businessName,
       type,
       contactPerson,
@@ -175,7 +182,12 @@ exports.createPartner = async (req, res, next) => {
       gstin,
       defaultAdvancePercent:
         defaultAdvancePercent !== undefined ? Number(defaultAdvancePercent) : 50,
-    });
+    };
+    if (linkedUser) {
+      partnerData.user = linkedUser._id;
+    }
+
+    const partner = await Partner.create(partnerData);
 
     if (linkedUser) {
       const token = PartnerInvite.generateToken();

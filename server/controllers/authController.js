@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
+const { reconnectPartnerIfOrphaned } = require('../utils/partnerLink');
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -12,7 +13,12 @@ const signToken = (id) => {
   );
 };
 
-const sendTokenResponse = (user, statusCode, res) => {
+// Runs on every successful register/login/Google-login. Self-heals a
+// Partner <-> User link if it's ever been orphaned (see utils/partnerLink.js)
+// before the token/role are sent back, so the response always reflects
+// the corrected role.
+const sendTokenResponse = async (user, statusCode, res) => {
+  user = await reconnectPartnerIfOrphaned(user);
   const token = signToken(user._id);
 
   res.status(statusCode).json({
@@ -81,7 +87,7 @@ exports.register = async (req, res, next) => {
       },
     });
 
-    sendTokenResponse(user, 201, res);
+    await sendTokenResponse(user, 201, res);
 
   } catch (err) {
     next(err);
@@ -135,7 +141,7 @@ exports.login = async (req, res, next) => {
       });
     }
 
-    sendTokenResponse(user, 200, res);
+    await sendTokenResponse(user, 200, res);
 
   } catch (err) {
     next(err);
@@ -190,7 +196,7 @@ exports.googleLogin = async (req, res, next) => {
       });
     }
 
-    sendTokenResponse(user, 200, res);
+    await sendTokenResponse(user, 200, res);
 
   } catch (err) {
     console.error('Google auth error:', err);
