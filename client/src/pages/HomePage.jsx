@@ -76,25 +76,71 @@ function FeaturesSection() {
   );
 }
 
-// ── Shipping partner "tape" — NEW. A slim full-width strip (like a
-//    ribbon of tape stuck across the page) calling out that every order
-//    ships via Shadowfax, using their real logo from client/public/.
-//    Sits right after the features grid (which already mentions
-//    "Pan-India Delivery"), before the product listing. ──
+// ── Shipping partner "tape" — designed to look like a torn slip of paper
+//    taped down at the top, calling out that every order ships via
+//    Shadowfax, using their real logo from client/public/. Sits right
+//    after the features grid (which already mentions "Pan-India
+//    Delivery"), before the product listing.
+//
+//    The jagged bottom edge is a CSS clip-path zigzag (percentage-based,
+//    so it scales with the card's width at any viewport) and the "tape"
+//    is just a small rotated rectangle positioned over the top edge.
+//    Rotation is intentionally tiny (1deg) so it reads as a nice touch
+//    rather than something crooked-looking on a phone.
+//
+//    The <img> has an onError fallback that hides itself instead of
+//    showing a broken-image icon — belt-and-braces in case the logo file
+//    ever fails to deploy for any reason; the text still reads fine on
+//    its own either way. ──
 function ShippingPartnerTape() {
   return (
-    <div className="w-full py-3 md:py-4 bg-white border-y border-saffron/10">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-center gap-2 md:gap-3 flex-wrap text-center">
-        <span className="text-brown-mid/70 font-medium" style={{ fontSize: 'clamp(0.72rem,1.6vw,0.9rem)' }}>
-          Your order will be delivered by Shadowfax 360
-        </span>
-        <img
-          src="/shadowfax-logo.webp"
-          alt="Shadowfax"
-          style={{ height: 20 }}
-          className="md:h-6 w-auto"
-          loading="lazy"
-        />
+    <div className="w-full py-10 md:py-14" style={{ background: 'linear-gradient(135deg,#fff8ec,#fdf0d6)' }}>
+      <div className="max-w-3xl mx-auto px-4 sm:px-6">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="relative"
+          style={{ transform: 'rotate(1deg)' }}
+        >
+          {/* Tape strip — sits centered over the top edge of the card */}
+          <div
+            className="absolute z-10"
+            style={{
+              top: -14, left: '50%', transform: 'translateX(-50%) rotate(-2deg)',
+              width: 'clamp(90px,18vw,140px)', height: 26,
+              background: 'rgba(224,112,0,0.35)',
+              boxShadow: '0 2px 6px rgba(45,26,0,0.12)',
+              borderRadius: 3,
+            }}
+          />
+
+          <div
+            className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-7 text-center px-6 sm:px-12 pt-8 pb-10 md:pt-10 md:pb-14"
+            style={{
+              background: '#fff',
+              boxShadow: '0 12px 36px rgba(45,26,0,0.12)',
+              clipPath:
+                'polygon(0 0,100% 0,100% 88%,95% 100%,90% 88%,85% 100%,80% 88%,75% 100%,70% 88%,65% 100%,60% 88%,55% 100%,50% 88%,45% 100%,40% 88%,35% 100%,30% 88%,25% 100%,20% 88%,15% 100%,10% 88%,5% 100%,0 88%)',
+            }}
+          >
+            <span
+              className="font-serif font-bold text-brown-dark leading-snug"
+              style={{ fontSize: 'clamp(1.1rem,2.8vw,1.6rem)' }}
+            >
+              Proudly shipped with <span style={{ color: '#e07000' }}>Shadowfax 360</span>
+            </span>
+            <img
+              src="/shadowfax-logo.webp"
+              alt="Shadowfax"
+              style={{ height: 44 }}
+              className="md:h-[64px] w-auto flex-shrink-0"
+              loading="lazy"
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            />
+          </div>
+        </motion.div>
       </div>
     </div>
   );
