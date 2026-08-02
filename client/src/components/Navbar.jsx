@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
@@ -62,6 +62,27 @@ export default function Navbar() {
   const { totalItems } = useCart();
   const location = useLocation();
   const navigate = useNavigate();
+  const headerRef = useRef(null);
+
+  // Publish the real, current height of the announcement bar + nav (which
+  // sit in normal document flow, not fixed) as a CSS variable. Sections
+  // like the hero read --header-h so they can size themselves as
+  // "one viewport minus whatever the header actually takes up" instead of
+  // a flat 100svh, which used to leave a gap under the header and push the
+  // bottom of the hero off-screen since the header's own height was never
+  // subtracted anywhere. Height changes (scrolled state shrinks the nav,
+  // mobile search row expands it, etc.) are picked up automatically.
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el) return;
+    const setVar = () => {
+      document.documentElement.style.setProperty('--header-h', `${el.offsetHeight}px`);
+    };
+    setVar();
+    const ro = new ResizeObserver(setVar);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   useEffect(() => {
     setMenuOpen(false);
@@ -114,6 +135,7 @@ export default function Navbar() {
 
   return (
     <>
+      <div ref={headerRef}>
       <div
         className={`relative w-full text-white text-xs font-medium py-1.5 md:py-2 px-4 md:px-6 flex items-center justify-between overflow-hidden transition-all duration-200 ${menuOpen ? 'invisible opacity-0' : 'visible opacity-100'}`}
         style={{ background: '#1a3a2a' }}
@@ -401,6 +423,7 @@ export default function Navbar() {
           )}
         </AnimatePresence>
       </nav>
+      </div>
 
       <AnimatePresence>
         {menuOpen && (
