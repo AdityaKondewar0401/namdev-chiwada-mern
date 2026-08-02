@@ -117,10 +117,13 @@ function FeaturesSection() {
           <h2 className="section-title">Crafted Through Generations</h2>
         </div>
 
-        {/* Mobile (<640px): vertical numbered journey, dotted trail on the left */}
-        <div className="relative flex flex-col gap-6 sm:hidden">
+        {/* Mobile (<640px): vertical stack of white "stop" cards, each one
+            holding a bigger photo badge + title/desc, with a thin dotted
+            gold trail running behind the stack so it still reads as a
+            connected journey even though each stop now has its own card. */}
+        <div className="relative flex flex-col gap-5 sm:hidden">
           <svg
-            className="absolute left-[27px] w-4 pointer-events-none"
+            className="absolute left-12 w-4 pointer-events-none z-0"
             style={{ top: 8, bottom: 8, height: 'calc(100% - 16px)' }}
             viewBox="0 0 20 400" preserveAspectRatio="none"
           >
@@ -131,40 +134,46 @@ function FeaturesSection() {
             <motion.div key={f.title}
               initial={{ opacity: 0, x: -14 }} whileInView={{ opacity: 1, x: 0 }}
               transition={{ delay: i * 0.08, duration: 0.45 }} viewport={{ once: true }}
-              className="relative z-10 flex items-center gap-4"
+              className="relative z-10 flex items-center gap-4 bg-white rounded-2xl border border-saffron/10 p-4"
+              style={{ boxShadow: '0 4px 16px rgba(45,26,0,0.08)' }}
             >
-              <FeatureBadge f={f} i={i} size={56} />
-              <div>
-                <div className="font-serif font-bold text-brown-dark text-sm leading-tight">{f.title}</div>
-                <div className="text-brown-mid/70 text-xs mt-0.5 leading-relaxed">{f.desc}</div>
+              <FeatureBadge f={f} i={i} size={64} />
+              <div className="flex-1 min-w-0">
+                <div className="font-serif font-bold text-brown-dark text-base leading-tight mb-1">{f.title}</div>
+                <div className="text-brown-mid/70 text-sm leading-relaxed">{f.desc}</div>
               </div>
             </motion.div>
           ))}
         </div>
 
-        {/* Tablet/desktop (≥640px): horizontal journey, same trail + badges */}
+        {/* Tablet/desktop (≥640px): same idea, laid out as 4 white cards in
+            a row. Badges are notably bigger here (96px) than the old bare
+            circles so the photos actually read at a glance. The dotted
+            trail sits behind the cards and only peeks through the gaps. */}
         <div className="hidden sm:block relative">
           <div
-            className="absolute top-9 md:top-10 left-[8%] right-[8%] pointer-events-none"
+            className="absolute left-[6%] right-[6%] pointer-events-none z-0"
             style={{
+              top: 72,
               height: 2,
               backgroundImage: 'repeating-linear-gradient(to right, #d4af37 0 6px, transparent 6px 12px)',
             }}
           />
-          <div className="grid grid-cols-4 gap-4 md:gap-8 relative">
+          <div className="grid grid-cols-4 gap-4 md:gap-6 relative z-10">
             {FEATURES.map((f, i) => (
               <motion.div key={f.title}
                 initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1, duration: 0.5 }} viewport={{ once: true }}
-                className="flex flex-col items-center text-center"
+                className="flex flex-col items-center text-center bg-white rounded-2xl border border-saffron/10 p-5 md:p-6"
+                style={{ boxShadow: '0 6px 20px rgba(45,26,0,0.08)' }}
               >
                 <div className="mb-4">
-                  <FeatureBadge f={f} i={i} size={72} />
+                  <FeatureBadge f={f} i={i} size={96} />
                 </div>
-                <div className="font-serif font-bold text-brown-dark leading-tight"
-                  style={{ fontSize: 'clamp(0.85rem,1.6vw,1rem)' }}>{f.title}</div>
-                <div className="text-brown-mid/70 leading-relaxed mt-1"
-                  style={{ fontSize: 'clamp(0.75rem,1.3vw,0.875rem)' }}>{f.desc}</div>
+                <div className="font-serif font-bold text-brown-dark leading-tight mb-1.5"
+                  style={{ fontSize: 'clamp(0.9rem,1.6vw,1.05rem)' }}>{f.title}</div>
+                <div className="text-brown-mid/70 leading-relaxed"
+                  style={{ fontSize: 'clamp(0.78rem,1.3vw,0.9rem)' }}>{f.desc}</div>
               </motion.div>
             ))}
           </div>
