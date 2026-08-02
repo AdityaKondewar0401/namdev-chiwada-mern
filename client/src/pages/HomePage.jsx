@@ -69,20 +69,24 @@ function VegMark({ size = 22, border = 3 }) {
   );
 }
 
-// One glass card. Photo cards get a warm duotone wash (so four different
-// product photos still read as one cohesive palette) plus a frosted icon
-// plate; the vegetarian card is a frosted panel over a soft green wash with
-// no photo, since there's no product shot for "100% vegetarian" to show.
-function GlassFeatureCard({ f, index, className = '' }) {
+// One glass card — photo (or veg panel) only, no text inside. Photo cards
+// get a warm duotone wash (so the different product photos still read as
+// one cohesive palette) plus a frosted icon plate; the vegetarian card is a
+// frosted-icon-over-green panel, since there's no product shot for "100%
+// vegetarian" to show. The title now renders below the box (see
+// FeaturesSection), not layered on top of it.
+function GlassFeatureCard({ f, index, className = '', style = {} }) {
   const isVeg = f.icon === 'VEG_MARK';
   return (
     <div
       className={`relative rounded-2xl overflow-hidden ${className}`}
-      style={{ boxShadow: '0 8px 24px rgba(45,26,0,0.12)' }}
+      style={{ boxShadow: '0 8px 24px rgba(45,26,0,0.12)', ...style }}
     >
       <div className="absolute inset-0">
         {isVeg ? (
-          <div className="w-full h-full" style={{ background: 'linear-gradient(150deg, rgba(63,122,40,0.9), rgba(27,61,16,0.95))' }} />
+          <div className="w-full h-full flex items-center justify-center" style={{ background: 'linear-gradient(150deg, rgba(63,122,40,0.9), rgba(27,61,16,0.95))' }}>
+            <VegMark size={40} border={3} />
+          </div>
         ) : (
           <>
             <img
@@ -125,19 +129,6 @@ function GlassFeatureCard({ f, index, className = '' }) {
       >
         {index + 1}
       </div>
-
-      {isVeg ? (
-        <div className="relative h-full flex flex-col items-center justify-center px-4 text-center">
-          <VegMark size={36} border={3} />
-          <h3 className="font-serif font-bold text-white mt-3" style={{ fontSize: 'clamp(0.9rem,1.6vw,1.05rem)' }}>{f.title}</h3>
-          <p className="text-white/80 mt-1" style={{ fontSize: 'clamp(0.72rem,1.2vw,0.8rem)' }}>{f.desc}</p>
-        </div>
-      ) : (
-        <div className="relative h-full flex flex-col justify-end p-4">
-          <h3 className="font-serif font-bold text-white leading-tight" style={{ fontSize: 'clamp(0.95rem,1.6vw,1.1rem)' }}>{f.title}</h3>
-          <p className="text-white/80 mt-1.5 leading-snug" style={{ fontSize: 'clamp(0.72rem,1.2vw,0.8rem)' }}>{f.desc}</p>
-        </div>
-      )}
     </div>
   );
 }
@@ -191,9 +182,12 @@ function FeaturesSection() {
                   initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.08, duration: 0.45 }} viewport={{ once: true }}
                   className="snap-center shrink-0"
-                  style={{ width: '76%', aspectRatio: '3/4' }}
+                  style={{ width: '76%' }}
                 >
-                  <GlassFeatureCard f={f} index={i} className="h-full" />
+                  <GlassFeatureCard f={f} index={i} className="w-full" style={{ aspectRatio: '3/4' }} />
+                  <h3 className="font-serif font-bold text-brown-dark text-center mt-3" style={{ fontSize: '0.95rem' }}>
+                    {f.title}
+                  </h3>
                 </motion.div>
               ))}
             </div>
@@ -211,14 +205,18 @@ function FeaturesSection() {
             </div>
           </div>
 
-          {/* Tablet/desktop (>=640px): 4-up grid inside the gradient panel */}
-          <div className="hidden sm:grid grid-cols-4 gap-4 md:gap-5" style={{ gridAutoRows: '230px' }}>
+          {/* Tablet/desktop (>=640px): 4-up grid inside the gradient panel —
+              title sits below each box, no description text. */}
+          <div className="hidden sm:grid grid-cols-4 gap-4 md:gap-5">
             {FEATURES.map((f, i) => (
               <motion.div key={f.title}
                 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1, duration: 0.5 }} viewport={{ once: true }}
               >
-                <GlassFeatureCard f={f} index={i} className="h-full" />
+                <GlassFeatureCard f={f} index={i} className="w-full" style={{ height: 210 }} />
+                <h3 className="font-serif font-bold text-brown-dark text-center mt-3" style={{ fontSize: 'clamp(0.9rem,1.4vw,1.05rem)' }}>
+                  {f.title}
+                </h3>
               </motion.div>
             ))}
           </div>
