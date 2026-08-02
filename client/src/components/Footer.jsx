@@ -19,7 +19,6 @@ const SOCIALS = [
     color: "1877F2",
     href: "https://www.facebook.com/share/19AojeQWs4/",
   },
-  { slug: "youtube", label: "YouTube", color: "FF0000", href: "#" },
   {
     slug: "whatsapp",
     label: "WhatsApp",

@@ -293,6 +293,88 @@ function CTASection() {
   );
 }
 
+// ── "Follow Us" banner — a diagonal two-way split card: Instagram gradient
+//    on the left, a warm brand-brown panel with a product photo bleeding
+//    through on the right. Each half is its own full-height <a> so the
+//    whole colored region is tappable, not just the icon/text. Deliberately
+//    has no follower/like counts — those get stale fast and read as fake
+//    if nobody's updating them; the CTA copy ("Tap to follow →") carries
+//    the call-to-action instead.
+//
+//    Real handles: update INSTAGRAM_URL / FACEBOOK_URL here if the
+//    business's profile links ever change — they're also duplicated in
+//    Footer.jsx's SOCIALS array, so keep both in sync.
+const INSTAGRAM_URL = 'https://www.instagram.com/namdevchiwda?igsh=aGJoeDE3eDhpOXRx';
+const FACEBOOK_URL = 'https://www.facebook.com/share/19AojeQWs4/';
+
+function FollowUsBanner() {
+  const ref = useReveal();
+  return (
+    <section className="py-10 md:py-16 bg-cream">
+      <div ref={ref} className="reveal max-w-3xl mx-auto px-4 sm:px-6">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="relative rounded-2xl overflow-hidden"
+          style={{
+            height: 'clamp(180px,32vw,220px)',
+            boxShadow: '0 16px 40px rgba(45,26,0,0.25)',
+          }}
+        >
+          {/* Base warm-brown backdrop + faded product photo, purely decorative */}
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(120deg,#3a1c08 45%,#7a3300 100%)' }} />
+          <img
+            src="https://res.cloudinary.com/dz7ykg6qr/image/upload/v1776256647/special1_sy4zxa.png"
+            alt=""
+            aria-hidden="true"
+            className="absolute pointer-events-none select-none"
+            style={{ right: -20, bottom: -30, width: 'clamp(120px,26vw,180px)', opacity: 0.3 }}
+            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+          />
+          {/* Instagram-gradient diagonal panel, clipped to a slanted left wedge */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              clipPath: 'polygon(0 0,55% 0,40% 100%,0 100%)',
+              background: 'linear-gradient(160deg,#f58529,#dd2a7b 55%,#8134af)',
+            }}
+          />
+
+          {/* Instagram half */}
+          
+            href={INSTAGRAM_URL}
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Follow Namdev Chiwda on Instagram"
+            className="absolute left-0 top-0 bottom-0 flex flex-col justify-center text-white transition-opacity hover:opacity-90"
+            style={{ width: '46%', paddingLeft: 'clamp(16px,4vw,26px)' }}
+          >
+            <img src="https://cdn.simpleicons.org/instagram/FFFFFF" alt="" width={26} height={26} loading="lazy" decoding="async" style={{ marginBottom: 10 }} />
+            <span className="font-bold" style={{ fontSize: 'clamp(0.82rem,2.2vw,0.95rem)' }}>@namdevchiwda</span>
+            <span className="opacity-85 mt-1" style={{ fontSize: 'clamp(0.62rem,1.6vw,0.7rem)' }}>Tap to follow →</span>
+          </a>
+
+          {/* Facebook half */}
+          
+            href={FACEBOOK_URL}
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Like Namdev Chiwda on Facebook"
+            className="absolute right-0 top-0 bottom-0 flex flex-col justify-center items-end text-right text-white transition-opacity hover:opacity-90"
+            style={{ width: '46%', paddingRight: 'clamp(16px,4vw,26px)' }}
+          >
+            <img src="https://cdn.simpleicons.org/facebook/FFFFFF" alt="" width={26} height={26} loading="lazy" decoding="async" style={{ marginBottom: 10 }} />
+            <span className="font-bold" style={{ fontSize: 'clamp(0.82rem,2.2vw,0.95rem)' }}>Namdev Chiwda</span>
+            <span className="opacity-85 mt-1" style={{ fontSize: 'clamp(0.62rem,1.6vw,0.7rem)' }}>← Tap to like</span>
+          </a>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
 export default function HomePage() {
   return (
     <PageWrapper>
@@ -319,6 +401,9 @@ export default function HomePage() {
       <TestimonialsCarousel />
 
       <CTASection />
+
+      {/* NEW: social follow-us banner — see FollowUsBanner above */}
+      <FollowUsBanner />
 
       {/* NEW: distributorship/trade section — after story + products,
           right before the footer, visually distinct "trade" band. */}
