@@ -343,10 +343,10 @@ function FollowUsBanner() {
           />
 
           {/* Instagram half */}
-          
+          <a
             href={INSTAGRAM_URL}
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             aria-label="Follow Namdev Chiwda on Instagram"
             className="absolute left-0 top-0 bottom-0 flex flex-col justify-center text-white transition-opacity hover:opacity-90"
             style={{ width: '46%', paddingLeft: 'clamp(16px,4vw,26px)' }}
@@ -357,10 +357,10 @@ function FollowUsBanner() {
           </a>
 
           {/* Facebook half */}
-          
+          <a
             href={FACEBOOK_URL}
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             aria-label="Like Namdev Chiwda on Facebook"
             className="absolute right-0 top-0 bottom-0 flex flex-col justify-center items-end text-right text-white transition-opacity hover:opacity-90"
             style={{ width: '46%', paddingRight: 'clamp(16px,4vw,26px)' }}
