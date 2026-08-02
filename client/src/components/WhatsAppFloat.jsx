@@ -21,9 +21,18 @@ import { useLocation } from 'react-router-dom';
 // `phone` / `message` are now actually honored (App.jsx's <Layout> already
 // passed these — e.g. phone="919130160491" — but this component previously
 // ignored both and used its own hardcoded copy of the same values).
+//
+// 3. NEW — the button was sitting fixed at bottom-right on every page, which
+//    meant it kept floating on top of the footer once a shopper scrolled
+//    all the way down, overlapping the footer's own social icons/links.
+//    Fixed by watching Footer.jsx's <footer id="site-footer"> with an
+//    IntersectionObserver: as soon as any part of the footer enters the
+//    viewport, this button hides itself, and it reappears the moment the
+//    footer scrolls back out of view.
 export default function WhatsAppFloat({ phone = '919130160491', message = "Namaste! I'd like to place an order / inquire about Namdev Chiwda products." }) {
   const location = useLocation();
   const [pdpBarVisible, setPdpBarVisible] = useState(false);
+  const [footerVisible, setFooterVisible] = useState(false);
 
   useEffect(() => {
     const handlePdpStickyBar = (e) => setPdpBarVisible(Boolean(e.detail?.visible));
@@ -31,13 +40,27 @@ export default function WhatsAppFloat({ phone = '919130160491', message = "Namas
     return () => window.removeEventListener('pdp-sticky-bar', handlePdpStickyBar);
   }, []);
 
+  // Re-attach on every route change: Footer.jsx is rendered once per page
+  // inside the shared Layout, but the DOM node is fresh on each navigation,
+  // and re-observing a stale/detached element would silently stop working.
+  useEffect(() => {
+    const footerEl = document.getElementById('site-footer');
+    if (!footerEl) return undefined;
+    const observer = new IntersectionObserver(
+      ([entry]) => setFooterVisible(entry.isIntersecting),
+      { threshold: 0 }
+    );
+    observer.observe(footerEl);
+    return () => observer.disconnect();
+  }, [location.pathname]);
+
   // Reset once we navigate away from a product page, so a stale "hide" from
   // the last PDP visited doesn't linger on an unrelated page.
   useEffect(() => {
     setPdpBarVisible(false);
   }, [location.pathname]);
 
-  const hidden = location.pathname === '/checkout' || pdpBarVisible;
+  const hidden = location.pathname === '/checkout' || pdpBarVisible || footerVisible;
 
   if (hidden) return null;
 
