@@ -505,7 +505,7 @@ export default function HeroExperience() {
                 <AnimatePresence mode="wait" custom={direction}>
                   <motion.div key={current} custom={direction} variants={desktopSlideVariants}
                     initial="enter" animate="center" exit="exit"
-                    style={{ animation: 'heroFloat 4s ease-in-out infinite', display: 'flex', justifyContent: 'center', transform: 'translateY(-40px)' }}>
+                    style={{ animation: 'heroFloat 4s ease-in-out infinite', display: 'flex', justifyContent: 'center', transform: 'translateY(-8px)' }}>
                     <img
                       src={cldUrl(PRODUCTS[current].img)}
                       srcSet={cldSrcSet(PRODUCTS[current].img)}
