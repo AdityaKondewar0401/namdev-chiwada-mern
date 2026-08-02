@@ -33,7 +33,7 @@ import { cldUrl, cldSrcSet } from '../utils/cloudinary';
 //     micro-trust line under the mobile trust badges — a small,
 //     concrete purchase-reassurance detail near the CTA.
 //
-// Follow-up fixes (this revision):
+// Follow-up fixes:
 //  7. BUG FIX — the whole hero (including the text block) appeared to
 //     "flash/refresh" every ~3.5s. Root cause: BgDecorations and the old
 //     Dots component were defined *inside* HeroExperience's function
@@ -43,6 +43,15 @@ import { cldUrl, cldSrcSet } from '../utils/cloudinary';
 //     identities — no more remount, no more flicker.
 //  8. Removed the mobile carousel dot row per feedback (swipe still
 //     works to navigate slides). Desktop keeps its dots.
+//  9. BUG FIX — desktop view was "blinking" every 3-4s. Root cause: the
+//     box wrapping the desktop product image had no reserved height, so
+//     AnimatePresence's mode="wait" (which fully unmounts the outgoing
+//     slide before mounting the next) briefly left that box with zero
+//     children on every autoplay tick, collapsing its height. Combined
+//     with `items-center` on the parent grid, that collapse shifted the
+//     whole right column (and slightly the left column) — perceived as
+//     blinking. Fixed by reserving the image's exact footprint via
+//     aspect-ratio so removing/adding a slide never changes the box size.
 // ─────────────────────────────────────────────
 
 const TRUST = ['150+ Years Legacy', 'No Artificial Colors', 'FSSAI Licensed'];
@@ -357,13 +366,6 @@ export default function HeroExperience() {
                 display: 'block', textAlign: 'center', fontFamily: "'Playfair Display', serif",
                 fontWeight: 800, fontStyle: 'normal', fontSize: 'clamp(2rem,8.8vw,3.2rem)',
                 letterSpacing: '-0.005em', color: '#e7bf63', textShadow: '0 6px 24px rgba(224,112,0,0.3)',
-                // NEW: small explicit gap above this line (not a general
-                // line-height bump) — just enough extra vertical rhythm to
-                // push everything below (tagline, divider, CTA buttons)
-                // fully clear of the first-viewport fold, instead of the
-                // buttons showing a half-cut sliver at the bottom edge.
-                // Bump this a few px higher if your device still shows a
-                // sliver; it's deliberately modest per your request.
                 marginTop: 10,
               }}>
                 Timeless Tradition
@@ -380,10 +382,6 @@ export default function HeroExperience() {
             खमंग चिवडा — पिढ्यानपिढ्याची चव
           </p>
 
-          {/* NOTE: mobile carousel dots removed per feedback — swipe left/right
-              on the packet image still navigates between products, this was
-              purely the visual dot row. Divider's bottom margin bumped up a
-              little to keep the spacing balanced now that row is gone. */}
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 14, marginBottom: 34 }}>
             <div style={{ width: 45, height: 1, background: 'rgba(212,168,55,0.45)' }} />
             <div style={{ width: 7, height: 7, background: '#D4A843', borderRadius: 999 }} />
@@ -424,7 +422,6 @@ export default function HeroExperience() {
             ))}
           </div>
 
-          {/* NEW: small purchase-reassurance microcopy, close to the CTA */}
           <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.4)', fontFamily: "'Inter', sans-serif", letterSpacing: '0.02em' }}>
             Free shipping over ₹499 · Cash on delivery available
           </div>
@@ -432,7 +429,7 @@ export default function HeroExperience() {
       </div>
 
       {/* ══════════════════════════════
-          DESKTOP layout — unchanged structure, perf attrs added
+          DESKTOP layout
           ══════════════════════════════ */}
       <div className="hidden md:flex items-center" style={{ minHeight: '100svh', position: 'relative', zIndex: 5 }}>
         <div className="max-w-7xl mx-auto px-6 w-full">
@@ -501,7 +498,14 @@ export default function HeroExperience() {
                 border: '1px solid rgba(255,255,255,0.06)', animation: 'spinSlow 14s linear infinite reverse',
                 top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 1,
               }} />
-              <div style={{ position: 'relative', zIndex: 3, width: '100%', display: 'flex', justifyContent: 'center' }}>
+              {/* BUG FIX (#9 above): reserve the image's exact footprint so
+                  removing/adding a slide during AnimatePresence's
+                  mode="wait" transition never changes this box's size. */}
+              <div style={{
+                position: 'relative', zIndex: 3,
+                width: 'clamp(300px,56vw,760px)', aspectRatio: `${IMG_W} / ${IMG_H}`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto',
+              }}>
                 <AnimatePresence mode="wait" custom={direction}>
                   <motion.div key={current} custom={direction} variants={desktopSlideVariants}
                     initial="enter" animate="center" exit="exit"
