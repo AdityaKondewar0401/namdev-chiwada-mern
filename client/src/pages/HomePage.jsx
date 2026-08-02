@@ -19,10 +19,10 @@ const MARQUEE_ITEMS = ['Dagdi-Poha Chiwda', 'Maka Chiwda', 'Bakarwadi', 'Lasun S
 // for better-matched photography later — the layout doesn't care which
 // image goes where.
 const FEATURES = [
-  { icon: '🔥', image: '/images/chiwada-1.jpg', title: 'Perfectly Roasted Blend', desc: 'Each batch is carefully roasted and blended for that signature Namdev crunch.' },
-  { icon: '🏅', image: '/images/bakarwadi-2.jpg', title: '150 Years of Craft', desc: 'A recipe passed down through six generations of the Namdev family.' },
-  { icon: '🚚', image: '/images/maka-chiwada-1.jpg', title: 'Pan-Maharashtra Delivery', desc: 'Fresh-packed and delivered across Maharashtra via Shadowfax, fast and reliable.' },
-  { icon: 'VEG_MARK', title: '100% Vegetarian', desc: 'No artificial colors, preservatives or additives. Ever.' },
+  { icon: '🔥', image: '/images/chiwada-1.jpg', title: 'Perfectly Roasted Blend' },
+  { icon: '🏅', image: '/images/bakarwadi-2.jpg', title: '150 Years of Craft' },
+  { icon: '🚚', image: '/images/maka-chiwada-1.jpg', title: 'Pan-Maharashtra Delivery' },
+  { icon: 'VEG_MARK', title: '100% Vegetarian' },
 ];
 
 const STATS = [
@@ -115,7 +115,7 @@ function FeatureDiagonalPhoto({ f, clipPath }) {
     <div
       style={{
         position: 'absolute', inset: 0, clipPath,
-        background: isVeg ? 'linear-gradient(135deg,#fff0d6,#fdf3c8)' : 'linear-gradient(135deg,#f3c9a0,#d8763f)',
+        background: isVeg ? 'linear-gradient(135deg,#4a8a2e,#2d5a1b)' : 'linear-gradient(135deg,#f3c9a0,#d8763f)',
       }}
     >
       {isVeg ? (
@@ -157,8 +157,7 @@ function FeaturesSection() {
               <FeatureIconBadge icon={f.icon === 'VEG_MARK' ? '🌿' : f.icon} size={30} />
               <FeatureNumberBadge n={i + 1} className="bottom-3 right-3" />
               <div className="absolute flex flex-col justify-center" style={{ left: '52%', right: 14, top: 10, bottom: 10 }}>
-                <div className="font-serif font-bold text-brown-dark text-sm leading-tight mb-1">{f.title}</div>
-                <div className="text-brown-mid/70 text-xs leading-snug">{f.desc}</div>
+                <div className="font-serif font-bold text-brown-dark text-sm leading-tight">{f.title}</div>
               </div>
             </motion.div>
           ))}
@@ -183,8 +182,7 @@ function FeaturesSection() {
               <FeatureIconBadge icon={f.icon === 'VEG_MARK' ? '🌿' : f.icon} />
               <FeatureNumberBadge n={i + 1} className="top-3 right-3" />
               <div className="absolute left-4 right-4" style={{ bottom: 16 }}>
-                <div className="font-serif font-bold text-brown-dark mb-1" style={{ fontSize: 'clamp(0.9rem,1.6vw,1.05rem)' }}>{f.title}</div>
-                <div className="text-brown-mid/70 leading-snug" style={{ fontSize: 'clamp(0.75rem,1.3vw,0.85rem)' }}>{f.desc}</div>
+                <div className="font-serif font-bold text-brown-dark" style={{ fontSize: 'clamp(0.9rem,1.6vw,1.05rem)' }}>{f.title}</div>
               </div>
             </motion.div>
           ))}
