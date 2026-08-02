@@ -4,6 +4,7 @@ const Payment = require('../models/Payment');
 const Partner = require('../models/Partner');
 const { sendOrderApprovedEmail, sendOrderRejectedEmail } = require('../services/emailService');
 const { sendWhatsApp } = require('../services/whatsappService');
+const { createShadowfaxShipmentForConsignment } = require('../services/consignmentShipping');
 
 // ──────────────────────────────────────────────────────
 // GET /api/partner-orders
@@ -116,6 +117,12 @@ exports.approveOrderRequest = async (req, res, next) => {
     orderRequest.status = 'approved';
     orderRequest.consignment = consignment._id;
     await orderRequest.save();
+
+    // Fire the Shadowfax shipment now that the consignment (and its
+    // Payment records) exist — same hook as the manual-dispatch path in
+    // consignmentController.createConsignment. Never blocks the approval;
+    // failures land on consignment.courier.error for a manual retry.
+    await createShadowfaxShipmentForConsignment(consignment, partner);
 
     // Best-effort — a notification failure must never fail the approval
     // itself, same philosophy as every other notification in this app.

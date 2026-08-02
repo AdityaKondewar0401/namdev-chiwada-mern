@@ -6,9 +6,12 @@
 // escalation, POD lookup) that reuse the same service module.
 
 const Order = require('../models/Order');
+const Consignment = require('../models/Consignment');
+const Partner = require('../models/Partner');
 const shadowfaxService = require('../services/shadowfaxService');
 const { getShadowfaxConfig } = require('../config/shadowfax');
 const { calcTotalWeightGrams } = require('../utils/weight');
+const { createShadowfaxShipmentForConsignment } = require('../services/consignmentShipping');
 
 /* =========================================
    POST/GET check pincode serviceability
@@ -54,8 +57,11 @@ exports.checkPincode = async (req, res, next) => {
    verified against SHADOWFAX_WEBHOOK_TOKEN if one is configured — see
    the Authorization header note in the API doc's "Push Callback API"
    section. `order_id` in the payload is the client_order_id we sent when
-   creating the shipment, which is always our Mongo Order._id (see
-   shadowfaxService.createWarehouseOrder).
+   creating the shipment — for a customer Order that's the Mongo
+   Order._id, for a partner Consignment it's the Mongo Consignment._id
+   (see shadowfaxService.createWarehouseOrder / consignmentShipping.js),
+   so this looks up BOTH collections since the same webhook URL covers
+   both shipment types.
 ========================================= */
 exports.handlePushCallback = async (req, res) => {
   try {
@@ -83,29 +89,39 @@ exports.handlePushCallback = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Missing awb_number/order_id' });
     }
 
-    // order_id is our own Order._id (client_order_id sent at creation
-    // time), so look up by that first; fall back to the AWB in case a
-    // client_order_id was ever missing/changed on Shadowfax's side.
+    // order_id is client_order_id from creation time — try the customer
+    // Order collection first (the far more common case), then fall back
+    // to Consignment, then to an AWB lookup across both if the id lookup
+    // ever misses (e.g. a client_order_id that changed on Shadowfax's side).
     let order = null;
+    let consignment = null;
+
     if (order_id) {
       order = await Order.findById(order_id).catch(() => null);
+      if (!order) {
+        consignment = await Consignment.findById(order_id).catch(() => null);
+      }
     }
-    if (!order && awb_number) {
+    if (!order && !consignment && awb_number) {
       order = await Order.findOne({ 'courier.awbNumber': awb_number });
+      if (!order) {
+        consignment = await Consignment.findOne({ 'courier.awbNumber': awb_number });
+      }
     }
 
-    if (!order) {
-      // Still 200 — Shadowfax doesn't need to retry for an order we
+    const target = order || consignment;
+    if (!target) {
+      // Still 200 — Shadowfax doesn't need to retry for a shipment we
       // simply don't recognize (e.g. stale test data).
-      console.warn(`Shadowfax webhook: no matching order for order_id=${order_id} awb=${awb_number}`);
+      console.warn(`Shadowfax webhook: no matching order/consignment for order_id=${order_id} awb=${awb_number}`);
       return res.status(200).json({ success: true, ignored: true });
     }
 
-    order.courier.awbNumber = order.courier.awbNumber || awb_number;
-    order.courier.status = event;
-    order.courier.statusDisplay = status;
-    order.courier.lastSyncedAt = new Date();
-    order.courier.history.push({
+    target.courier.awbNumber = target.courier.awbNumber || awb_number;
+    target.courier.status = event;
+    target.courier.statusDisplay = status;
+    target.courier.lastSyncedAt = new Date();
+    target.courier.history.push({
       statusId: event,
       status,
       location: current_location,
@@ -113,16 +129,23 @@ exports.handlePushCallback = async (req, res) => {
       eventTimestamp: event_timestamp ? new Date(event_timestamp) : new Date(),
     });
 
-    // Only forward-progress the order's own status — never let a stray
+    // Only forward-progress the ORDER's own status — never let a stray
     // out-of-order webhook regress an order that's already delivered or
     // cancelled back to something earlier.
-    const mapped = shadowfaxService.mapShadowfaxStatusToOrderStatus(event);
-    const terminal = ['delivered', 'cancelled'];
-    if (mapped && !terminal.includes(order.status)) {
-      order.status = mapped;
+    //
+    // Consignment.status means something entirely different (payment
+    // settlement: dispatched / partially_settled / settled) — it must
+    // NEVER be overwritten with a shipping status here. For a Consignment
+    // this webhook only ever updates the courier.* fields above.
+    if (order) {
+      const mapped = shadowfaxService.mapShadowfaxStatusToOrderStatus(event);
+      const terminal = ['delivered', 'cancelled'];
+      if (mapped && !terminal.includes(order.status)) {
+        order.status = mapped;
+      }
     }
 
-    await order.save();
+    await target.save();
 
     res.status(200).json({ success: true });
   } catch (err) {
@@ -289,6 +312,117 @@ exports.getProofOfDelivery = async (req, res, next) => {
 
     const podDetails = await shadowfaxService.getPodDetails([order.courier.awbNumber]);
     res.json({ success: true, pod: podDetails[order.courier.awbNumber] || null });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/* =========================================
+   CONSIGNMENTS (partner bulk dispatches) — same three admin actions as
+   the customer-Order ones above, reusing the same shadowfaxService calls
+   via consignmentShipping.js's adapter. See that file's header comment
+   for why there's no weight cap here and why payment_mode is always
+   forced to Prepaid.
+========================================= */
+
+/* ADMIN: manually re-sync tracking for one consignment from Shadowfax */
+exports.resyncConsignmentTracking = async (req, res, next) => {
+  try {
+    const consignment = await Consignment.findById(req.params.id);
+    if (!consignment) {
+      return res.status(404).json({ success: false, message: 'Consignment not found' });
+    }
+    if (!consignment.courier?.awbNumber) {
+      return res.status(400).json({ success: false, message: 'This consignment has no Shadowfax shipment yet' });
+    }
+
+    const { order: sfxOrder, history, trackingUrl } = await shadowfaxService.trackOrder(consignment.courier.awbNumber);
+
+    consignment.courier.status = sfxOrder?.status;
+    consignment.courier.statusDisplay = sfxOrder?.status_display;
+    consignment.courier.trackingUrl = trackingUrl || consignment.courier.trackingUrl;
+    consignment.courier.lastSyncedAt = new Date();
+    consignment.courier.history = (history || []).map((h) => ({
+      statusId: h.status_id,
+      status: h.status,
+      location: h.location,
+      remarks: h.remarks,
+      eventTimestamp: h.created ? new Date(h.created) : undefined,
+    }));
+    // Deliberately NOT touching consignment.status here — see the
+    // courierSchema comment in models/Consignment.js.
+
+    await consignment.save();
+    res.json({ success: true, consignment });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/* ADMIN: manually create the Shadowfax shipment for a consignment that
+   doesn't have one yet (e.g. it failed at dispatch time — see
+   consignment.courier.error). */
+exports.createConsignmentShipment = async (req, res, next) => {
+  try {
+    const consignment = await Consignment.findById(req.params.id);
+    if (!consignment) {
+      return res.status(404).json({ success: false, message: 'Consignment not found' });
+    }
+    if (consignment.courier?.awbNumber) {
+      return res.status(400).json({ success: false, message: 'This consignment already has an AWB' });
+    }
+
+    const partner = await Partner.findById(consignment.partner);
+    if (!partner) {
+      return res.status(404).json({ success: false, message: 'Partner not found for this consignment' });
+    }
+
+    await createShadowfaxShipmentForConsignment(consignment, partner);
+
+    if (!consignment.courier?.awbNumber) {
+      // createShadowfaxShipmentForConsignment never throws — it records
+      // failures on consignment.courier.error instead. Surface that here
+      // as a proper error response so the admin sees why it didn't work.
+      return res.status(400).json({
+        success: false,
+        message: consignment.courier?.error || 'Shipment creation failed',
+        consignment,
+      });
+    }
+
+    res.json({ success: true, consignment });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/* ADMIN: cancel the Shadowfax shipment for a consignment */
+exports.cancelConsignmentShipment = async (req, res, next) => {
+  try {
+    const consignment = await Consignment.findById(req.params.id);
+    if (!consignment) {
+      return res.status(404).json({ success: false, message: 'Consignment not found' });
+    }
+    if (!consignment.courier?.awbNumber) {
+      return res.status(400).json({ success: false, message: 'This consignment has no Shadowfax shipment' });
+    }
+
+    const { remarks } = req.body || {};
+    const result = await shadowfaxService.cancelOrder(
+      consignment.courier.awbNumber,
+      remarks || 'Cancelled by admin'
+    );
+
+    consignment.courier.status = 'cancelled_by_customer';
+    consignment.courier.statusDisplay = result.responseMsg || 'Cancelled';
+    consignment.courier.cancelReason = remarks || 'Cancelled by admin';
+    consignment.courier.lastSyncedAt = new Date();
+    // Again, deliberately not touching consignment.status (payment
+    // settlement) — cancelling the shipment says nothing about whether
+    // the partner still owes money for it.
+    await consignment.save();
+
+    res.json({ success: true, consignment, shadowfax: result });
   } catch (err) {
     next(err);
   }

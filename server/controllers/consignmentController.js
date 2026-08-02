@@ -1,6 +1,7 @@
 const Consignment = require('../models/Consignment');
 const Payment = require('../models/Payment');
 const Partner = require('../models/Partner');
+const { createShadowfaxShipmentForConsignment } = require('../services/consignmentShipping');
 
 // ──────────────────────────────────────────────────────
 // POST /api/consignments
@@ -80,6 +81,12 @@ exports.createConsignment = async (req, res, next) => {
         dueDate: null,
       },
     ]);
+
+    // Fire the Shadowfax shipment now that the consignment (and its
+    // Payment records) exist. Same "never block, just record the error"
+    // philosophy as the customer-Order flow — a Shadowfax outage must
+    // never stop a consignment from being dispatched.
+    await createShadowfaxShipmentForConsignment(consignment, partner);
 
     res.status(201).json({ success: true, consignment, payments });
   } catch (err) {

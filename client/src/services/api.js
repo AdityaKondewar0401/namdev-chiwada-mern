@@ -143,6 +143,17 @@ export const shippingAPI = {
 
   getPod: (orderId) =>
     api.get(`/api/shipping/orders/${orderId}/pod`),
+
+  // Admin-only consignment-level shipment actions (same Shadowfax flow,
+  // extended to partner bulk dispatches — see server/services/consignmentShipping.js)
+  resyncConsignmentTracking: (consignmentId) =>
+    api.post(`/api/shipping/consignments/${consignmentId}/resync`),
+
+  createConsignmentShipment: (consignmentId) =>
+    api.post(`/api/shipping/consignments/${consignmentId}/create-shipment`),
+
+  cancelConsignmentShipment: (consignmentId, remarks) =>
+    api.post(`/api/shipping/consignments/${consignmentId}/cancel-shipment`, { remarks }),
 };
 
 /* ===============================

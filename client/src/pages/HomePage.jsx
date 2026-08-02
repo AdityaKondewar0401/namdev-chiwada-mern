@@ -76,6 +76,30 @@ function FeaturesSection() {
   );
 }
 
+// ── Shipping partner "tape" — NEW. A slim full-width strip (like a
+//    ribbon of tape stuck across the page) calling out that every order
+//    ships via Shadowfax, using their real logo from client/public/.
+//    Sits right after the features grid (which already mentions
+//    "Pan-India Delivery"), before the product listing. ──
+function ShippingPartnerTape() {
+  return (
+    <div className="w-full py-3 md:py-4 bg-white border-y border-saffron/10">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-center gap-2 md:gap-3 flex-wrap text-center">
+        <span className="text-brown-mid/70 font-medium" style={{ fontSize: 'clamp(0.72rem,1.6vw,0.9rem)' }}>
+          Your order will be delivered by Shadowfax 360
+        </span>
+        <img
+          src="/shadowfax-logo.webp"
+          alt="Shadowfax"
+          style={{ height: 20 }}
+          className="md:h-6 w-auto"
+          loading="lazy"
+        />
+      </div>
+    </div>
+  );
+}
+
 // ── Stats band — unchanged from the original ──
 function StatsSection() {
   const ref = useReveal();
@@ -124,6 +148,9 @@ export default function HomePage() {
 
       <MarqueeSection />
       <FeaturesSection />
+
+      {/* NEW: shipping/courier partner tape — see ShippingPartnerTape above */}
+      <ShippingPartnerTape />
 
       {/* Existing API-backed featured products — data-fetching untouched */}
       <NamkeenSection />

@@ -645,6 +645,40 @@ function OrdersTimeline({ loading, consignments, myOrders, payingId, onPay, onRe
               <div className="text-xs text-red-600 mb-3 px-1 font-medium">Reason declined: {o.rejectionReason}</div>
             )}
 
+            {/* ── Courier tracking (Shadowfax) — read-only here, same
+                data the admin sees, shown once a shipment actually exists
+                for this consignment. Kept current by the Shadowfax Push
+                Callback webhook, same as the customer OrdersPage card. ── */}
+            {c?.courier?.awbNumber && (
+              <div className="mb-3 rounded-xl overflow-hidden" style={{ border: '1px solid rgba(224,112,0,0.12)' }}>
+                <div className="px-3 py-2.5" style={{ background: '#fdf6e8' }}>
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-brown-mid/50 mb-2">
+                    🚚 Courier Tracking
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                    <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-white text-brown-dark font-mono">
+                      AWB: {c.courier.awbNumber}
+                    </span>
+                    {c.courier.statusDisplay && (
+                      <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 capitalize">
+                        {c.courier.statusDisplay}
+                      </span>
+                    )}
+                  </div>
+                  {c.courier.trackingUrl && (
+                    <a
+                      href={c.courier.trackingUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 text-xs font-bold text-saffron hover:underline"
+                    >
+                      Track shipment ↗
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Payment split + status */}
             {c && (c.payments || []).length > 0 && (
               <div className="mb-3">

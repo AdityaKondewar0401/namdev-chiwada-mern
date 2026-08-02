@@ -18,12 +18,21 @@ router.get('/check-pincode', shippingController.checkPincode);
 router.post('/webhook/shadowfax', shippingController.handlePushCallback);
 
 /* =========================================
-   ADMIN
+   ADMIN — customer Orders
 ========================================= */
 router.post('/orders/:id/resync', protect, admin, shippingController.resyncTracking);
 router.post('/orders/:id/create-shipment', protect, admin, shippingController.createShipment);
 router.post('/orders/:id/cancel-shipment', protect, admin, shippingController.cancelShipment);
 router.post('/orders/:id/escalate', protect, admin, shippingController.escalateOrder);
 router.get('/orders/:id/pod', protect, admin, shippingController.getProofOfDelivery);
+
+/* =========================================
+   ADMIN — partner Consignments (same three actions; escalate/POD weren't
+   requested for consignments and aren't wired up in the admin UI, so
+   they're left out here to match what's actually exposed).
+========================================= */
+router.post('/consignments/:id/resync', protect, admin, shippingController.resyncConsignmentTracking);
+router.post('/consignments/:id/create-shipment', protect, admin, shippingController.createConsignmentShipment);
+router.post('/consignments/:id/cancel-shipment', protect, admin, shippingController.cancelConsignmentShipment);
 
 module.exports = router;

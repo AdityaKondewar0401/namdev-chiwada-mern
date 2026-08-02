@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { partnerAPI, consignmentAPI } from '../../services/api';
+import { partnerAPI, consignmentAPI, shippingAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 import { CONSIGNMENT_STATUS_CONFIG } from './adminConstants';
 
@@ -20,6 +20,11 @@ export default function ConsignmentsTab() {
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState('');
   const [sendingReminders, setSendingReminders] = useState(false);
+  // Tracks which consignment currently has a Shadowfax action in flight —
+  // keyed by consignment _id rather than a single boolean, since this
+  // list renders every consignment from one component (no per-card
+  // sub-component like OrdersTab.jsx's OrderCard).
+  const [courierBusyId, setCourierBusyId] = useState(null);
 
   const [form, setForm] = useState({
     partnerId: '',
@@ -127,6 +132,21 @@ export default function ConsignmentsTab() {
       consignmentAPI.getDues().then((res) => setDues(res.data.dues || [])).catch(() => {});
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to update payment');
+    }
+  };
+
+  const runCourierAction = async (consignmentId, action, successMsg) => {
+    setCourierBusyId(consignmentId);
+    try {
+      const res = await action();
+      setConsignments((prev) =>
+        prev.map((c) => (c._id === consignmentId ? { ...c, courier: res.data.consignment.courier } : c))
+      );
+      toast.success(successMsg);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Shadowfax action failed');
+    } finally {
+      setCourierBusyId(null);
     }
   };
 
@@ -376,6 +396,71 @@ export default function ConsignmentsTab() {
 
               <div className="text-xs text-brown-mid/70 mb-3">
                 {c.items.map((i) => `${i.name}${i.size ? ` (${i.size})` : ''} × ${i.qty}`).join(', ')}
+              </div>
+
+              {/* ── Shipping (Shadowfax) — same actions as the customer
+                  Order admin panel, extended to consignments. See
+                  server/services/consignmentShipping.js. ── */}
+              <div className="mb-3 rounded-xl p-3" style={{ background: '#fdf6e8', border: '1px solid rgba(224,112,0,0.1)' }}>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-brown-mid/50 mb-2">
+                  Shipping (Shadowfax)
+                </div>
+                {c.courier?.awbNumber ? (
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                      <span className="font-mono font-bold text-xs px-2.5 py-1 rounded-lg bg-white text-brown-dark">
+                        AWB: {c.courier.awbNumber}
+                      </span>
+                      {c.courier.statusDisplay && (
+                        <span className="text-xs font-bold px-2.5 py-1 rounded-lg capitalize bg-amber-50 text-amber-700 border border-amber-200">
+                          {c.courier.statusDisplay}
+                        </span>
+                      )}
+                    </div>
+                    {c.courier.trackingUrl && (
+                      <a
+                        href={c.courier.trackingUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-block text-xs font-bold text-saffron hover:underline mb-2"
+                      >
+                        Track shipment ↗
+                      </a>
+                    )}
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        disabled={courierBusyId === c._id}
+                        onClick={() => runCourierAction(c._id, () => shippingAPI.resyncConsignmentTracking(c._id), 'Tracking synced')}
+                        className="text-xs font-bold px-3 py-2 rounded-lg disabled:opacity-60"
+                        style={{ minHeight: 40, background: '#dbeafe', color: '#1d4ed8', border: '1px solid #bfdbfe' }}
+                      >
+                        🔄 Resync
+                      </button>
+                      <button
+                        disabled={courierBusyId === c._id}
+                        onClick={() => runCourierAction(c._id, () => shippingAPI.cancelConsignmentShipment(c._id, 'Cancelled by admin'), 'Shipment cancelled')}
+                        className="text-xs font-bold px-3 py-2 rounded-lg disabled:opacity-60"
+                        style={{ minHeight: 40, background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca' }}
+                      >
+                        ✕ Cancel shipment
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    {c.courier?.error && (
+                      <div className="text-xs text-red-600 font-semibold mb-2">⚠️ {c.courier.error}</div>
+                    )}
+                    <button
+                      disabled={courierBusyId === c._id}
+                      onClick={() => runCourierAction(c._id, () => shippingAPI.createConsignmentShipment(c._id), 'Shipment created')}
+                      className="text-xs font-bold px-3 py-2 rounded-lg disabled:opacity-60"
+                      style={{ minHeight: 40, background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0' }}
+                    >
+                      📦 Create Shadowfax shipment
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2">
