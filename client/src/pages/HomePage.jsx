@@ -13,10 +13,10 @@ import StickyShopBar from '../components/StickyShopBar';
 const MARQUEE_ITEMS = ['Dagdi-Poha Chiwda', 'Maka Chiwda', 'Bakarwadi', 'Lasun Sev', 'Shengdana Chutney', 'Special Farsan', 'Authentic Taste'];
 
 const FEATURES = [
-  { icon: '🔥', title: 'Perfectly Roasted Blend', desc: 'Each batch is carefully roasted and blended for that signature Namdev crunch.' },
-  { icon: '🏺', title: '150 Years of Craft', desc: 'A recipe passed down through six generations of the Namdev family.' },
-  { icon: '🚚', title: 'Pan-India Delivery', desc: 'Fresh-packed and shipped within 24 hours of your order.' },
-  { icon: '🌿', title: '100% Vegetarian', desc: 'No artificial colors, preservatives or additives. Ever.' },
+  { icon: '🔥', image: '/features/roasted-blend.jpg', title: 'Perfectly Roasted Blend', desc: 'Each batch is carefully roasted and blended for that signature Namdev crunch.' },
+  { icon: '🏺', image: '/features/heritage-craft.jpg', title: '150 Years of Craft', desc: 'A recipe passed down through six generations of the Namdev family.' },
+  { icon: '🚚', image: '/features/maharashtra-delivery.jpg', title: 'Pan-Maharashtra Delivery', desc: 'Fresh-packed and delivered across Maharashtra via Shadowfax, fast and reliable.' },
+  { icon: 'VEG_MARK', title: '100% Vegetarian', desc: 'No artificial colors, preservatives or additives. Ever.' },
 ];
 
 const STATS = [
@@ -41,35 +41,133 @@ function MarqueeSection() {
   );
 }
 
-// ── Features — same content, icons upgraded to circular badges (small polish) ──
+// ── Features — "journey" redesign. Each feature is a numbered stop with a
+//    real photo in a gold-ringed badge, joined by a soft dotted trail —
+//    vertical on mobile, horizontal on tablet/desktop. Photo badges have an
+//    emoji + gradient fallback sitting behind the <img>, so if an image
+//    ever fails to load the badge still looks intentional instead of
+//    showing a broken-image icon (same defensive pattern as the Shadowfax
+//    tape's logo). ──
+// India's mandatory FSSAI "green dot" vegetarian mark — a green-outlined
+// square with a solid green filled circle inside. Drawn with plain divs
+// (no external asset) so it renders instantly and never has a broken-image
+// fallback problem of its own.
+function VegMark({ size = 22 }) {
+  return (
+    <div
+      style={{
+        width: size, height: size,
+        border: `${Math.max(1.5, size * 0.09)}px solid #027021`,
+        borderRadius: Math.max(1, size * 0.06),
+        background: '#fff',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        boxSizing: 'border-box',
+      }}
+    >
+      <div style={{ width: '58%', height: '58%', borderRadius: '50%', background: '#027021' }} />
+    </div>
+  );
+}
+
+function FeatureBadge({ f, i, size = 56 }) {
+  return (
+    <div className="relative flex-shrink-0" style={{ width: size, height: size }}>
+      <div
+        className="w-full h-full rounded-full overflow-hidden flex items-center justify-center relative"
+        style={{
+          background: 'linear-gradient(135deg,#fff0d6,#fdf3c8)',
+          boxShadow: '0 0 0 1.5px #d4af37, 0 4px 12px rgba(45,26,0,0.15)',
+        }}
+      >
+        {f.icon === 'VEG_MARK' ? (
+          // Vegetarian card shows only the official green-dot mark — no
+          // product photo here by design (per explicit request), so
+          // there's no <img> to fall back from.
+          <VegMark size={size * 0.55} />
+        ) : (
+          <>
+            <span className="absolute" style={{ fontSize: size * 0.4 }}>{f.icon}</span>
+            <img
+              src={f.image}
+              alt={f.title}
+              className="absolute inset-0 w-full h-full object-cover"
+              loading="lazy"
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            />
+          </>
+        )}
+      </div>
+      <div
+        className="absolute -bottom-1 -right-1 rounded-full bg-[#e07000] text-white font-bold flex items-center justify-center border-2 border-cream"
+        style={{ width: size * 0.34, height: size * 0.34, fontSize: size * 0.16 }}
+      >
+        {i + 1}
+      </div>
+    </div>
+  );
+}
+
 function FeaturesSection() {
   const ref = useReveal();
   return (
-    <section id="features" className="py-12 md:py-20 bg-cream">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        <div ref={ref} className="reveal text-center mb-8 md:mb-14">
+    <section id="features" className="py-12 md:py-20 bg-cream overflow-hidden">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6">
+        <div ref={ref} className="reveal text-center mb-10 md:mb-16">
           <div className="section-eyebrow justify-center">Why Choose Us</div>
           <h2 className="section-title">Crafted Through Generations</h2>
         </div>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
+
+        {/* Mobile (<640px): vertical numbered journey, dotted trail on the left */}
+        <div className="relative flex flex-col gap-6 sm:hidden">
+          <svg
+            className="absolute left-[27px] w-4 pointer-events-none"
+            style={{ top: 8, bottom: 8, height: 'calc(100% - 16px)' }}
+            viewBox="0 0 20 400" preserveAspectRatio="none"
+          >
+            <path d="M10 0 Q-6 66 10 132 Q26 198 10 264 Q-6 330 10 396"
+              stroke="#d4af37" strokeWidth="1.5" fill="none" strokeDasharray="1 7" strokeLinecap="round" />
+          </svg>
           {FEATURES.map((f, i) => (
             <motion.div key={f.title}
-              initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1, duration: 0.5 }} viewport={{ once: true }}
-              className="bg-white rounded-xl md:rounded-xl2 p-4 md:p-6 shadow-saffron border border-saffron/5 text-center hover:-translate-y-1 transition-transform duration-300">
-              {/* NEW: icon now sits in a circular gold-ring badge instead of a bare emoji */}
-              <div
-                className="mx-auto mb-3 md:mb-4 flex items-center justify-center"
-                style={{ width: 48, height: 48, borderRadius: '50%', background: 'linear-gradient(135deg,#fff0d6,#fdf3c8)', border: '1px solid rgba(212,175,55,0.3)' }}
-              >
-                <span className="text-xl md:text-2xl">{f.icon}</span>
+              initial={{ opacity: 0, x: -14 }} whileInView={{ opacity: 1, x: 0 }}
+              transition={{ delay: i * 0.08, duration: 0.45 }} viewport={{ once: true }}
+              className="relative z-10 flex items-center gap-4"
+            >
+              <FeatureBadge f={f} i={i} size={56} />
+              <div>
+                <div className="font-serif font-bold text-brown-dark text-sm leading-tight">{f.title}</div>
+                <div className="text-brown-mid/70 text-xs mt-0.5 leading-relaxed">{f.desc}</div>
               </div>
-              <div className="font-serif font-bold text-brown-dark mb-1 md:mb-2 leading-tight"
-                style={{ fontSize: 'clamp(0.78rem,1.8vw,1rem)' }}>{f.title}</div>
-              <div className="text-brown-mid/70 leading-relaxed hidden sm:block"
-                style={{ fontSize: 'clamp(0.72rem,1.5vw,0.875rem)' }}>{f.desc}</div>
             </motion.div>
           ))}
+        </div>
+
+        {/* Tablet/desktop (≥640px): horizontal journey, same trail + badges */}
+        <div className="hidden sm:block relative">
+          <div
+            className="absolute top-9 md:top-10 left-[8%] right-[8%] pointer-events-none"
+            style={{
+              height: 2,
+              backgroundImage: 'repeating-linear-gradient(to right, #d4af37 0 6px, transparent 6px 12px)',
+            }}
+          />
+          <div className="grid grid-cols-4 gap-4 md:gap-8 relative">
+            {FEATURES.map((f, i) => (
+              <motion.div key={f.title}
+                initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1, duration: 0.5 }} viewport={{ once: true }}
+                className="flex flex-col items-center text-center"
+              >
+                <div className="mb-4">
+                  <FeatureBadge f={f} i={i} size={72} />
+                </div>
+                <div className="font-serif font-bold text-brown-dark leading-tight"
+                  style={{ fontSize: 'clamp(0.85rem,1.6vw,1rem)' }}>{f.title}</div>
+                <div className="text-brown-mid/70 leading-relaxed mt-1"
+                  style={{ fontSize: 'clamp(0.75rem,1.3vw,0.875rem)' }}>{f.desc}</div>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </div>
     </section>
