@@ -439,7 +439,7 @@ export default function HeroExperience() {
           <div className="grid md:grid-cols-2 w-full items-center" style={{ gap: 0 }}>
 
             <div className="text-left order-1"
-              style={{ position: 'relative', zIndex: 20, paddingTop: 'clamp(40px,8vh,100px)', paddingBottom: 'clamp(40px,6vh,80px)' }}>
+              style={{ position: 'relative', zIndex: 20, paddingTop: 'clamp(40px,8vh,100px)', paddingBottom: 'clamp(40px,6vh,80px)', transform: 'translateY(28px)' }}>
 
               <motion.div
                 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
@@ -501,11 +501,11 @@ export default function HeroExperience() {
                 border: '1px solid rgba(255,255,255,0.06)', animation: 'spinSlow 14s linear infinite reverse',
                 top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 1,
               }} />
-              <div style={{ position: 'relative', zIndex: 3, width: '100%', display: 'flex', justifyContent: 'center' }}>
+              <div style={{ position: 'relative', zIndex: 3, width: '100%', display: 'flex', justifyContent: 'center', transform: 'translateY(28px)' }}>
                 <AnimatePresence mode="wait" custom={direction}>
                   <motion.div key={current} custom={direction} variants={desktopSlideVariants}
                     initial="enter" animate="center" exit="exit"
-                    style={{ animation: 'heroFloat 4s ease-in-out infinite', display: 'flex', justifyContent: 'center', transform: 'translateY(-8px)' }}>
+                    style={{ animation: 'heroFloat 4s ease-in-out infinite', display: 'flex', justifyContent: 'center' }}>
                     <img
                       src={cldUrl(PRODUCTS[current].img)}
                       srcSet={cldSrcSet(PRODUCTS[current].img)}
