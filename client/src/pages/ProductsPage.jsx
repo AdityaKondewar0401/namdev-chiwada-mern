@@ -1,10 +1,18 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { productAPI } from '../services/api';
 import { ProductSkeleton } from '../components/Skeletons';
 import ProductCard from '../components/ProductCard';
 import PageWrapper from '../components/PageWrapper';
+import SEO from '../components/SEO';
+import Breadcrumbs from '../components/Breadcrumbs';
+import { buildBreadcrumbSchema } from '../utils/structuredData';
+
+const BREADCRUMB_ITEMS = [
+  { label: 'Home', path: '/' },
+  { label: 'Products', path: '/products' },
+];
 
 const SORTS = [
   { value: 'popular',    label: 'Most Popular' },
@@ -49,11 +57,18 @@ export default function ProductsPage() {
 
   return (
     <PageWrapper>
+      <SEO
+        title="Chiwada & Maharashtrian Snacks | Namdev Chiwada"
+        description="Shop authentic Solapuri Chiwada, Bakarvadi, Maka Chiwada, and traditional Maharashtrian namkeen from Namdev Chiwada — freshly made and delivered across Maharashtra."
+        canonical="/products"
+        jsonLd={buildBreadcrumbSchema(BREADCRUMB_ITEMS)}
+      />
       <div className="min-h-screen bg-cream">
         {/* Header */}
         <div className="pt-16 pb-10 px-6 text-center"
           style={{ background: 'linear-gradient(135deg,#3d1c00 0%,#7a3300 60%,#e07000 100%)' }}>
           <div className="max-w-3xl mx-auto">
+            <Breadcrumbs items={BREADCRUMB_ITEMS} dark className="justify-center mb-3" />
             <div className="text-xs font-bold tracking-widest uppercase text-saffron-light mb-3">
               Our Collection
             </div>
@@ -79,6 +94,13 @@ export default function ProductsPage() {
                 Search
               </button>
             </form>
+
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 mt-5 text-xs text-white/50">
+              <span>Looking for something specific?</span>
+              <Link to="/chiwada" className="text-white/80 hover:text-white underline underline-offset-2 transition-colors">Chiwada</Link>
+              <Link to="/solapuri-chiwada" className="text-white/80 hover:text-white underline underline-offset-2 transition-colors">Solapuri Chiwada</Link>
+              <Link to="/maharashtrian-snacks" className="text-white/80 hover:text-white underline underline-offset-2 transition-colors">Maharashtrian Snacks</Link>
+            </div>
           </div>
         </div>
 

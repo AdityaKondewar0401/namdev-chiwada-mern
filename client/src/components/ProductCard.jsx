@@ -23,7 +23,7 @@ export default function ProductCard({ product, index = 0 }) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5, delay: index * 0.07 }}
-      onClick={() => navigate(`/products/${product._id}`)}
+      onClick={() => navigate(`/products/${product.slug || product._id}`)}
       className="bg-white rounded-2xl sm:rounded-3xl overflow-hidden flex flex-col cursor-pointer group relative w-full"
       style={{ boxShadow: '0 4px 20px rgba(58,35,23,0.07)', border: '1px solid rgba(184,134,46,0.10)' }}
       whileHover={{ y: -5, boxShadow: '0 16px 40px rgba(110,30,39,0.14)' }}>
@@ -66,8 +66,10 @@ export default function ProductCard({ product, index = 0 }) {
         {/* Product image */}
         <img
           src={product.img}
-          alt={product.name}
+          alt={`${product.name} – authentic Solapuri snack by Namdev Chiwada`}
           loading="lazy"
+          width={400}
+          height={400}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
       </div>

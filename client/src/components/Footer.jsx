@@ -27,11 +27,18 @@ const SOCIALS = [
   },
 ];
 
+// Includes the SEO landing pages (Step 14 of the SEO plan) alongside the
+// original core links — same real pages already linked from HomePage's
+// "Explore Namdev Chiwada" band and ProductsPage's header links, so every
+// page footer reinforces the same internal link graph.
 const QUICK_LINKS = [
   ["Home", "/"],
   ["Products", "/products"],
+  ["Chiwada", "/chiwada"],
+  ["Solapuri Chiwada", "/solapuri-chiwada"],
+  ["Maharashtrian Snacks", "/maharashtrian-snacks"],
+  ["Our Story", "/our-history"],
   ["Contact", "/contact"],
-  ["Cart", "/cart"],
 ];
 
 const PRODUCTS = [

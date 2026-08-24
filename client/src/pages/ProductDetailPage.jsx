@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, Plus, Send, ShoppingCart, Check } from 'lucide-react';
 import { productAPI } from '../services/api';
@@ -8,6 +8,9 @@ import { useWishlist } from '../context/WishlistContext';
 import ProductCard from '../components/ProductCard';
 import { DetailSkeleton } from '../components/Skeletons';
 import PageWrapper from '../components/PageWrapper';
+import SEO from '../components/SEO';
+import Breadcrumbs from '../components/Breadcrumbs';
+import { buildProductSchema, buildBreadcrumbSchema } from '../utils/structuredData';
 import toast from 'react-hot-toast';
 
 const TABS = ['Ingredients', 'Nutrition', 'Info'];
@@ -47,7 +50,10 @@ function WishlistIcon({ size = 18, filled = false }) {
 }
 
 export default function ProductDetailPage() {
-  const { id } = useParams();
+  // Route is /products/:slug, but the same param also has to accept a raw
+  // Mongo ObjectId for backward compatibility with old links/bookmarks —
+  // the backend already resolves either (see productController.getProduct).
+  const { slug: routeSlug } = useParams();
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const { toggle, isWishlisted } = useWishlist();
@@ -96,21 +102,33 @@ export default function ProductDetailPage() {
 
   useEffect(() => {
     setLoading(true);
-    productAPI.getOne(id)
+    productAPI.getOne(routeSlug)
       .then((res) => {
         const p = res.data.product;
+
+        // Backward compatibility: an old bookmarked/shared URL used the raw
+        // Mongo ObjectId (/products/64xxxxx...). The API already resolved
+        // it above; now redirect the browser to the canonical slug URL so
+        // there's only ever one indexable URL per product, and so search
+        // engines consolidate ranking signals onto the slug URL rather than
+        // splitting them across two URLs for the same product.
+        // `replace: true` avoids leaving the dead ID URL in browser
+        // history. Note: because this is a client-rendered SPA with no
+        // server-side rendering for product pages, this is the closest
+        // achievable equivalent of a permanent redirect — it is NOT a true
+        // HTTP 301. See the SEO report's "Remaining limitations" section.
+        if (p.slug && p.slug !== routeSlug) {
+          navigate(`/products/${p.slug}`, { replace: true });
+          return;
+        }
+
         setProduct(p);
         setMainImg(p.img);
         setSelectedSizeIdx(Math.min(1, (p.sizes?.length || 1) - 1));
       })
       .catch(() => navigate('/products'))
       .finally(() => setLoading(false));
-  }, [id, navigate]);
-
-  useEffect(() => {
-    if (product) document.title = `${product.name} · Namdev Chiwda`;
-    return () => { document.title = 'Namdev Chiwda'; };
-  }, [product]);
+  }, [routeSlug, navigate]);
 
   useEffect(() => {
     if (!product) return;
@@ -120,18 +138,18 @@ export default function ProductDetailPage() {
 
     sameCategory
       .then((res) => {
-        const list = (res.data.products || []).filter((p) => p._id !== id);
+        const list = (res.data.products || []).filter((p) => p._id !== product._id);
         if (list.length >= 3) return list.slice(0, 3);
         return productAPI.getAll({ limit: 6 }).then((res2) => {
           const extra = (res2.data.products || []).filter(
-            (p) => p._id !== id && !list.some((l) => l._id === p._id)
+            (p) => p._id !== product._id && !list.some((l) => l._id === p._id)
           );
           return [...list, ...extra].slice(0, 3);
         });
       })
       .then(setRelated)
       .catch(() => {});
-  }, [product, id]);
+  }, [product]);
 
   if (loading) return (
     <div className="max-w-6xl mx-auto px-6 py-8 min-h-screen">
@@ -143,6 +161,14 @@ export default function ProductDetailPage() {
   const currentSize = product.sizes?.[selectedSizeIdx] || { weight: product.weight, price: product.price };
   const thumbs      = [product.img, ...(product.images || [])];
   const wishlisted  = isWishlisted(product._id);
+
+  const productSlug = product.slug || product._id;
+  const breadcrumbItems = [
+    { label: 'Home', path: '/' },
+    { label: 'Products', path: '/products' },
+    { label: product.name, path: `/products/${productSlug}` },
+  ];
+  const seoDescription = (product.desc || product.intro || '').slice(0, 160);
 
   const handleAddToCart = () => {
     addToCart(product, currentSize.weight, currentSize.price, qty);
@@ -195,6 +221,15 @@ export default function ProductDetailPage() {
 
   return (
     <PageWrapper>
+      <SEO
+        title={`${product.name} | Authentic Solapuri Chiwada — Namdev Chiwada`}
+        description={seoDescription}
+        canonical={`/products/${productSlug}`}
+        type="product"
+        image={product.img}
+        imageAlt={`${product.name} – Namdev Chiwada`}
+        jsonLd={[buildProductSchema(product), buildBreadcrumbSchema(breadcrumbItems)]}
+      />
       <style>{`
         .pdp-scroll-hide { scrollbar-width: none; -ms-overflow-style: none; }
         .pdp-scroll-hide::-webkit-scrollbar { display: none; }
@@ -202,18 +237,12 @@ export default function ProductDetailPage() {
 
       <div className="min-h-screen bg-cream">
 
-        {/* ── Top bar: breadcrumb + back (desktop only) ── */}
-        <div className="hidden lg:block max-w-7xl mx-auto px-6 xl:px-10 pt-5 pb-1">
+        {/* ── Top bar: breadcrumb (all breakpoints) + back (desktop only) ── */}
+        <div className="max-w-7xl mx-auto px-6 xl:px-10 pt-5 pb-1">
           <div className="flex items-center justify-between">
-            <nav className="flex items-center gap-1.5 text-xs text-brown-mid/50">
-              <Link to="/" className="hover:text-saffron transition-colors">Home</Link>
-              <span>›</span>
-              <Link to="/products" className="hover:text-saffron transition-colors">Products</Link>
-              <span>›</span>
-              <span className="text-brown-dark font-medium truncate max-w-48">{product.name}</span>
-            </nav>
+            <Breadcrumbs items={breadcrumbItems} />
             <button onClick={() => navigate(-1)}
-              className="flex items-center gap-1 text-xs text-brown-mid hover:text-saffron transition-colors font-semibold">
+              className="hidden lg:flex items-center gap-1 text-xs text-brown-mid hover:text-saffron transition-colors font-semibold">
               ← Back
             </button>
           </div>

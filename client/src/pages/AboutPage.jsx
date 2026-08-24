@@ -2,6 +2,13 @@ import { useRef, useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useInView, useScroll, useTransform } from 'framer-motion';
 import PageWrapper from '../components/PageWrapper';
+import SEO from '../components/SEO';
+import { buildBreadcrumbSchema } from '../utils/structuredData';
+
+const ABOUT_BREADCRUMB_ITEMS = [
+  { label: 'Home', path: '/' },
+  { label: 'About', path: '/about' },
+];
 
 // ─────────────────────────────────────────────
 // AboutPage — REDESIGNED
@@ -839,6 +846,12 @@ function AboutCTA() {
 export default function AboutPage() {
   return (
     <PageWrapper>
+      <SEO
+        title="Our Story | Namdev Chiwada – Serving Solapur Since 1873"
+        description="The story of Namdev Chiwada — founded in Solapur in 1873, carried forward through six generations of the same family recipe, using pure ghee and hand-ground masala."
+        canonical="/about"
+        jsonLd={buildBreadcrumbSchema(ABOUT_BREADCRUMB_ITEMS)}
+      />
       <style>{premiumStyles}</style>
       <GrainOverlay />
       <div className="relative">

@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import useReveal from '../hooks/useReveal';
 import PageWrapper from '../components/PageWrapper';
 import NamkeenSection from '../components/NamkeenSection';
+import SEO from '../components/SEO';
+import { buildOrganizationSchema } from '../utils/structuredData';
 
 // ── New / redesigned homepage sections ──
 import HeroExperience from '../components/HeroExperience';
@@ -745,9 +748,53 @@ function FollowUsBanner() {
 // HOME PAGE
 // ============================================================================
 
+// Small, understated internal-linking band — helps both visitors and
+// search engines discover the SEO landing pages and product catalog from
+// the homepage (Step 14 of the SEO plan). Deliberately minimal: a single
+// row of pill links reusing the existing saffron/cream palette, not a new
+// visual section.
+const EXPLORE_LINKS = [
+  { label: 'Chiwada', to: '/chiwada' },
+  { label: 'Solapuri Chiwada', to: '/solapuri-chiwada' },
+  { label: 'Maharashtrian Snacks', to: '/maharashtrian-snacks' },
+  { label: 'All Products', to: '/products' },
+  { label: 'Our Story', to: '/our-history' },
+];
+
+function ExploreMoreLinks() {
+  const ref = useReveal();
+  return (
+    <section className="py-8 md:py-10 bg-cream">
+      <div ref={ref} className="reveal max-w-4xl mx-auto px-5 sm:px-6 text-center">
+        <div className="text-xs font-bold tracking-widest uppercase text-brown-mid/40 mb-4">
+          Explore Namdev Chiwada
+        </div>
+        <div className="flex flex-wrap items-center justify-center gap-2.5">
+          {EXPLORE_LINKS.map((link) => (
+            <Link
+              key={link.to}
+              to={link.to}
+              className="px-4 py-2 rounded-full text-xs sm:text-sm font-semibold text-brown-dark bg-white border border-saffron/15 hover:border-saffron hover:text-saffron transition-colors"
+            >
+              {link.label}
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function HomePage() {
   return (
     <PageWrapper>
+      <SEO
+        title="Namdev Chiwada | Authentic Solapuri Chiwada Since 1873"
+        description="Namdev Chiwada brings you authentic Solapuri Chiwada and traditional Maharashtrian snacks, crafted with the same recipe since 1873. Order online, delivered fresh across Maharashtra."
+        canonical="/"
+        jsonLd={buildOrganizationSchema()}
+      />
+
       <HeroExperience />
 
       <MarqueeSection />
@@ -765,6 +812,8 @@ export default function HomePage() {
       <TestimonialsCarousel />
 
       <CTASection />
+
+      <ExploreMoreLinks />
 
       <FollowUsBanner />
 

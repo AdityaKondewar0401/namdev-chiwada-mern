@@ -23,6 +23,13 @@ import AboutPage from './pages/AboutPage';
 import AccountPage from './pages/AccountPage';
 import WishlistPage from './pages/WishlistPage';
 import AdminPage from './pages/AdminPage';
+// SEO landing pages — see AGENT.md §"SEO Architecture" / the SEO report for
+// the keyword intent each one targets. All four are genuinely useful public
+// content pages, not thin doorway pages.
+import ChiwadaPage from './pages/ChiwadaPage';
+import SolapuriChiwadaPage from './pages/SolapuriChiwadaPage';
+import MaharashtrianSnacksPage from './pages/MaharashtrianSnacksPage';
+import OurHistoryPage from './pages/OurHistoryPage';
 // NamkeenDetailPage was a legacy static product-detail page that referenced
 // an undefined `PRODUCTS` global — visiting /namkeen/:id crashed with a
 // ReferenceError (hard white screen), not just a rendering bug. It's fully
@@ -101,8 +108,19 @@ function AnimatedRoutes() {
           }
         />
 
+        {/*
+          Product URLs are now slug-based (/products/namdev-chiwada) instead
+          of raw Mongo ObjectIds, for readable, keyword-relevant URLs. The
+          route param is still just called ":slug" here for clarity, but
+          the backend's GET /api/products/:id resolves EITHER a 24-char
+          ObjectId OR a slug (see productController.getProduct), so this
+          needed zero backend changes. ProductDetailPage itself handles the
+          old-ID-URL → canonical-slug-URL redirect once the product
+          resolves — see the component for details and the SEO report for
+          why this is a client-side redirect rather than a true HTTP 301.
+        */}
         <Route
-          path="/products/:id"
+          path="/products/:slug"
           element={
             <Layout>
               <ProductDetailPage />
@@ -133,6 +151,42 @@ function AnimatedRoutes() {
           element={
             <Layout>
               <AboutPage />
+            </Layout>
+          }
+        />
+
+        <Route
+          path="/our-history"
+          element={
+            <Layout>
+              <OurHistoryPage />
+            </Layout>
+          }
+        />
+
+        <Route
+          path="/chiwada"
+          element={
+            <Layout>
+              <ChiwadaPage />
+            </Layout>
+          }
+        />
+
+        <Route
+          path="/solapuri-chiwada"
+          element={
+            <Layout>
+              <SolapuriChiwadaPage />
+            </Layout>
+          }
+        />
+
+        <Route
+          path="/maharashtrian-snacks"
+          element={
+            <Layout>
+              <MaharashtrianSnacksPage />
             </Layout>
           }
         />

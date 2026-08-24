@@ -3,6 +3,20 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import PageWrapper from '../components/PageWrapper';
+import SEO from '../components/SEO';
+import { buildBreadcrumbSchema } from '../utils/structuredData';
+
+// Intentionally NO LocalBusiness structured data and no additional
+// address/map SEO here (Step 4 / Step 10 of the SEO plan) — the business
+// asked not to make the physical shop address more discoverable via
+// search. Only a plain BreadcrumbList is added. The visible address/map
+// on this page predate this SEO pass and are left as-is; if the address
+// should be hidden from the public page entirely, that's a separate,
+// deliberate content decision to make with the business owner.
+const CONTACT_BREADCRUMB_ITEMS = [
+  { label: 'Home', path: '/' },
+  { label: 'Contact', path: '/contact' },
+];
 
 // ─────────────────────────────────────────────
 // ContactPage — REDESIGNED
@@ -138,6 +152,12 @@ export default function ContactPage() {
 
   return (
     <PageWrapper>
+      <SEO
+        title="Contact Namdev Chiwada | Maharashtrian Snacks"
+        description="Get in touch with Namdev Chiwada for order queries, bulk orders, or feedback — reach us by phone, email, or WhatsApp."
+        canonical="/contact"
+        jsonLd={buildBreadcrumbSchema(CONTACT_BREADCRUMB_ITEMS)}
+      />
       <div className="min-h-screen bg-cream pb-16">
         {/* Header */}
         <div className="pt-14 pb-10 px-6 text-center"
