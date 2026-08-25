@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { orderAPI, wishlistAPI } from '../services/api';
 import PageWrapper from '../components/PageWrapper';
+import SEO from '../components/SEO';
 
 import AccountNav from '../components/account/AccountNav';
 import ProfileTab from '../components/account/ProfileTab';
@@ -82,6 +83,7 @@ export default function AccountPage() {
 
   return (
     <PageWrapper>
+      <SEO title="My Account | Namdev Chiwda" canonical="/account" robots="noindex,nofollow" />
       <div className="min-h-screen pb-16" style={{ background: '#fef3e0' }}>
         {/* Page Header */}
         <div className="pt-8 pb-8 px-5 sm:px-6"

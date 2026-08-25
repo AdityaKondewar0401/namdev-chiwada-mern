@@ -40,6 +40,19 @@ process.on('unhandledRejection', (reason) => {
 // behind an additional CDN/load balancer, which would need `2`).
 app.set('trust proxy', Number(process.env.TRUST_PROXY_HOPS || 1));
 
+// ── Shadowfax env sanity check ──────────────────────────
+// SHADOWFAX_ENV defaults to "staging" when unset (see
+// config/shadowfax.js). That default is safe for local dev, but if it's
+// simply forgotten in a production deploy, real customer orders silently
+// go to Shadowfax's staging sandbox instead of production — checkout
+// looks fine while nothing actually ships. Loud startup warning instead
+// of a hard crash, so this never breaks a working deploy on its own.
+if (process.env.NODE_ENV === 'production' && process.env.SHADOWFAX_ENV !== 'production') {
+  console.warn(
+    `⚠️ NODE_ENV=production but SHADOWFAX_ENV=${process.env.SHADOWFAX_ENV || '(unset, defaults to staging)'} — Shadowfax orders will go to the STAGING sandbox, not production. Set SHADOWFAX_ENV=production if that's not intended.`
+  );
+}
+
 // ── CORS ───────────────────────────────────────────────
 const allowedOrigins = [
   'http://localhost:5173',

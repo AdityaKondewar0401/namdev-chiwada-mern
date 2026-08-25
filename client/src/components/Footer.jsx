@@ -54,7 +54,7 @@ const CONTACT = [
     text: "205/A, Suhas Building, Killa Road, Solapur – 413007",
   },
   { Icon: Phone, text: "+91 9130160491" },
-  { Icon: Mail, text: "namdevchiwada@gmail.com" },
+  { Icon: Mail, text: "care@namdevchiwda.com" },
   { Icon: Clock, text: "Mon–Sat: 9AM–8PM · Sun: 10AM–6PM" },
 ];
 

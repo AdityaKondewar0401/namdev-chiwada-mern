@@ -7,6 +7,7 @@ import { orderAPI, shippingAPI } from '../services/api';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 import PageWrapper from '../components/PageWrapper';
+import SEO from '../components/SEO';
 
 // Mirrors server/utils/weight.js — parses a cart line's `size` label
 // ("250g", "1kg", ...) into grams so we can warn the shopper about the
@@ -830,6 +831,7 @@ function CheckoutPage() {
   if (cart.length === 0) {
     return (
       <PageWrapper>
+        <SEO title="Checkout | Namdev Chiwda" canonical="/checkout" robots="noindex,nofollow" />
         <style>{styles}</style>
         <div className="empty-cart-wrap">
           <div style={{ fontSize: 64 }}>🛒</div>
@@ -855,6 +857,7 @@ function CheckoutPage() {
 
   return (
     <PageWrapper>
+      <SEO title="Checkout | Namdev Chiwda" canonical="/checkout" robots="noindex,nofollow" />
       <style>{styles}</style>
       <div className="checkout-bg">
         <div style={{ maxWidth: 1100, margin: '0 auto', padding: '40px 16px 0' }}>

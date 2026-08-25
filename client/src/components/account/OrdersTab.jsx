@@ -188,7 +188,7 @@ export default function OrdersTab({ orders, loading }) {
                       {order.shippingAddress && (
                         <div className="mt-3 text-xs text-brown-mid/60">
                           <span className="font-semibold text-brown-dark">Delivered to: </span>
-                          {order.shippingAddress.name}, {order.shippingAddress.street}, {order.shippingAddress.city} – {order.shippingAddress.pincode}
+                          {order.shippingAddress.fullName}, {order.shippingAddress.line1}, {order.shippingAddress.city} – {order.shippingAddress.pincode}
                         </div>
                       )}
                     </div>

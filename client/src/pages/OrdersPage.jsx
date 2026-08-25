@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { orderAPI } from '../services/api';
 import PageWrapper from '../components/PageWrapper';
+import SEO from '../components/SEO';
 
 // ── Constants ──────────────────────────────────────────
 const WHATSAPP_NUMBER = '919130160491'; // ← Replace with your actual WhatsApp number (with country code, no +)
@@ -405,8 +406,9 @@ function OrderDetail({ id }) {
               📍 Delivery Address
             </h3>
             <div className="text-sm text-brown-mid/70 leading-relaxed space-y-0.5">
-              <div className="font-bold text-brown-dark text-base">{order.shippingAddress?.name}</div>
-              <div>{order.shippingAddress?.street}</div>
+              <div className="font-bold text-brown-dark text-base">{order.shippingAddress?.fullName}</div>
+              <div>{order.shippingAddress?.line1}</div>
+              {order.shippingAddress?.line2 && <div>{order.shippingAddress.line2}</div>}
               <div>{order.shippingAddress?.city}, {order.shippingAddress?.state}</div>
               <div className="font-medium text-brown-dark">PIN: {order.shippingAddress?.pincode}</div>
               <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-saffron/8">
@@ -587,6 +589,11 @@ export default function OrdersPage() {
   const { id } = useParams();
   return (
     <PageWrapper>
+      <SEO
+        title={id ? 'Order Details | Namdev Chiwda' : 'My Orders | Namdev Chiwda'}
+        canonical={id ? `/orders/${id}` : '/orders'}
+        robots="noindex,nofollow"
+      />
       <div className="min-h-screen bg-cream pb-20">
         <div className="pt-12 pb-8 px-6" style={{ background: 'linear-gradient(135deg,#3d1c00,#7a3300 60%,#e07000)' }}>
           <div className="max-w-3xl mx-auto">

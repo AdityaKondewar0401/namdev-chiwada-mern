@@ -39,7 +39,7 @@ const courierHistorySchema = new mongoose.Schema({
 // kept current by the Push Callback webhook (see routes/shipping.js). ──
 const courierSchema = new mongoose.Schema({
   provider:         { type: String, default: 'shadowfax' },
-  awbNumber:        { type: String },
+  awbNumber:        { type: String, index: true },
   shadowfaxOrderId: { type: String },
   status:           { type: String },   // latest Shadowfax status_id
   statusDisplay:    { type: String },   // latest Shadowfax human label
@@ -52,7 +52,7 @@ const courierSchema = new mongoose.Schema({
 }, { _id: false });
 
 const orderSchema = new mongoose.Schema({
-  user:            { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  user:            { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
   items:           [orderItemSchema],
   shippingAddress: { type: shippingAddressSchema },
 
@@ -72,7 +72,11 @@ const orderSchema = new mongoose.Schema({
   // ── Razorpay payment fields ──
   paymentMethod:     { type: String, default: 'COD' },
   paymentStatus:     { type: String, enum: ['pending', 'paid', 'failed'], default: 'pending' },
-  razorpayOrderId:   { type: String },
+  // Sparse+unique: COD orders never set this (empty string collisions
+  // would break a plain unique index), but no two orders should ever be
+  // able to claim the same Razorpay order as a backstop against the
+  // check-then-act race in orderController.placeOrder.
+  razorpayOrderId:   { type: String, index: { unique: true, sparse: true } },
   razorpayPaymentId: { type: String },
 
   // ── Shadowfax courier/shipment state — see courierSchema above ──

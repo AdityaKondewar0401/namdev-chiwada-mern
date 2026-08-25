@@ -91,7 +91,15 @@ exports.verifyPayment = async (req, res) => {
       .update(body)
       .digest('hex');
 
-    if (expectedSignature !== razorpay_signature) {
+    // Constant-time comparison — a plain `!==` leaks how many leading
+    // characters matched via response timing, letting an attacker forge a
+    // valid signature byte-by-byte.
+    const expected = Buffer.from(expectedSignature);
+    const provided = Buffer.from(String(razorpay_signature));
+    const signatureValid =
+      expected.length === provided.length && crypto.timingSafeEqual(expected, provided);
+
+    if (!signatureValid) {
       return res.status(400).json({ success: false, message: 'Payment signature mismatch' });
     }
 

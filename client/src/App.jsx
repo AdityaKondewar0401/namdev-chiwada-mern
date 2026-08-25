@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, useLocation, Navigate, useParams } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, lazy, Suspense } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { AnimatePresence } from 'framer-motion';
 
@@ -12,17 +12,14 @@ import Footer from './components/Footer';
 import WhatsAppFloat from './components/WhatsAppFloat';
 import ProtectedRoute from './components/ProtectedRoute';
 
+// Public, crawled pages load eagerly — every millisecond here is initial
+// bundle weight on the pages Google/users actually land on first.
 import HomePage from './pages/HomePage';
 import ProductsPage from './pages/ProductsPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import CartPage from './pages/CartPage';
-import CheckoutPage from './pages/CheckoutPage';
-import OrdersPage from './pages/OrdersPage';
 import ContactPage from './pages/ContactPage';
 import AboutPage from './pages/AboutPage';
-import AccountPage from './pages/AccountPage';
-import WishlistPage from './pages/WishlistPage';
-import AdminPage from './pages/AdminPage';
 // SEO landing pages — see AGENT.md §"SEO Architecture" / the SEO report for
 // the keyword intent each one targets. All four are genuinely useful public
 // content pages, not thin doorway pages.
@@ -30,6 +27,15 @@ import ChiwadaPage from './pages/ChiwadaPage';
 import SolapuriChiwadaPage from './pages/SolapuriChiwadaPage';
 import MaharashtrianSnacksPage from './pages/MaharashtrianSnacksPage';
 import OurHistoryPage from './pages/OurHistoryPage';
+
+// Authenticated-only pages (never seen by a first-time visitor or a
+// crawler) are code-split out of the main bundle — this is what was
+// pushing the single JS chunk over Vite's 500kB warning threshold.
+const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
+const OrdersPage = lazy(() => import('./pages/OrdersPage'));
+const AccountPage = lazy(() => import('./pages/AccountPage'));
+const WishlistPage = lazy(() => import('./pages/WishlistPage'));
+const AdminPage = lazy(() => import('./pages/AdminPage'));
 // NamkeenDetailPage was a legacy static product-detail page that referenced
 // an undefined `PRODUCTS` global — visiting /namkeen/:id crashed with a
 // ReferenceError (hard white screen), not just a rendering bug. It's fully
@@ -38,6 +44,7 @@ import OurHistoryPage from './pages/OurHistoryPage';
 // of rendering the broken component. See AGENT.md §9 for the prior status
 // of this page.
 import { LoginPage, RegisterPage } from './pages/AuthPages';
+import SEO from './components/SEO';
 
 // Redirects the legacy /namkeen/:id URL to the real, working product page
 // instead of rendering the broken NamkeenDetailPage (see import comment
@@ -82,12 +89,19 @@ function Providers({ children }) {
   );
 }
 
+// Fallback while a lazy-loaded (authenticated-only) route's chunk is
+// fetched — brief on a real connection, but a blank screen would be worse.
+function RouteLoader() {
+  return <div className="min-h-screen bg-cream" />;
+}
+
 // Separate inner component so useLocation works inside BrowserRouter
 function AnimatedRoutes() {
   const location = useLocation();
 
   return (
     <AnimatePresence mode="wait">
+      <Suspense fallback={<RouteLoader />}>
       <Routes location={location} key={location.pathname}>
         {/* Public Routes */}
         <Route
@@ -267,12 +281,18 @@ function AnimatedRoutes() {
           path="*"
           element={
             <Layout>
+              <SEO
+                title="Page Not Found | Namdev Chiwda"
+                description="The page you're looking for doesn't exist."
+                canonical="/"
+                robots="noindex,nofollow"
+              />
               <div className="min-h-screen bg-cream flex items-center justify-center text-center px-6">
                 <div>
                   <div className="text-8xl mb-4">🥨</div>
-                  <h2 className="font-serif font-black text-brown-dark text-3xl mb-3">
+                  <h1 className="font-serif font-black text-brown-dark text-3xl mb-3">
                     Page Not Found
-                  </h2>
+                  </h1>
                   <p className="text-brown-mid/60 mb-8">
                     Looks like this page took a different path!
                   </p>
@@ -285,6 +305,7 @@ function AnimatedRoutes() {
           }
         />
       </Routes>
+      </Suspense>
     </AnimatePresence>
   );
 }

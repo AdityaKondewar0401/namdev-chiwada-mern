@@ -22,7 +22,7 @@
 const PHONE_DISPLAY = '+91 91301 60491';
 const PHONE_TEL = '+919130160491';
 const WHATSAPP_NUMBER = '919130160491';
-const EMAIL = 'namdevchiwada@gmail.com';
+const EMAIL = 'care@namdevchiwda.com';
 
 export default function DistributorshipBand() {
   return (

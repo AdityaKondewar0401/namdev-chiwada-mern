@@ -12,6 +12,7 @@ import ProductsTab from '../components/admin/ProductsTab';
 import ProductFormTab from '../components/admin/ProductFormTab';
 import OrdersTab from '../components/admin/OrdersTab';
 import PromoCodesTab from '../components/admin/PromoCodesTab';
+import SEO from '../components/SEO';
 
 // ─────────────────────────────────────────────
 // AdminPage — REDESIGNED shell
@@ -85,6 +86,7 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen" style={{ background: '#fef3e0' }}>
+      <SEO title="Admin | Namdev Chiwda" canonical="/admin" robots="noindex,nofollow" />
       <div className="sticky top-0 z-50 px-4 sm:px-6 py-3 flex items-center justify-between"
         style={{ background: 'linear-gradient(135deg,#2d1a00,#3d1c00)', borderBottom: '1px solid rgba(224,112,0,0.2)' }}>
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">

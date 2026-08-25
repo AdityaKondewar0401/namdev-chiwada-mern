@@ -64,7 +64,7 @@ const CONTACT_BREADCRUMB_ITEMS = [
 
 const WHATSAPP_NUMBER = '919130160491';
 const PHONE_TEL = '+919130160491';
-const EMAIL = 'namdevchiwada@gmail.com';
+const EMAIL = 'care@namdevchiwda.com';
 
 const CONTACT_ITEMS = [
   { icon: '📍', label: 'Address', value: '205/A, Suhas Building, Killa Road, Near DCC Bank,\nSolapur, Maharashtra – 413007' },

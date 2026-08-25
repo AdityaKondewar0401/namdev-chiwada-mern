@@ -28,7 +28,7 @@ export function buildOrganizationSchema() {
     contactPoint: {
       '@type': 'ContactPoint',
       contactType: 'customer service',
-      email: 'namdevchiwada@gmail.com',
+      email: 'care@namdevchiwda.com',
       telephone: '+91-9130160491',
       areaServed: 'IN',
       availableLanguage: ['en', 'mr'],

@@ -1,28 +1,17 @@
-import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Heart } from 'lucide-react';
-import { productAPI } from '../services/api';
 import { useWishlist } from '../context/WishlistContext';
 import ProductCard from '../components/ProductCard';
 import PageWrapper from '../components/PageWrapper';
+import SEO from '../components/SEO';
 
 export default function WishlistPage() {
-  const { wishlist, loading: wishlistLoading } = useWishlist();
-  const [products, setProducts] = useState([]);
-  const [loadingProducts, setLoadingProducts] = useState(true);
-
-  useEffect(() => {
-    productAPI.getAll({ limit: 100 })
-      .then((res) => setProducts(res.data.products || []))
-      .catch(() => {})
-      .finally(() => setLoadingProducts(false));
-  }, []);
-
-  const loading = wishlistLoading || loadingProducts;
-  const saved = products.filter((p) => wishlist.includes(p._id));
+  const { wishlistProducts, loading } = useWishlist();
+  const saved = wishlistProducts;
 
   return (
     <PageWrapper>
+      <SEO title="My Wishlist | Namdev Chiwda" canonical="/wishlist" robots="noindex,nofollow" />
       <div className="min-h-screen bg-cream px-5 lg:px-10 py-8 max-w-7xl mx-auto">
         <div className="mb-6">
           <div className="section-eyebrow">Saved For Later</div>

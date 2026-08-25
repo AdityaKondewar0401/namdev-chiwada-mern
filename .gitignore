@@ -10,6 +10,11 @@ dist/
 client/dist/
 build/
 
+# Regenerated every build by client/scripts/generate-seo-files.mjs
+# (npm run build's prebuild step) — never hand-edit, never commit.
+client/public/sitemap.xml
+client/public/robots.txt
+
 *.log
 npm-debug.log*
 

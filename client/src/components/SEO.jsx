@@ -7,15 +7,25 @@
 // render one too, with `robots="noindex,nofollow"`, so indexing rules are
 // explicit and consistent instead of left to chance.
 //
-// Built on react-helmet-async (industry-standard for CRA/Vite React apps —
-// updates document.head reactively per-route without needing SSR). See the
-// "Rendering / crawlability" note in the final SEO report for the honest
-// limitation this implies: Googlebot renders JavaScript and will see these
-// tags, but crawlers that DON'T execute JS (most social-preview bots —
-// Facebook/WhatsApp/LinkedIn scrapers, some SEO tools) will only ever see
-// the static defaults baked into client/index.html, not this per-page data.
+// Manages document.head directly via useEffect instead of react-helmet-async
+// — that library's side-effect commit never actually reaches document.head
+// under this project's Vite 8 (Rolldown) build: confirmed by reproducing
+// with a bare <Helmet><title>...</title></Helmet> at the app root in both
+// `vite` dev and the production build — document.title never changed and no
+// data-rh-marked elements ever appeared. Rather than fight a third-party
+// library's internals against a very new bundler, this manages the same
+// small set of tags directly — title, meta, link[rel=canonical], and
+// script[type=application/ld+json] — which is simple enough not to need a
+// dependency. Every managed element carries `data-seo="true"` so a later
+// page's effect can find and update/replace exactly the tags this component
+// owns, never touching the static fallback tags baked into index.html.
+//
+// Honest limitation, same as before: Googlebot renders JavaScript and will
+// see these tags, but crawlers that DON'T execute JS (most social-preview
+// bots — Facebook/WhatsApp/LinkedIn scrapers, some SEO tools) only ever see
+// the static defaults in client/index.html, not this per-page data.
 
-import { Helmet } from 'react-helmet-async';
+import { useEffect } from 'react';
 import {
   SITE_URL,
   SITE_NAME,
@@ -24,6 +34,32 @@ import {
   TWITTER_HANDLE,
   isProductionHost,
 } from '../config/seo.config';
+
+function setMetaByAttr(attrName, attrValue, content) {
+  let el = document.head.querySelector(`meta[${attrName}="${attrValue}"]`);
+  if (!el) {
+    el = document.createElement('meta');
+    el.setAttribute(attrName, attrValue);
+    el.setAttribute('data-seo', 'true');
+    document.head.appendChild(el);
+  }
+  el.setAttribute('content', content);
+}
+
+function removeMetaByAttr(attrName, attrValue) {
+  document.head.querySelector(`meta[${attrName}="${attrValue}"]`)?.remove();
+}
+
+function setCanonical(href) {
+  let el = document.head.querySelector('link[rel="canonical"]');
+  if (!el) {
+    el = document.createElement('link');
+    el.setAttribute('rel', 'canonical');
+    el.setAttribute('data-seo', 'true');
+    document.head.appendChild(el);
+  }
+  el.setAttribute('href', href);
+}
 
 /**
  * @param {string} title - Full page title, already composed (this
@@ -78,38 +114,54 @@ export default function SEO({
   const effectiveRobots = isProductionHost() ? robots : 'noindex,nofollow';
 
   const jsonLdList = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
+  // JSON-LD stringified here (not in the dependency array) so effect
+  // dependencies stay primitive — object identity from callers building a
+  // fresh object every render would otherwise re-run this effect every render.
+  const jsonLdJson = JSON.stringify(jsonLdList);
 
-  return (
-    <Helmet>
-      <title>{title}</title>
-      <meta name="description" content={description} />
-      {keywords && <meta name="keywords" content={keywords} />}
-      <meta name="robots" content={effectiveRobots} />
-      <link rel="canonical" href={canonicalUrl} />
+  useEffect(() => {
+    document.title = title;
 
-      {/* Open Graph */}
-      <meta property="og:type" content={type === 'product' ? 'product' : 'website'} />
-      <meta property="og:site_name" content={SITE_NAME} />
-      <meta property="og:title" content={title} />
-      <meta property="og:description" content={description} />
-      <meta property="og:url" content={canonicalUrl} />
-      <meta property="og:image" content={imageUrl} />
-      {imageAlt && <meta property="og:image:alt" content={imageAlt} />}
-      <meta property="og:locale" content="en_IN" />
+    setMetaByAttr('name', 'description', description);
+    if (keywords) setMetaByAttr('name', 'keywords', keywords);
+    else removeMetaByAttr('name', 'keywords');
+    setMetaByAttr('name', 'robots', effectiveRobots);
+    setCanonical(canonicalUrl);
 
-      {/* Twitter/X */}
-      <meta name="twitter:card" content="summary_large_image" />
-      {TWITTER_HANDLE && <meta name="twitter:site" content={TWITTER_HANDLE} />}
-      <meta name="twitter:title" content={title} />
-      <meta name="twitter:description" content={description} />
-      <meta name="twitter:image" content={imageUrl} />
-      {imageAlt && <meta name="twitter:image:alt" content={imageAlt} />}
+    // Open Graph
+    setMetaByAttr('property', 'og:type', type === 'product' ? 'product' : 'website');
+    setMetaByAttr('property', 'og:site_name', SITE_NAME);
+    setMetaByAttr('property', 'og:title', title);
+    setMetaByAttr('property', 'og:description', description);
+    setMetaByAttr('property', 'og:url', canonicalUrl);
+    setMetaByAttr('property', 'og:image', imageUrl);
+    if (imageAlt) setMetaByAttr('property', 'og:image:alt', imageAlt);
+    else removeMetaByAttr('property', 'og:image:alt');
+    setMetaByAttr('property', 'og:locale', 'en_IN');
 
-      {jsonLdList.map((schema, i) => (
-        <script key={i} type="application/ld+json">
-          {JSON.stringify(schema)}
-        </script>
-      ))}
-    </Helmet>
-  );
+    // Twitter/X
+    setMetaByAttr('name', 'twitter:card', 'summary_large_image');
+    if (TWITTER_HANDLE) setMetaByAttr('name', 'twitter:site', TWITTER_HANDLE);
+    else removeMetaByAttr('name', 'twitter:site');
+    setMetaByAttr('name', 'twitter:title', title);
+    setMetaByAttr('name', 'twitter:description', description);
+    setMetaByAttr('name', 'twitter:image', imageUrl);
+    if (imageAlt) setMetaByAttr('name', 'twitter:image:alt', imageAlt);
+    else removeMetaByAttr('name', 'twitter:image:alt');
+
+    // JSON-LD — remove every previously-managed structured-data script
+    // first since the count/shape varies per page (e.g. Product +
+    // Breadcrumb on a product page vs. just Organization on the homepage).
+    document.head.querySelectorAll('script[data-seo-jsonld="true"]').forEach((el) => el.remove());
+    const parsed = JSON.parse(jsonLdJson).filter(Boolean);
+    parsed.forEach((schema) => {
+      const script = document.createElement('script');
+      script.type = 'application/ld+json';
+      script.setAttribute('data-seo-jsonld', 'true');
+      script.textContent = JSON.stringify(schema);
+      document.head.appendChild(script);
+    });
+  }, [title, description, canonicalUrl, effectiveRobots, imageUrl, imageAlt, type, keywords, jsonLdJson]);
+
+  return null;
 }

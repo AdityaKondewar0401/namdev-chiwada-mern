@@ -5,6 +5,7 @@ import { useCart } from '../context/CartContext';
 import { orderAPI, productAPI } from '../services/api';
 import toast from 'react-hot-toast';
 import PageWrapper from '../components/PageWrapper';
+import SEO from '../components/SEO';
 
 // ─────────────────────────────────────────────
 // CartPage — REDESIGNED
@@ -177,6 +178,7 @@ export default function CartPage() {
   if (items.length === 0) {
     return (
       <PageWrapper>
+        <SEO title="Your Cart | Namdev Chiwda" canonical="/cart" robots="noindex,nofollow" />
         <div className="min-h-screen bg-cream flex flex-col items-center justify-center px-6 py-16">
           <div className="text-center">
             <div className="text-7xl mb-6">🛒</div>
@@ -198,6 +200,7 @@ export default function CartPage() {
 
   return (
     <PageWrapper>
+      <SEO title="Your Cart | Namdev Chiwda" canonical="/cart" robots="noindex,nofollow" />
       <div className="min-h-screen bg-cream pb-24 lg:pb-0">
         {/* Header */}
         <div

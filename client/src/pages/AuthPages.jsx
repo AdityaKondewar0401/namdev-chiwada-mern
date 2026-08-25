@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-hot-toast';
 import PageWrapper from '../components/PageWrapper';
+import SEO from '../components/SEO';
 
 // ─────────────────────────────────────────────
 // AuthPages (Login + Register) — REDESIGNED
@@ -144,7 +145,11 @@ function GoogleLoginButton() {
   const { saveUser } = useAuth();
 
   useEffect(() => {
-    if (window.google) {
+    let cancelled = false;
+
+    const renderGoogleButton = () => {
+      if (cancelled || !window.google) return false;
+
       window.google.accounts.id.initialize({
         client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
         callback: handleGoogleResponse,
@@ -159,7 +164,24 @@ function GoogleLoginButton() {
           text: 'continue_with',
         }
       );
+
+      return true;
+    };
+
+    if (!renderGoogleButton()) {
+      const interval = setInterval(() => {
+        if (renderGoogleButton()) clearInterval(interval);
+      }, 200);
+
+      return () => {
+        cancelled = true;
+        clearInterval(interval);
+      };
     }
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const handleGoogleResponse = async (response) => {
@@ -213,6 +235,12 @@ export function LoginPage() {
 
   return (
     <PageWrapper>
+      <SEO
+        title="Login | Namdev Chiwda"
+        description="Sign in to your Namdev Chiwda account."
+        canonical="/login"
+        robots="noindex,nofollow"
+      />
       <AuthCard title="Welcome Back" subtitle="Sign in to your Namdev Chiwda account">
         <form onSubmit={handleSubmit} className="space-y-4">
 
@@ -280,6 +308,12 @@ export function RegisterPage() {
 
   return (
     <PageWrapper>
+      <SEO
+        title="Create Account | Namdev Chiwda"
+        description="Create your Namdev Chiwda account."
+        canonical="/register"
+        robots="noindex,nofollow"
+      />
       <AuthCard title="Create Account" subtitle="Join Namdev Chiwda — it's free!">
         <form onSubmit={handleSubmit} className="space-y-4">
 

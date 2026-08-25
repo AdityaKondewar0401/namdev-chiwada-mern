@@ -110,7 +110,7 @@ function NamkeenCard({ product, index }) {
 
         {/* Wishlist */}
         <button
-          onClick={(e) => { e.stopPropagation(); toggle(product._id); }}
+          onClick={(e) => { e.stopPropagation(); toggle(product._id, product); }}
           aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
           className={`absolute top-3 right-3 z-10 w-9 h-9 rounded-full flex items-center justify-center shadow-md backdrop-blur-sm transition-all duration-200 hover:scale-110 ${
             wishlisted ? 'bg-red-50 text-red-500' : 'bg-white/90 text-brown-dark'

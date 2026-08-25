@@ -2,6 +2,7 @@ const Order = require('../models/Order');
 const Cart = require('../models/Cart');
 const User = require('../models/User');
 const Promo = require('../models/Promo');
+const Product = require('../models/Product');
 const VerifiedPayment = require('../models/VerifiedPayment');
 const { sendOrderConfirmation } = require('../services/emailService');
 const { calculateCartTotals, applyPromoToSubtotal } = require('../utils/pricing');
@@ -48,6 +49,22 @@ exports.placeOrder = async (req, res, next) => {
       return res.status(400).json({
         success: false,
         message: 'Cart is empty',
+      });
+    }
+
+    // Re-check stock at checkout time, not just at add-to-cart time — a
+    // product can go out of stock while it's sitting in someone's cart.
+    const cartProducts = await Product.find({
+      _id: { $in: cart.items.map((item) => item.product) },
+    }).select('inStock');
+    const inStockById = new Map(cartProducts.map((p) => [p._id.toString(), p.inStock]));
+    const outOfStockItem = cart.items.find(
+      (item) => inStockById.get(item.product.toString()) === false
+    );
+    if (outOfStockItem) {
+      return res.status(400).json({
+        success: false,
+        message: `"${outOfStockItem.name}" just went out of stock. Please remove it from your cart to continue.`,
       });
     }
 
@@ -136,10 +153,24 @@ exports.placeOrder = async (req, res, next) => {
       });
     }
 
-    if (promo) {
-      await Promo.findByIdAndUpdate(promo._id, {
-        $inc: { uses: 1 },
-      });
+    // Atomically claim this payment before creating the order — two
+    // concurrent requests (double-click, client retry) racing on the same
+    // VerifiedPayment must not both pass the earlier read-only check above
+    // and both create an order. Only the request that flips consumedAt
+    // from null wins; the loser is rejected here instead of fulfilling the
+    // same payment twice.
+    if (verifiedPayment) {
+      verifiedPayment = await VerifiedPayment.findOneAndUpdate(
+        { _id: verifiedPayment._id, consumedAt: null },
+        { consumedAt: new Date() },
+        { new: true }
+      );
+      if (!verifiedPayment) {
+        return res.status(400).json({
+          success: false,
+          message: 'This payment has already been used for another order.',
+        });
+      }
     }
 
     // Cart items store the size label under `size`; order items store it
@@ -155,8 +186,9 @@ exports.placeOrder = async (req, res, next) => {
       qty: item.qty,
     }));
 
-    const order =
-      await Order.create({
+    let order;
+    try {
+      order = await Order.create({
         user: req.user._id,
         items: orderItems,
         shippingAddress,
@@ -171,13 +203,16 @@ exports.placeOrder = async (req, res, next) => {
             ? 'paid'
             : 'pending',
 
+        // Left undefined (not '') for COD orders — razorpayOrderId has a
+        // sparse unique index, and a plain '' would collide across every
+        // COD order after the first one.
         razorpayOrderId:
           verifiedPayment?.razorpayOrderId ||
-          '',
+          undefined,
 
         razorpayPaymentId:
           verifiedPayment?.razorpayPaymentId ||
-          '',
+          undefined,
 
         status:
           paymentMethod ===
@@ -192,10 +227,21 @@ exports.placeOrder = async (req, res, next) => {
         promoCode,
         notes,
       });
+    } catch (createErr) {
+      // Order was never created — release the payment claim so the
+      // customer isn't locked out of retrying with the same payment.
+      if (verifiedPayment) {
+        await VerifiedPayment.updateOne({ _id: verifiedPayment._id }, { consumedAt: null });
+      }
+      throw createErr;
+    }
 
-    if (verifiedPayment) {
-      verifiedPayment.consumedAt = new Date();
-      await verifiedPayment.save();
+    // Only counts against the promo's usage limit once the order it was
+    // applied to actually exists.
+    if (promo) {
+      await Promo.findByIdAndUpdate(promo._id, {
+        $inc: { uses: 1 },
+      });
     }
 
     // Clear cart after successful order creation

@@ -280,7 +280,7 @@ function FeaturesSection() {
                   }}
                   className="snap-center shrink-0"
                   style={{
-                    width: '62%',
+                    width: '100%',
                   }}
                 >
                   <GlassFeatureCard
@@ -329,7 +329,7 @@ function FeaturesSection() {
           </div>
 
           {/* Tablet / desktop grid */}
-          <div className="hidden sm:grid grid-cols-4 gap-3 md:gap-4">
+          <div className="hidden sm:grid grid-cols-4 gap-4 md:gap-6">
             {FEATURES.map((f, i) => (
               <motion.div
                 key={f.title}
@@ -354,15 +354,15 @@ function FeaturesSection() {
                   index={i}
                   className="w-full"
                   style={{
-                    height: 150,
+                    height: 220,
                   }}
                 />
 
                 <h3
-                  className="font-serif font-bold text-brown-dark text-center mt-2"
+                  className="font-serif font-bold text-brown-dark text-center mt-3"
                   style={{
                     fontSize:
-                      'clamp(0.85rem,1.3vw,0.98rem)',
+                      'clamp(0.95rem,1.5vw,1.15rem)',
                   }}
                 >
                   {f.title}

@@ -43,7 +43,8 @@ function parseWeightToGrams(sizeLabel, fallbackGrams = DEFAULT_FALLBACK_GRAMS) {
 function calcTotalWeightGrams(items, fallbackGrams = DEFAULT_FALLBACK_GRAMS) {
   return (items || []).reduce((sum, item) => {
     const unitGrams = parseWeightToGrams(item.size || item.weight, fallbackGrams);
-    const qty = Number(item.qty) || 1;
+    const parsedQty = Number(item.qty);
+    const qty = Number.isFinite(parsedQty) && parsedQty > 0 ? parsedQty : 1;
     return sum + unitGrams * qty;
   }, 0);
 }

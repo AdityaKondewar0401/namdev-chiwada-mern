@@ -3,11 +3,54 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Uses the existing brand logo — no dedicated favicon.ico/png file
+         exists in client/public yet. Works in all modern browsers, but a
+         proper 32x32/16x16 favicon.ico would be lighter; see final report. -->
+    <link rel="icon" type="image/png" href="/images/logo.png" />
 
-    <title>Namdev Chiwda – Authentic Taste, Timeless Tradition </title>
+    <title>Namdev Chiwda – Authentic Taste, Timeless Tradition | Solapuri Chiwda Since 1873</title>
     <meta
       name="description"
-      content="Premium Maharashtrian chiwda, farsan and traditional snacks from Solapur. 150+ years of authentic taste."
+      content="Namdev Chiwda — the official home of authentic Solapuri Chiwda, Maka Chiwda, Bakarwadi and traditional Maharashtrian snacks, hand-roasted in Solapur since 1873. Order online, delivered across India."
+    />
+    <!-- Static fallback so non-JS crawlers (social-preview scrapers: WhatsApp,
+         Facebook, LinkedIn) get a real preview even though most per-page SEO
+         (title/description/OG overrides, JSON-LD) is rendered client-side by
+         <SEO> via react-helmet-async — see components/SEO.jsx. Every public
+         page overrides these at runtime for browsers/Googlebot, which do
+         execute JS. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Namdev Chiwada" />
+    <meta property="og:title" content="Namdev Chiwda – Authentic Taste, Timeless Tradition" />
+    <meta property="og:description" content="The official home of authentic Solapuri Chiwda and traditional Maharashtrian snacks, hand-roasted in Solapur since 1873." />
+    <meta property="og:url" content="https://namdevchiwda.com/" />
+    <meta property="og:image" content="https://namdevchiwda.com/images/chiwada-1.jpg" />
+    <meta property="og:locale" content="en_IN" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Namdev Chiwda – Authentic Taste, Timeless Tradition" />
+    <meta name="twitter:description" content="The official home of authentic Solapuri Chiwda and traditional Maharashtrian snacks, hand-roasted in Solapur since 1873." />
+    <meta name="twitter:image" content="https://namdevchiwda.com/images/chiwada-1.jpg" />
+
+    <!-- LCP preload for the homepage hero product image (HeroExperience.jsx)
+         — must stay in sync with PRODUCTS[0].img there and the transform/
+         widths in utils/cloudinary.js (cldUrl/cldSrcSet defaults) if either
+         changes. Split by viewport since the mobile and desktop hero <img>s
+         use different `sizes`. -->
+    <link
+      rel="preload"
+      as="image"
+      href="https://res.cloudinary.com/dz7ykg6qr/image/upload/f_auto,q_auto/v1776256647/special1_sy4zxa.png"
+      imagesrcset="https://res.cloudinary.com/dz7ykg6qr/image/upload/f_auto,q_auto,w_400/v1776256647/special1_sy4zxa.png 400w, https://res.cloudinary.com/dz7ykg6qr/image/upload/f_auto,q_auto,w_600/v1776256647/special1_sy4zxa.png 600w, https://res.cloudinary.com/dz7ykg6qr/image/upload/f_auto,q_auto,w_800/v1776256647/special1_sy4zxa.png 800w, https://res.cloudinary.com/dz7ykg6qr/image/upload/f_auto,q_auto,w_1000/v1776256647/special1_sy4zxa.png 1000w, https://res.cloudinary.com/dz7ykg6qr/image/upload/f_auto,q_auto,w_1400/v1776256647/special1_sy4zxa.png 1400w"
+      imagesizes="90vw"
+      media="(max-width: 1023px)"
+    />
+    <link
+      rel="preload"
+      as="image"
+      href="https://res.cloudinary.com/dz7ykg6qr/image/upload/f_auto,q_auto,w_800/v1776256647/special1_sy4zxa.png"
+      imagesrcset="https://res.cloudinary.com/dz7ykg6qr/image/upload/f_auto,q_auto,w_400/v1776256647/special1_sy4zxa.png 400w, https://res.cloudinary.com/dz7ykg6qr/image/upload/f_auto,q_auto,w_600/v1776256647/special1_sy4zxa.png 600w, https://res.cloudinary.com/dz7ykg6qr/image/upload/f_auto,q_auto,w_800/v1776256647/special1_sy4zxa.png 800w, https://res.cloudinary.com/dz7ykg6qr/image/upload/f_auto,q_auto,w_1000/v1776256647/special1_sy4zxa.png 1000w, https://res.cloudinary.com/dz7ykg6qr/image/upload/f_auto,q_auto,w_1400/v1776256647/special1_sy4zxa.png 1400w"
+      imagesizes="(min-width: 1024px) 760px, 56vw"
+      media="(min-width: 1024px)"
     />
 
     <!-- Google Fonts -->

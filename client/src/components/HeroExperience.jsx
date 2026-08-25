@@ -92,8 +92,14 @@ function StaggerHeading() {
     hidden: { opacity: 0, y: 28, filter: 'blur(6px)' },
     visible: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.55, ease: [0.25, 0.46, 0.45, 0.94] } },
   };
+  // Rendered as a div, not an h1 — the mobile hero layout below (rendered
+  // simultaneously in the DOM, just CSS-hidden per breakpoint, not removed)
+  // already has the page's one real <h1>. Google indexes mobile-first, so
+  // that's the copy that should carry the H1; this desktop-only visual
+  // duplicate would otherwise give the page two competing H1s at once
+  // regardless of viewport.
   return (
-    <motion.h1
+    <motion.div
       initial="hidden" animate="visible" variants={container}
       className="font-serif font-black text-white leading-[1.08] mb-3"
       style={{ fontSize: 'clamp(2.05rem,5vw,3.5rem)', textShadow: '0 2px 20px rgba(0,0,0,0.3)', whiteSpace: 'nowrap' }}
@@ -109,7 +115,7 @@ function StaggerHeading() {
           <motion.span key={i} variants={word} className="shimmer-text" style={{ display: 'inline-block', marginRight: '0.28em' }}>{w}</motion.span>
         ))}
       </span>
-    </motion.h1>
+    </motion.div>
   );
 }
 
@@ -318,7 +324,7 @@ export default function HeroExperience() {
                 // LCP handling: first slide loads eager + high priority; later
                 // slides (reached only via swipe/autoplay) are lazy.
                 loading={current === 0 ? 'eager' : 'lazy'}
-                fetchPriority={current === 0 ? 'high' : 'auto'}
+                fetchpriority={current === 0 ? 'high' : 'auto'}
                 decoding="async"
                 style={{
                   width: '132vw', maxWidth: 'none', height: 'auto', maxHeight: '46svh',
@@ -341,7 +347,7 @@ export default function HeroExperience() {
             className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/10 text-gold-light font-semibold uppercase"
             style={{ fontSize: '0.46rem', padding: '4px 12px', marginBottom: 14, letterSpacing: '0.22em', fontFamily: "'Inter', sans-serif" }}
           >
-            ● SINCE 1873 · SOLAPUR, MAHARASHTRA
+            ● NAMDEV CHIWDA · SINCE 1873 · SOLAPUR
           </div>
 
           <div className="relative text-center" style={{ marginBottom: 4, width: '100%', maxWidth: '94vw' }}>
@@ -514,7 +520,7 @@ export default function HeroExperience() {
                       width={IMG_W}
                       height={IMG_H}
                       loading={current === 0 ? 'eager' : 'lazy'}
-                      fetchPriority={current === 0 ? 'high' : 'auto'}
+                      fetchpriority={current === 0 ? 'high' : 'auto'}
                       decoding="async"
                       style={{ width: 'clamp(300px,56vw,760px)', maxWidth: 'none', filter: 'drop-shadow(0 40px 70px rgba(0,0,0,0.6)) drop-shadow(0 8px 24px rgba(212,168,55,0.25))', display: 'block' }}
                       draggable={false}

@@ -59,6 +59,7 @@ export default function ProductDetailPage() {
   const { toggle, isWishlisted } = useWishlist();
 
   const [product, setProduct]                 = useState(null);
+  const [notFound, setNotFound]               = useState(false);
   const [related, setRelated]                 = useState([]);
   const [loading, setLoading]                 = useState(true);
   const [qty, setQty]                         = useState(1);
@@ -126,7 +127,11 @@ export default function ProductDetailPage() {
         setMainImg(p.img);
         setSelectedSizeIdx(Math.min(1, (p.sizes?.length || 1) - 1));
       })
-      .catch(() => navigate('/products'))
+      // A dead/mistyped product URL is a real 404, not "actually /products" —
+      // silently redirecting there previously merged every invalid product
+      // URL's signals into the listing page. Show a genuine not-found state
+      // at the original URL (marked noindex below) instead.
+      .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
   }, [routeSlug, navigate]);
 
@@ -156,7 +161,33 @@ export default function ProductDetailPage() {
       <DetailSkeleton />
     </div>
   );
-  if (!product) return null;
+
+  if (notFound || !product) {
+    return (
+      <PageWrapper>
+        <SEO
+          title="Product Not Found — Namdev Chiwada"
+          description="The product you're looking for doesn't exist or may have been removed."
+          canonical={`/products/${routeSlug}`}
+          robots="noindex,nofollow"
+        />
+        <div className="min-h-screen bg-cream flex items-center justify-center text-center px-6">
+          <div>
+            <div className="text-8xl mb-4">🥨</div>
+            <h1 className="font-serif font-black text-brown-dark text-3xl mb-3">
+              Product Not Found
+            </h1>
+            <p className="text-brown-mid/60 mb-8">
+              This product doesn't exist or may have been removed.
+            </p>
+            <a href="/products" className="btn-saffron px-8 py-3.5 inline-block">
+              Browse All Products
+            </a>
+          </div>
+        </div>
+      </PageWrapper>
+    );
+  }
 
   const currentSize = product.sizes?.[selectedSizeIdx] || { weight: product.weight, price: product.price };
   const thumbs      = [product.img, ...(product.images || [])];
@@ -180,7 +211,7 @@ export default function ProductDetailPage() {
   // already handles the "please login" guard and the success/removed toast,
   // so this just needs to pass the id through.
   const handleWishlistToggle = () => {
-    toggle(product._id);
+    toggle(product._id, product);
   };
 
   const handleShare = async () => {
@@ -286,6 +317,7 @@ export default function ProductDetailPage() {
                     </span>
                   )}
                   <img src={img} alt={product.name}
+                    loading={i === 0 ? 'eager' : 'lazy'}
                     className="w-full h-full object-cover" />
                 </div>
               ))}
@@ -385,7 +417,7 @@ export default function ProductDetailPage() {
                     aspectRatio: '1/1',
                     ...(mainImg === img ? { boxShadow: `0 0 0 2px ${GOLD}` } : {}),
                   }}>
-                  <img src={img} alt="" className="w-full h-full object-cover" />
+                  <img src={img} alt="" loading="lazy" className="w-full h-full object-cover" />
                 </button>
               ))}
             </div>
@@ -426,6 +458,7 @@ export default function ProductDetailPage() {
                   <motion.img
                     key={mainImg}
                     src={mainImg} alt={product.name}
+                    fetchpriority="high"
                     initial={{ opacity: 0, scale: 0.97 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.3 }}

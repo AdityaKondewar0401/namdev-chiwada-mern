@@ -5,6 +5,7 @@
 // and a few admin-only actions (manual tracking resync, cancellation,
 // escalation, POD lookup) that reuse the same service module.
 
+const crypto = require('crypto');
 const Order = require('../models/Order');
 const shadowfaxService = require('../services/shadowfaxService');
 const { getShadowfaxConfig } = require('../config/shadowfax');
@@ -73,8 +74,13 @@ exports.handlePushCallback = async (req, res) => {
     }
 
     const authHeader = req.headers.authorization || '';
-    const provided = authHeader.replace(/^Token\s+/i, '').trim();
-    if (provided !== cfg.webhookToken) {
+    const provided = Buffer.from(authHeader.replace(/^Token\s+/i, '').trim());
+    const expected = Buffer.from(cfg.webhookToken);
+    // Constant-time comparison — a plain `!==` leaks a timing signal an
+    // attacker could use to guess the webhook token byte-by-byte and then
+    // push fake courier-status updates for any order.
+    const tokenValid = provided.length === expected.length && crypto.timingSafeEqual(provided, expected);
+    if (!tokenValid) {
       return res.status(401).json({ success: false, message: 'Invalid webhook token' });
     }
 
@@ -117,13 +123,23 @@ exports.handlePushCallback = async (req, res) => {
     target.courier.status = event;
     target.courier.statusDisplay = status;
     target.courier.lastSyncedAt = new Date();
-    target.courier.history.push({
-      statusId: event,
-      status,
-      location: current_location,
-      remarks: comments,
-      eventTimestamp: event_timestamp ? new Date(event_timestamp) : new Date(),
-    });
+
+    // Shadowfax retries push callbacks, so the same event can arrive more
+    // than once — dedup on (statusId, eventTimestamp) so a retry doesn't
+    // duplicate the history entry indefinitely.
+    const eventTimestamp = event_timestamp ? new Date(event_timestamp) : new Date();
+    const alreadyRecorded = target.courier.history.some(
+      (h) => h.statusId === event && h.eventTimestamp?.getTime() === eventTimestamp.getTime()
+    );
+    if (!alreadyRecorded) {
+      target.courier.history.push({
+        statusId: event,
+        status,
+        location: current_location,
+        remarks: comments,
+        eventTimestamp,
+      });
+    }
 
     // Only forward-progress the ORDER's own status — never let a stray
     // out-of-order webhook regress an order that's already delivered or
