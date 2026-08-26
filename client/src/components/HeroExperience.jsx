@@ -130,12 +130,30 @@ function StaggerHeading() {
   );
 }
 
-function RotatingTagline({ wrapperStyle, textStyle }) {
+// `static` skips the rotation entirely and just shows TAGLINES[0] — used on
+// mobile per feedback: the cycling read as "three different lines" showing
+// up one after another, when only the first (Marathi) line should appear.
+function RotatingTagline({ wrapperStyle, textStyle, static: isStatic = false }) {
   const [idx, setIdx] = useState(0);
   useEffect(() => {
+    if (isStatic) return;
     const t = setInterval(() => setIdx((i) => (i + 1) % TAGLINES.length), 3400);
     return () => clearInterval(t);
-  }, []);
+  }, [isStatic]);
+  const textStyleMerged = {
+    fontFamily: "'Gotu', sans-serif", fontSize: 'clamp(0.82rem,2vw,1.3rem)',
+    background: 'linear-gradient(90deg,#ffd89b,#f0cc5a,#ffd89b)', backgroundSize: '200% auto',
+    WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
+    letterSpacing: '0.02em', margin: 0,
+    ...textStyle,
+  };
+  if (isStatic) {
+    return (
+      <div className="mb-6" style={{ minHeight: 'clamp(1.6rem,3vw,2.2rem)', position: 'relative', ...wrapperStyle }}>
+        <p style={textStyleMerged}>{TAGLINES[0]}</p>
+      </div>
+    );
+  }
   return (
     <div className="mb-6" style={{ minHeight: 'clamp(1.6rem,3vw,2.2rem)', position: 'relative', ...wrapperStyle }}>
       <AnimatePresence mode="wait">
@@ -143,13 +161,7 @@ function RotatingTagline({ wrapperStyle, textStyle }) {
           key={idx}
           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] }}
-          style={{
-            fontFamily: "'Gotu', sans-serif", fontSize: 'clamp(0.82rem,2vw,1.3rem)',
-            background: 'linear-gradient(90deg,#ffd89b,#f0cc5a,#ffd89b)', backgroundSize: '200% auto',
-            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
-            letterSpacing: '0.02em', margin: 0,
-            ...textStyle,
-          }}
+          style={textStyleMerged}
         >{TAGLINES[idx]}</motion.p>
       </AnimatePresence>
     </div>
@@ -281,16 +293,17 @@ export default function HeroExperience() {
     touchStartX.current = null;
   };
 
-  // FIX: mode="wait" was fully unmounting the outgoing image before the
-  // next one mounted — a real blank gap between slides every ~3.5s, which
-  // reads as the hero flickering. Same fix as desktop: overlap the two
-  // slides (default AnimatePresence mode) and use `position` per-variant
-  // so only the entering slide occupies layout flow while the exiting one
-  // is lifted out via `absolute` — no gap, no size/container change.
+  // FIX: an opacity-based crossfade (whether overlapping or mode="wait")
+  // showed two dissimilar product photos alpha-blended together — the same
+  // double-exposure bug fixed on desktop. Switched to a pure slide: no
+  // opacity animation, percentage-based x offset (105% of the image's own
+  // width, so it fully clears regardless of how wide the packet render
+  // is), both slides always `position: absolute`. Something opaque is on
+  // screen at every instant, so there's never a blend to look corrupted.
   const mobileSlideVariants = {
-    enter: { opacity: 0, x: -80, y: 0, position: 'relative' },
-    center: { opacity: 1, x: 0, y: 0, position: 'relative', transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } },
-    exit: { opacity: 0, x: 90, y: 0, position: 'absolute', transition: { duration: 0.3, ease: [0.55, 0, 1, 0.45] } },
+    enter: { x: '105%' },
+    center: { x: '0%', transition: { duration: 0.55, ease: [0.65, 0, 0.35, 1] } },
+    exit: { x: '-105%', transition: { duration: 0.55, ease: [0.65, 0, 0.35, 1] } },
   };
 
   // FIX (attempt 3): an opacity crossfade (any overlap) gave a
@@ -346,33 +359,48 @@ export default function HeroExperience() {
             border: '1px dashed rgba(212,175,55,0.18)', animation: 'spinSlow 22s linear infinite',
             top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
           }} />
-          <AnimatePresence custom={direction}>
-            <motion.div
-              key={current} custom={direction} variants={mobileSlideVariants}
-              initial="enter" animate="center" exit="exit"
-              style={{ zIndex: 3, pointerEvents: 'auto' }}
-            >
-              <img
-                src={cldUrl(PRODUCTS[current].img)}
-                srcSet={cldSrcSet(PRODUCTS[current].img)}
-                sizes="90vw"
-                alt={PRODUCTS[current].alt}
-                draggable={false}
-                width={IMG_W}
-                height={IMG_H}
-                // LCP handling: first slide loads eager + high priority; later
-                // slides (reached only via swipe/autoplay) are lazy.
-                loading={current === 0 ? 'eager' : 'lazy'}
-                fetchpriority={current === 0 ? 'high' : 'auto'}
-                decoding="async"
-                style={{
-                  width: '132vw', maxWidth: 'none', height: 'auto', maxHeight: '46svh',
-                  filter: 'drop-shadow(0 28px 55px rgba(0,0,0,0.82)) drop-shadow(0 6px 22px rgba(212,168,55,0.50))',
-                  display: 'block',
-                }}
-              />
-            </motion.div>
-          </AnimatePresence>
+          {/* Clipping wrapper: sized off the actual current image (spacer
+              below), overflow:hidden so the slide's off-stage portion is
+              cut instead of spilling sideways past the packet's own
+              footprint. Kept separate from the outer zone (which stays
+              overflow:visible) so the decorative glow/ring aren't clipped. */}
+          <div style={{ position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3, pointerEvents: 'auto' }}>
+            <img
+              aria-hidden="true"
+              alt=""
+              src={cldUrl(PRODUCTS[current].img)}
+              width={IMG_W}
+              height={IMG_H}
+              style={{ width: '132vw', maxWidth: 'none', height: 'auto', maxHeight: '46svh', visibility: 'hidden', display: 'block' }}
+            />
+            <AnimatePresence custom={direction}>
+              <motion.div
+                key={current} custom={direction} variants={mobileSlideVariants}
+                initial="enter" animate="center" exit="exit"
+                style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <img
+                  src={cldUrl(PRODUCTS[current].img)}
+                  srcSet={cldSrcSet(PRODUCTS[current].img)}
+                  sizes="90vw"
+                  alt={PRODUCTS[current].alt}
+                  draggable={false}
+                  width={IMG_W}
+                  height={IMG_H}
+                  // LCP handling: first slide loads eager + high priority; later
+                  // slides (reached only via swipe/autoplay) are lazy.
+                  loading={current === 0 ? 'eager' : 'lazy'}
+                  fetchpriority={current === 0 ? 'high' : 'auto'}
+                  decoding="async"
+                  style={{
+                    width: '132vw', maxWidth: 'none', height: 'auto', maxHeight: '46svh',
+                    filter: 'drop-shadow(0 28px 55px rgba(0,0,0,0.82)) drop-shadow(0 6px 22px rgba(212,168,55,0.50))',
+                    display: 'block',
+                  }}
+                />
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </div>
 
         {/* Text block */}
@@ -417,8 +445,9 @@ export default function HeroExperience() {
           </div>
 
           <RotatingTagline
+            static
             wrapperStyle={{ marginTop: 16, marginBottom: 22, textAlign: 'center', width: '100%' }}
-            textStyle={{ textAlign: 'center', fontSize: '1.22rem' }}
+            textStyle={{ textAlign: 'center', fontSize: 'clamp(0.78rem,4.6vw,1.22rem)', whiteSpace: 'nowrap' }}
           />
 
           {/* NOTE: mobile carousel dots removed per feedback — swipe left/right

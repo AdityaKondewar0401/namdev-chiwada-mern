@@ -257,7 +257,15 @@ function FeaturesSection() {
               className="flex gap-2.5 overflow-x-auto snap-x snap-mandatory pb-1"
               style={{
                 scrollbarWidth: 'none',
-                touchAction: 'pan-x',
+                // FIX: touch-action: pan-x does NOT chain a vertical swipe
+                // to the page — it just disables the browser's vertical-pan
+                // handling entirely for the gesture, so the touch went
+                // nowhere. 'auto' lets the browser attempt the vertical pan
+                // here first; since overflowY: hidden below guarantees this
+                // element has zero vertical scroll room, native
+                // scroll-chaining hands it straight to the page. Horizontal
+                // swipes still scroll this row (overflow-x-auto + snap).
+                touchAction: 'auto',
                 overflowY: 'hidden',
               }}
             >
