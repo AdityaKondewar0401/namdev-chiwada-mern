@@ -130,14 +130,14 @@ function StaggerHeading() {
   );
 }
 
-function RotatingTagline() {
+function RotatingTagline({ wrapperStyle, textStyle }) {
   const [idx, setIdx] = useState(0);
   useEffect(() => {
     const t = setInterval(() => setIdx((i) => (i + 1) % TAGLINES.length), 3400);
     return () => clearInterval(t);
   }, []);
   return (
-    <div className="mb-6" style={{ minHeight: 'clamp(1.6rem,3vw,2.2rem)', position: 'relative' }}>
+    <div className="mb-6" style={{ minHeight: 'clamp(1.6rem,3vw,2.2rem)', position: 'relative', ...wrapperStyle }}>
       <AnimatePresence mode="wait">
         <motion.p
           key={idx}
@@ -148,6 +148,7 @@ function RotatingTagline() {
             background: 'linear-gradient(90deg,#ffd89b,#f0cc5a,#ffd89b)', backgroundSize: '200% auto',
             WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
             letterSpacing: '0.02em', margin: 0,
+            ...textStyle,
           }}
         >{TAGLINES[idx]}</motion.p>
       </AnimatePresence>
@@ -254,8 +255,18 @@ export default function HeroExperience() {
   useEffect(() => { preloadImages(); }, []);
 
   const goTo = useCallback((index, dir = 1) => { setDirection(dir); setCurrent(index); }, []);
-  const next = useCallback(() => goTo((current + 1) % PRODUCTS.length, 1), [current, goTo]);
-  const prev = useCallback(() => goTo((current - 1 + PRODUCTS.length) % PRODUCTS.length, -1), [current, goTo]);
+  // Functional updater form so next/prev never depend on `current` — keeps
+  // their identity stable across renders instead of changing every 3.5s,
+  // which previously tore down and recreated the autoplay interval on
+  // every single tick for no reason.
+  const next = useCallback(() => {
+    setDirection(1);
+    setCurrent((c) => (c + 1) % PRODUCTS.length);
+  }, []);
+  const prev = useCallback(() => {
+    setDirection(-1);
+    setCurrent((c) => (c - 1 + PRODUCTS.length) % PRODUCTS.length);
+  }, []);
 
   useEffect(() => {
     autoRef.current = setInterval(next, 3500);
@@ -318,11 +329,18 @@ export default function HeroExperience() {
             border: '1px dashed rgba(212,175,55,0.18)', animation: 'spinSlow 22s linear infinite',
             top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
           }} />
-          <AnimatePresence mode="wait" custom={direction}>
+          {/* mode="wait" used to hold the exiting slide's opacity-0 end
+              state on screen until it fully unmounted before the next one
+              even started entering — a real gap with neither image
+              visible, which read as the hero "flashing". Default
+              (overlapping) mode plus absolute-stacking the slides lets the
+              old one fade out while the new one fades in at the same time,
+              so there's never a blank frame between them. */}
+          <AnimatePresence custom={direction}>
             <motion.div
               key={current} custom={direction} variants={mobileSlideVariants}
               initial="enter" animate="center" exit="exit"
-              style={{ position: 'relative', zIndex: 3, pointerEvents: 'auto' }}
+              style={{ position: 'absolute', inset: 0, zIndex: 3, pointerEvents: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
               <img
                 src={cldUrl(PRODUCTS[current].img)}
@@ -388,14 +406,10 @@ export default function HeroExperience() {
             </h1>
           </div>
 
-          <p style={{
-            fontFamily: "'Gotu', sans-serif",
-            background: 'linear-gradient(90deg,#ffd89b,#f0cc5a,#ffd89b)',
-            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
-            letterSpacing: '0.02em', textAlign: 'center', fontSize: '1.22rem', marginTop: 16, marginBottom: 22,
-          }}>
-            खमंग चिवडा — पिढ्यानपिढ्याची चव
-          </p>
+          <RotatingTagline
+            wrapperStyle={{ marginTop: 16, marginBottom: 22, textAlign: 'center', width: '100%' }}
+            textStyle={{ textAlign: 'center', fontSize: '1.22rem' }}
+          />
 
           {/* NOTE: mobile carousel dots removed per feedback — swipe left/right
               on the packet image still navigates between products, this was
@@ -518,11 +532,15 @@ export default function HeroExperience() {
                 border: '1px solid rgba(255,255,255,0.06)', animation: 'spinSlow 14s linear infinite reverse',
                 top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 1,
               }} />
-              <div style={{ position: 'relative', zIndex: 3, width: '100%', display: 'flex', justifyContent: 'center', transform: 'translateY(28px)' }}>
-                <AnimatePresence mode="wait" custom={direction}>
+              <div style={{ position: 'relative', zIndex: 3, width: '100%', display: 'flex', justifyContent: 'center', transform: 'translateY(28px)', aspectRatio: `${IMG_W} / ${IMG_H}`, maxWidth: 760 }}>
+                {/* See the mobile slide comment above — overlapping
+                    (default) mode + absolute stacking removes the blank
+                    gap mode="wait" left between the old slide fully
+                    unmounting and the new one starting to appear. */}
+                <AnimatePresence custom={direction}>
                   <motion.div key={current} custom={direction} variants={desktopSlideVariants}
                     initial="enter" animate="center" exit="exit"
-                    style={{ animation: 'heroFloat 4s ease-in-out infinite', display: 'flex', justifyContent: 'center' }}>
+                    style={{ position: 'absolute', inset: 0, animation: 'heroFloat 4s ease-in-out infinite', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <img
                       src={cldUrl(PRODUCTS[current].img)}
                       srcSet={cldSrcSet(PRODUCTS[current].img)}
@@ -533,7 +551,7 @@ export default function HeroExperience() {
                       loading={current === 0 ? 'eager' : 'lazy'}
                       fetchpriority={current === 0 ? 'high' : 'auto'}
                       decoding="async"
-                      style={{ width: 'clamp(300px,56vw,760px)', maxWidth: 'none', filter: 'drop-shadow(0 40px 70px rgba(0,0,0,0.6)) drop-shadow(0 8px 24px rgba(212,168,55,0.25))', display: 'block' }}
+                      style={{ width: '100%', height: '100%', objectFit: 'contain', filter: 'drop-shadow(0 40px 70px rgba(0,0,0,0.6)) drop-shadow(0 8px 24px rgba(212,168,55,0.25))', display: 'block' }}
                       draggable={false}
                     />
                   </motion.div>

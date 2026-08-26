@@ -141,48 +141,46 @@ exports.updateCartItem = async (
       quantity,
     } = req.body;
 
-    const cart = await Cart.findOne({
-      user: req.user._id,
-    });
+    // Atomic single-document update instead of findOne + mutate + save.
+    // The stepper debounces clicks client-side, but a debounced request
+    // can still be in flight over the network when the next one fires —
+    // two concurrent read-modify-write saves on the same cart raced on
+    // Mongoose's array version check and threw VersionError, which
+    // surfaced to the user as "Failed to update quantity". An atomic
+    // update has nothing to race: each request is a single Mongo
+    // operation applied directly, last write wins, no local version to
+    // conflict.
+    const cart =
+      quantity <= 0
+        ? await Cart.findOneAndUpdate(
+            { user: req.user._id },
+            {
+              $pull: {
+                items: { product: productId, size },
+              },
+            },
+            { new: true }
+          )
+        : await Cart.findOneAndUpdate(
+            {
+              user: req.user._id,
+              items: {
+                $elemMatch: { product: productId, size },
+              },
+            },
+            { $set: { 'items.$.qty': quantity } },
+            { new: true }
+          );
 
     if (!cart) {
       return res.status(404).json({
         success: false,
-        message: 'Cart not found',
-      });
-    }
-
-    const item =
-      cart.items.find(
-        (i) =>
-          i.product.toString() ===
-            productId &&
-          i.size === size
-      );
-
-    if (!item) {
-      return res.status(404).json({
-        success: false,
         message:
-          'Cart item not found',
+          quantity <= 0
+            ? 'Cart not found'
+            : 'Cart item not found',
       });
     }
-
-    if (quantity <= 0) {
-      cart.items =
-        cart.items.filter(
-          (i) =>
-            !(
-              i.product.toString() ===
-                productId &&
-              i.size === size
-            )
-        );
-    } else {
-      item.qty = quantity;
-    }
-
-    await cart.save();
 
     await cart.populate(
       'items.product',
@@ -210,9 +208,14 @@ exports.removeFromCart = async (
     const { itemId } =
       req.params;
 
-    const cart = await Cart.findOne({
-      user: req.user._id,
-    });
+    // Atomic $pull — see updateCartItem for why this replaced a
+    // findOne + mutate + save (that pattern raced with concurrent
+    // requests on the same cart and threw VersionError).
+    const cart = await Cart.findOneAndUpdate(
+      { user: req.user._id },
+      { $pull: { items: { _id: itemId } } },
+      { new: true }
+    );
 
     if (!cart) {
       return res.status(404).json({
@@ -220,15 +223,6 @@ exports.removeFromCart = async (
         message: 'Cart not found',
       });
     }
-
-    cart.items =
-      cart.items.filter(
-        (item) =>
-          item._id.toString() !==
-          itemId
-      );
-
-    await cart.save();
 
     await cart.populate(
       'items.product',

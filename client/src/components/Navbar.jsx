@@ -63,6 +63,7 @@ export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const headerRef = useRef(null);
+  const navRef = useRef(null);
 
   // Publish the real, current height of the announcement bar + nav (which
   // sit in normal document flow, not fixed) as a CSS variable. Sections
@@ -72,15 +73,28 @@ export default function Navbar() {
   // bottom of the hero off-screen since the header's own height was never
   // subtracted anywhere. Height changes (scrolled state shrinks the nav,
   // mobile search row expands it, etc.) are picked up automatically.
+  //
+  // The announcement bar and nav are measured separately (not as one
+  // wrapper div) because wrapping <nav> in a div sized to exactly
+  // [announcement + nav] gave sticky nav's containing block zero extra
+  // room to stick within — the instant the announcement bar scrolled out,
+  // the wrapper's own bottom edge had already reached the top too, so the
+  // nav immediately unstuck and scrolled away with everything else instead
+  // of staying pinned.
   useEffect(() => {
-    const el = headerRef.current;
-    if (!el) return;
+    const announcementEl = headerRef.current;
+    const navEl = navRef.current;
+    if (!announcementEl || !navEl) return;
     const setVar = () => {
-      document.documentElement.style.setProperty('--header-h', `${el.offsetHeight}px`);
+      document.documentElement.style.setProperty(
+        '--header-h',
+        `${announcementEl.offsetHeight + navEl.offsetHeight}px`
+      );
     };
     setVar();
     const ro = new ResizeObserver(setVar);
-    ro.observe(el);
+    ro.observe(announcementEl);
+    ro.observe(navEl);
     return () => ro.disconnect();
   }, []);
 
@@ -135,8 +149,8 @@ export default function Navbar() {
 
   return (
     <>
-      <div ref={headerRef}>
       <div
+        ref={headerRef}
         className={`relative w-full text-white text-xs font-medium py-1.5 md:py-2 px-4 md:px-6 flex items-center justify-between overflow-hidden transition-all duration-200 ${menuOpen ? 'invisible opacity-0' : 'visible opacity-100'}`}
         style={{ background: '#1a3a2a' }}
       >
@@ -179,6 +193,7 @@ export default function Navbar() {
       </div>
 
       <nav
+        ref={navRef}
         className={`sticky top-0 left-0 right-0 z-40 transition-all duration-200 ${menuOpen ? 'invisible opacity-0' : 'visible opacity-100'}`}
         style={{
           background: '#fffefb',
@@ -417,7 +432,6 @@ export default function Navbar() {
           )}
         </AnimatePresence>
       </nav>
-      </div>
 
       <AnimatePresence>
         {menuOpen && (
