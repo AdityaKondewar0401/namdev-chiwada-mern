@@ -205,7 +205,20 @@ export default function Navbar() {
           className={`max-w-7xl mx-auto flex items-center justify-between px-4 md:px-8 transition-all duration-200 ${scrolled ? 'min-h-[60px] md:min-h-[68px]' : 'min-h-[68px] md:min-h-[80px]'}`}
         >
 
-          <Link to="/" className="flex items-center group flex-shrink-0">
+          <Link
+            to="/"
+            className="flex items-center group flex-shrink-0"
+            onClick={(e) => {
+              // Link to="/" is a no-op when already on "/" — React Router
+              // sees no pathname change, so ScrollToTop (App.jsx) never
+              // re-fires and a scrolled-down homepage just stays scrolled.
+              // Force it back to the top explicitly in that one case.
+              if (location.pathname === '/') {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+            }}
+          >
             <img
               src="/images/logo.png"
               alt="Namdev Chiwda"

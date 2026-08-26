@@ -440,90 +440,62 @@ const styles = `
     color: #1e40af;
   }
 
-  /* ── Payment panel — deliberately futuristic, breaks from every other
-     panel on this page on purpose (glassmorphic dark card, gradient-border
-     selection glow, faint grid backdrop) — the rest of checkout stays
-     warm/heritage-styled; this one section reads as its own premium
-     payment-gateway surface. Everything below is scoped under
-     .payment-panel-dark so it only touches this one panel. */
-  .payment-panel-dark {
-    position: relative;
-    overflow: hidden;
-    background:
-      radial-gradient(ellipse 60% 50% at 12% 0%, rgba(56,189,248,0.18), transparent 60%),
-      radial-gradient(ellipse 60% 50% at 100% 100%, rgba(168,85,247,0.20), transparent 60%),
-      linear-gradient(160deg, #0a0f1e 0%, #10182c 50%, #0a0f1e 100%);
-    border: 1px solid rgba(148,163,184,0.16);
-    box-shadow: 0 20px 60px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.03) inset;
-  }
-  .payment-panel-dark::before {
-    content: '';
-    position: absolute; inset: 0;
-    background-image:
-      linear-gradient(rgba(148,163,184,0.06) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(148,163,184,0.06) 1px, transparent 1px);
-    background-size: 28px 28px;
-    mask-image: radial-gradient(ellipse 80% 80% at 50% 15%, black 20%, transparent 75%);
-    -webkit-mask-image: radial-gradient(ellipse 80% 80% at 50% 15%, black 20%, transparent 75%);
-    pointer-events: none;
-  }
-  .payment-panel-dark > * { position: relative; z-index: 1; }
-
-  .payment-panel-dark .section-title { color: #f1f5f9; }
-  .payment-panel-dark .badge-secure {
-    background: rgba(34,211,238,0.1);
-    border: 1px solid rgba(34,211,238,0.35);
-    color: #67e8f9;
-    box-shadow: 0 0 14px rgba(34,211,238,0.25);
+  /* ── Payment panel — a clean light-blue fintech card (Razorpay-trust-badge
+     look), deliberately off the site's warm/heritage theme on purpose.
+     Everything below is scoped under .payment-panel-fx so it only touches
+     this one panel. */
+  .payment-panel-fx {
+    background: linear-gradient(160deg, #f8fbff 0%, #eef4fc 100%);
+    border: 1px solid #dbeafe;
+    box-shadow: 0 12px 40px rgba(37,99,235,0.08), 0 0 0 1px rgba(255,255,255,0.6) inset;
   }
 
-  .payment-panel-dark .payment-card {
-    background: rgba(255,255,255,0.03);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1.5px solid rgba(255,255,255,0.08);
-  }
-  .payment-panel-dark .payment-card:hover {
-    border-color: rgba(125,211,252,0.4);
-    background: rgba(255,255,255,0.05);
-  }
-  .payment-panel-dark .payment-card.selected {
-    border: 1.5px solid transparent;
-    background:
-      linear-gradient(rgba(255,255,255,0.05), rgba(255,255,255,0.05)) padding-box,
-      linear-gradient(135deg, #22d3ee, #a855f7) border-box;
-    box-shadow: 0 0 0 1px rgba(255,255,255,0.03) inset, 0 8px 32px rgba(34,211,238,0.16), 0 0 28px rgba(168,85,247,0.16);
+  .payment-panel-fx .section-title { color: #0f172a; }
+  .payment-panel-fx .badge-secure {
+    background: #dbeafe;
+    border: 1px solid #bfdbfe;
+    color: #2563eb;
   }
 
-  .payment-panel-dark .payment-icon-circle {
-    background: linear-gradient(135deg, rgba(34,211,238,0.18), rgba(168,85,247,0.18));
-    border: 1px solid rgba(125,211,252,0.25);
+  .payment-panel-fx .payment-card {
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
   }
-  .payment-panel-dark .payment-card.selected .payment-icon-circle {
-    background: linear-gradient(135deg, #22d3ee, #a855f7);
-    box-shadow: 0 0 18px rgba(34,211,238,0.55);
+  .payment-panel-fx .payment-card:hover {
+    border-color: #93c5fd;
   }
-
-  .payment-panel-dark .radio-dot { border-color: rgba(148,163,184,0.4); }
-  .payment-panel-dark .payment-card.selected .radio-dot {
-    border-color: #22d3ee;
-    box-shadow: 0 0 10px rgba(34,211,238,0.6);
-  }
-  .payment-panel-dark .radio-dot-inner {
-    background: linear-gradient(135deg, #22d3ee, #a855f7);
-    box-shadow: 0 0 8px rgba(34,211,238,0.8);
+  .payment-panel-fx .payment-card.selected {
+    border: 1.5px solid #3b82f6;
+    background: #eff6ff;
+    box-shadow: 0 6px 20px rgba(59,130,246,0.15);
   }
 
-  .payment-panel-dark .upi-chip {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.1);
-    color: #cbd5e1;
+  .payment-panel-fx .payment-icon-circle {
+    background: #dbeafe;
+    border: 1px solid #bfdbfe;
+  }
+  .payment-panel-fx .payment-card.selected .payment-icon-circle {
+    background: #3b82f6;
   }
 
-  .payment-panel-dark .payment-note {
-    background: rgba(34,211,238,0.08);
-    border: 1px solid rgba(34,211,238,0.22);
-    color: #7dd3fc;
+  .payment-panel-fx .radio-dot { border-color: #cbd5e1; }
+  .payment-panel-fx .payment-card.selected .radio-dot {
+    border-color: #3b82f6;
+  }
+  .payment-panel-fx .radio-dot-inner {
+    background: #3b82f6;
+  }
+
+  .payment-panel-fx .upi-chip {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #334155;
+  }
+
+  .payment-panel-fx .payment-note {
+    background: #dbeafe;
+    border: 1px solid #bfdbfe;
+    color: #1d4ed8;
   }
 
   .empty-cart-wrap {
@@ -1038,12 +1010,11 @@ function CheckoutPage() {
                 </motion.div>
 
                 {/* Payment Method */}
-                <motion.div className="card-panel payment-panel-dark" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.06 }}>
+                <motion.div className="card-panel payment-panel-fx" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.06 }}>
                   <div className="section-title">
                     <span style={{
                       width: 36, height: 36, borderRadius: 10,
-                      background: 'linear-gradient(135deg, #22d3ee, #a855f7)',
-                      boxShadow: '0 0 16px rgba(34,211,238,0.4)',
+                      background: '#dbeafe',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18,
                     }}>💳</span>
                     Payment Method
@@ -1067,12 +1038,12 @@ function CheckoutPage() {
                             fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
                             fontWeight: 700,
                             fontSize: 16,
-                            color: '#f1f5f9',
+                            color: '#0f172a',
                             marginBottom: 2,
                           }}>
                             Pay Online
                           </div>
-                          <div style={{ fontSize: 12, color: '#94a3b8', fontFamily: "'Inter', system-ui, -apple-system, sans-serif" }}>
+                          <div style={{ fontSize: 12, color: '#64748b', fontFamily: "'Inter', system-ui, -apple-system, sans-serif" }}>
                             UPI, Cards, Net Banking, Wallets
                           </div>
                         </div>
@@ -1110,12 +1081,12 @@ function CheckoutPage() {
                             fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
                             fontWeight: 700,
                             fontSize: 16,
-                            color: '#f1f5f9',
+                            color: '#0f172a',
                             marginBottom: 2,
                           }}>
                             Cash on Delivery
                           </div>
-                          <div style={{ fontSize: 12, color: '#94a3b8', fontFamily: "'Inter', system-ui, -apple-system, sans-serif" }}>
+                          <div style={{ fontSize: 12, color: '#64748b', fontFamily: "'Inter', system-ui, -apple-system, sans-serif" }}>
                             Pay when your order arrives at your door
                           </div>
                         </div>
