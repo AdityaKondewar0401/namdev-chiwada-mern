@@ -281,6 +281,9 @@ export default function HeroExperience() {
     touchStartX.current = null;
   };
 
+  // Mobile stays on the original mode="wait" behavior — untouched, per
+  // request. Only the desktop slide (below) uses the per-variant
+  // `position` trick to crossfade without a blank gap.
   const mobileSlideVariants = {
     enter: { opacity: 0, x: -80, y: 0 },
     center: { opacity: 1, x: 0, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } },
@@ -288,9 +291,9 @@ export default function HeroExperience() {
   };
 
   const desktopSlideVariants = {
-    enter: (dir) => ({ opacity: 0, x: dir > 0 ? 50 : -50, scale: 0.94 }),
-    center: { opacity: 1, x: 0, scale: 1, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } },
-    exit: (dir) => ({ opacity: 0, x: dir > 0 ? -50 : 50, scale: 0.94, transition: { duration: 0.35 } }),
+    enter: (dir) => ({ opacity: 0, x: dir > 0 ? 50 : -50, scale: 0.94, position: 'relative' }),
+    center: { opacity: 1, x: 0, scale: 1, position: 'relative', transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } },
+    exit: (dir) => ({ opacity: 0, x: dir > 0 ? -50 : 50, scale: 0.94, position: 'absolute', transition: { duration: 0.35 } }),
   };
 
   // Stable callback passed to HeroDots (desktop only now)
@@ -329,18 +332,11 @@ export default function HeroExperience() {
             border: '1px dashed rgba(212,175,55,0.18)', animation: 'spinSlow 22s linear infinite',
             top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
           }} />
-          {/* mode="wait" used to hold the exiting slide's opacity-0 end
-              state on screen until it fully unmounted before the next one
-              even started entering — a real gap with neither image
-              visible, which read as the hero "flashing". Default
-              (overlapping) mode plus absolute-stacking the slides lets the
-              old one fade out while the new one fades in at the same time,
-              so there's never a blank frame between them. */}
-          <AnimatePresence custom={direction}>
+          <AnimatePresence mode="wait" custom={direction}>
             <motion.div
               key={current} custom={direction} variants={mobileSlideVariants}
               initial="enter" animate="center" exit="exit"
-              style={{ position: 'absolute', inset: 0, zIndex: 3, pointerEvents: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              style={{ position: 'relative', zIndex: 3, pointerEvents: 'auto' }}
             >
               <img
                 src={cldUrl(PRODUCTS[current].img)}
@@ -532,15 +528,21 @@ export default function HeroExperience() {
                 border: '1px solid rgba(255,255,255,0.06)', animation: 'spinSlow 14s linear infinite reverse',
                 top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 1,
               }} />
-              <div style={{ position: 'relative', zIndex: 3, width: '100%', display: 'flex', justifyContent: 'center', transform: 'translateY(28px)', aspectRatio: `${IMG_W} / ${IMG_H}`, maxWidth: 760 }}>
+              <div style={{ position: 'relative', zIndex: 3, width: '100%', display: 'flex', justifyContent: 'center', transform: 'translateY(28px)' }}>
                 {/* See the mobile slide comment above — overlapping
-                    (default) mode + absolute stacking removes the blank
-                    gap mode="wait" left between the old slide fully
-                    unmounting and the new one starting to appear. */}
+                    (default) mode plus a per-variant `position` (relative
+                    while entering/current, absolute only once exiting)
+                    removes the blank gap mode="wait" left between the old
+                    slide fully unmounting and the new one starting to
+                    appear, without an earlier version's mistake of forcing
+                    both slides absolute — that made the container's height
+                    depend on a hardcoded aspect-ratio guess instead of the
+                    real current image, leaving a large gap above the hero
+                    text whenever that guess didn't match the actual photo. */}
                 <AnimatePresence custom={direction}>
                   <motion.div key={current} custom={direction} variants={desktopSlideVariants}
                     initial="enter" animate="center" exit="exit"
-                    style={{ position: 'absolute', inset: 0, animation: 'heroFloat 4s ease-in-out infinite', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    style={{ inset: 0, animation: 'heroFloat 4s ease-in-out infinite', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <img
                       src={cldUrl(PRODUCTS[current].img)}
                       srcSet={cldSrcSet(PRODUCTS[current].img)}
@@ -551,7 +553,7 @@ export default function HeroExperience() {
                       loading={current === 0 ? 'eager' : 'lazy'}
                       fetchpriority={current === 0 ? 'high' : 'auto'}
                       decoding="async"
-                      style={{ width: '100%', height: '100%', objectFit: 'contain', filter: 'drop-shadow(0 40px 70px rgba(0,0,0,0.6)) drop-shadow(0 8px 24px rgba(212,168,55,0.25))', display: 'block' }}
+                      style={{ width: 'clamp(300px,56vw,760px)', maxWidth: 'none', filter: 'drop-shadow(0 40px 70px rgba(0,0,0,0.6)) drop-shadow(0 8px 24px rgba(212,168,55,0.25))', display: 'block' }}
                       draggable={false}
                     />
                   </motion.div>
