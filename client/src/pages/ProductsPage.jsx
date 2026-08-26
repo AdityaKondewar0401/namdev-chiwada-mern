@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { productAPI } from '../services/api';
@@ -20,6 +20,83 @@ const SORTS = [
   { value: 'price-desc', label: 'Price: High → Low' },
   { value: 'rating',     label: 'Highest Rated' },
 ];
+
+// ── Sort dropdown — custom popover instead of a native <select>, which
+// mobile browsers render as their own full-width OS picker sheet.
+// ─────────────────────────────────────────────────────
+function SortDropdown({ value, onChange, options }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onClickOutside = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('mousedown', onClickOutside);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', onClickOutside);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [open]);
+
+  const selected = options.find((o) => o.value === value);
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        className="form-input py-2 pl-4 pr-3 rounded-full text-sm w-auto cursor-pointer flex items-center gap-2"
+      >
+        {selected?.label}
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+          style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }}>
+          <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+
+      {open && (
+        <motion.div
+          initial={{ opacity: 0, y: -6, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.15 }}
+          role="listbox"
+          className="absolute right-0 mt-2 w-56 rounded-2xl overflow-hidden z-30 bg-white"
+          style={{ boxShadow: '0 12px 32px rgba(45,26,0,0.15)', border: '1px solid rgba(224,112,0,0.1)' }}
+        >
+          {options.map((o) => {
+            const active = o.value === value;
+            return (
+              <button
+                key={o.value}
+                type="button"
+                role="option"
+                aria-selected={active}
+                onClick={() => { onChange(o.value); setOpen(false); }}
+                className="w-full flex items-center justify-between px-4 py-3 text-sm text-left transition-colors"
+                style={active
+                  ? { background: '#fff0d6', color: '#e07000', fontWeight: 700 }
+                  : { color: '#3d2800' }}
+                onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = '#fef3e0'; }}
+                onMouseLeave={(e) => { if (!active) e.currentTarget.style.background = 'transparent'; }}
+              >
+                {o.label}
+                {active && <span>✓</span>}
+              </button>
+            );
+          })}
+        </motion.div>
+      )}
+    </div>
+  );
+}
 
 // ── Page ───────────────────────────────────────────────
 export default function ProductsPage() {
@@ -110,10 +187,7 @@ export default function ProductsPage() {
             <span className="text-sm text-brown-mid/60">
               {total} product{total !== 1 ? 's' : ''} found
             </span>
-            <select value={sort} onChange={(e) => setSort(e.target.value)}
-              className="form-input py-2 px-4 rounded-full text-sm w-auto cursor-pointer">
-              {SORTS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
-            </select>
+            <SortDropdown value={sort} onChange={setSort} options={SORTS} />
           </div>
 
           {/* Error */}

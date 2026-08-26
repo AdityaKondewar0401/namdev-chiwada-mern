@@ -258,6 +258,7 @@ function FeaturesSection() {
               style={{
                 scrollbarWidth: 'none',
                 WebkitOverflowScrolling: 'touch',
+                touchAction: 'pan-x',
               }}
             >
               {FEATURES.map((f, i) => (

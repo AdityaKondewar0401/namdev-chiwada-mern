@@ -202,16 +202,26 @@ export const CartProvider = ({
 
       if (user) {
         try {
-          await cartAPI.add({
-            productId:
-              product._id,
-            name:
-              product.name,
-            img: product.img,
-            price,
-            size,
-            qty,
-          });
+          const res =
+            await cartAPI.add({
+              productId:
+                product._id,
+              name:
+                product.name,
+              img: product.img,
+              price,
+              size,
+              qty,
+            });
+
+          // Server is the source of truth for _id — the optimistic item
+          // above used a fake `local_...` id, so without this a later
+          // removeFromCart would send that fake id to the server, match
+          // nothing, and the item would silently reappear on next sync.
+          syncItems(
+            res.data.cart?.items ||
+              []
+          );
         } catch {
           syncItems(snapshot);
           toast.error(

@@ -525,9 +525,9 @@ function TimelineSection() {
 
         <div ref={timelineRef} className="relative">
           <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px -translate-x-1/2"
-            style={{ background: 'rgba(224,112,0,0.12)' }} />
+            style={{ background: 'rgba(224,112,0,0.3)' }} />
           <div className="md:hidden absolute left-[22px] top-0 bottom-0 w-px"
-            style={{ background: 'rgba(224,112,0,0.12)' }} />
+            style={{ background: 'rgba(224,112,0,0.3)' }} />
 
           <motion.div
             className="hidden md:block absolute left-1/2 top-0 w-[2px] -translate-x-1/2 rounded-full"

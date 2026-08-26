@@ -304,7 +304,7 @@ export default function ProductDetailPage() {
               ref={mobileScrollRef}
               onScroll={handleMobileScroll}
               className="pdp-scroll-hide flex overflow-x-auto snap-x snap-mandatory"
-              style={{ backgroundColor: '#DEDAD2' }}
+              style={{ backgroundColor: '#DEDAD2', touchAction: 'pan-x' }}
             >
               {thumbs.map((img, i) => (
                 <div key={i}

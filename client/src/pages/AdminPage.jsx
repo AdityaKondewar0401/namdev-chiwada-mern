@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { productAPI } from '../services/api';
 import api from '../services/api';
@@ -109,17 +109,14 @@ export default function AdminPage() {
 
           <div className="bg-white rounded-2xl p-4 sm:p-6"
             style={{ boxShadow: '0 4px 20px rgba(45,26,0,0.06)', border: '1px solid rgba(224,112,0,0.08)', minHeight: '500px' }}>
-            <AnimatePresence mode="wait">
-              <motion.div key={activeTab}
-                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
-                {activeTab === 'dashboard' && <DashboardTab products={products} orders={orders} />}
-                {activeTab === 'products' && <ProductsTab products={products} onDelete={handleDelete} onEdit={handleEdit} loading={loading} />}
-                {activeTab === 'add' && <ProductFormTab editProduct={editProduct} onSave={handleSave} onCancel={() => { setEditProduct(null); setActiveTab('products'); }} />}
-                {activeTab === 'orders' && <OrdersTab />}
-                {activeTab === 'promos' && <PromoCodesTab />}
-              </motion.div>
-            </AnimatePresence>
+            <motion.div key={activeTab}
+              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
+              {activeTab === 'dashboard' && <DashboardTab products={products} orders={orders} />}
+              {activeTab === 'products' && <ProductsTab products={products} onDelete={handleDelete} onEdit={handleEdit} loading={loading} />}
+              {activeTab === 'add' && <ProductFormTab editProduct={editProduct} onSave={handleSave} onCancel={() => { setEditProduct(null); setActiveTab('products'); }} />}
+              {activeTab === 'orders' && <OrdersTab />}
+              {activeTab === 'promos' && <PromoCodesTab />}
+            </motion.div>
           </div>
         </div>
       </div>

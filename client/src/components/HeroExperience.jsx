@@ -72,12 +72,23 @@ const TAGLINES = [
 const IMG_W = 800;
 const IMG_H = 1000;
 
+const SRCSET_WIDTHS = [400, 600, 800, 1000, 1400];
+
 function preloadImages() {
   // Warms the browser cache for the non-first slides only; slide 0 is
   // handled by the <link rel="preload"> in index.html + fetchPriority below.
+  //
+  // Preloads every width the <img>'s srcset can resolve to, not just the
+  // untransformed base URL — the base URL (plain cldUrl()) is never what
+  // actually gets requested once srcset/sizes are in play, so preloading
+  // only that left the real candidate uncached: every auto-advance was
+  // fetching the image fresh over the network mid-transition, which read
+  // as the whole hero flashing/reloading.
   PRODUCTS.slice(1).forEach((p) => {
-    const img = new Image();
-    img.src = cldUrl(p.img);
+    SRCSET_WIDTHS.forEach((w) => {
+      const img = new Image();
+      img.src = cldUrl(p.img, `f_auto,q_auto,w_${w}`);
+    });
   });
 }
 

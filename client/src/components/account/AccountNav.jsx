@@ -36,7 +36,7 @@ export default function AccountNav({ activeTab, onTabChange, ordersCount, wishli
               <button
                 key={tab.id}
                 onClick={() => onTabChange(tab.id)}
-                className="relative flex items-center gap-1.5 px-4 rounded-full text-sm font-semibold whitespace-nowrap transition-colors flex-shrink-0"
+                className="relative isolate flex items-center gap-1.5 px-4 rounded-full text-sm font-semibold whitespace-nowrap transition-colors flex-shrink-0"
                 style={{
                   height: 44,
                   border: active ? 'none' : '1px solid rgba(224,112,0,0.18)',
@@ -89,7 +89,7 @@ export default function AccountNav({ activeTab, onTabChange, ordersCount, wishli
               <button
                 key={tab.id}
                 onClick={() => onTabChange(tab.id)}
-                className="relative w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-colors mb-1"
+                className="relative isolate w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-colors mb-1"
               >
                 {active && (
                   <motion.span

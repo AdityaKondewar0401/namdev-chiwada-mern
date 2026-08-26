@@ -4,12 +4,11 @@
 
 @layer base {
   *, *::before, *::after { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
+  html { scroll-behavior: smooth; overflow-x: hidden; }
   body {
     font-family: 'DM Sans', system-ui, sans-serif;
     background: #fffdf7;
     color: #2d1a00;
-    overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     /* Kills the default gray/blue flash mobile browsers show on every tap
        of a link or button — without this, tapping anything tappable on
