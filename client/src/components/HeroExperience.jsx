@@ -293,19 +293,21 @@ export default function HeroExperience() {
     exit: { opacity: 0, x: 90, y: 0, position: 'absolute', transition: { duration: 0.3, ease: [0.55, 0, 1, 0.45] } },
   };
 
-  // FIX: enter (0.5s) and exit (0.35s) used to start at the same instant, so
-  // for ~350ms both the outgoing and incoming product photos were
-  // simultaneously ~50%+ opaque, alpha-blended on top of each other. Photos
-  // with sharp printed text/graphics don't dissolve softly like video — that
-  // blend read as a corrupted double-exposure ghost frame (confirmed via
-  // screenshot: both labels legible at once), which is what "flickering"
-  // was. Exit is now much faster (old is gone in 0.15s) and enter is
-  // delayed until exit has mostly finished, so the two are barely ever
-  // visible at the same time — same crossfade feel, no double-exposure.
+  // FIX (attempt 3): an opacity crossfade (any overlap) gave a
+  // double-exposure ghost between dissimilar product photos; switching to
+  // AnimatePresence mode="wait" (zero overlap) traded that for a real blank
+  // gap where neither photo exists in the DOM for an instant — the exact
+  // bug earlier comments in this file already warned about. Both failure
+  // modes come from blending/removing opacity. A slide/wipe avoids both:
+  // the incoming photo pushes in from one edge while the outgoing one
+  // pushes out the other, both always fully opaque, so something solid is
+  // on screen at every instant and there's never an alpha-blended overlap
+  // to look corrupted. `overflow: hidden` on the wrapper below clips the
+  // off-stage portions so this never spills into the decorative rings.
   const desktopSlideVariants = {
-    enter: (dir) => ({ opacity: 0, x: dir > 0 ? 50 : -50, scale: 0.94, position: 'relative' }),
-    center: { opacity: 1, x: 0, scale: 1, position: 'relative', transition: { duration: 0.45, delay: 0.15, ease: [0.25, 0.46, 0.45, 0.94] } },
-    exit: (dir) => ({ opacity: 0, x: dir > 0 ? -50 : 50, scale: 0.94, position: 'absolute', transition: { duration: 0.15, ease: [0.55, 0, 1, 0.45] } }),
+    enter: (dir) => ({ x: dir > 0 ? '105%' : '-105%' }),
+    center: { x: '0%', transition: { duration: 0.5, ease: [0.65, 0, 0.35, 1] } },
+    exit: (dir) => ({ x: dir > 0 ? '-105%' : '105%', transition: { duration: 0.5, ease: [0.65, 0, 0.35, 1] } }),
   };
 
   // Stable callback passed to HeroDots (desktop only now)
@@ -541,16 +543,6 @@ export default function HeroExperience() {
                 top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 1,
               }} />
               <div style={{ position: 'relative', zIndex: 3, width: '100%', display: 'flex', justifyContent: 'center', transform: 'translateY(28px)' }}>
-                {/* See the mobile slide comment above — overlapping
-                    (default) mode plus a per-variant `position` (relative
-                    while entering/current, absolute only once exiting)
-                    removes the blank gap mode="wait" left between the old
-                    slide fully unmounting and the new one starting to
-                    appear, without an earlier version's mistake of forcing
-                    both slides absolute — that made the container's height
-                    depend on a hardcoded aspect-ratio guess instead of the
-                    real current image, leaving a large gap above the hero
-                    text whenever that guess didn't match the actual photo. */}
                 {/* FIX: heroFloat used to live on the same keyed motion.div that
                     Framer Motion also drives (x/scale/opacity for the
                     crossfade). Both mechanisms write to the element's
@@ -563,11 +555,26 @@ export default function HeroExperience() {
                     heroFloat onto this outer, never-remounted wrapper keeps
                     it running continuously and leaves the inner motion.div
                     free to own `transform` for the crossfade only. */}
-                <div style={{ width: '100%', display: 'flex', justifyContent: 'center', animation: 'heroFloat 4s ease-in-out infinite' }}>
+                <div style={{ position: 'relative', width: '100%', overflow: 'hidden', display: 'flex', justifyContent: 'center', animation: 'heroFloat 4s ease-in-out infinite' }}>
+                  {/* Spacer reserves the image's real footprint in normal
+                      layout flow (sized off the actual current image, not
+                      the approximate IMG_W/IMG_H constant) so container
+                      size never depends on which slide is mounted — lets
+                      both slides below be `position: absolute` at all
+                      times with no layout gap. */}
+                  <img
+                    key={`spacer-${current}`}
+                    aria-hidden="true"
+                    alt=""
+                    src={cldUrl(PRODUCTS[current].img)}
+                    width={IMG_W}
+                    height={IMG_H}
+                    style={{ width: 'clamp(300px,56vw,760px)', maxWidth: 'none', height: 'auto', visibility: 'hidden', display: 'block' }}
+                  />
                   <AnimatePresence custom={direction}>
                     <motion.div key={current} custom={direction} variants={desktopSlideVariants}
                       initial="enter" animate="center" exit="exit"
-                      style={{ inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <img
                         src={cldUrl(PRODUCTS[current].img)}
                         srcSet={cldSrcSet(PRODUCTS[current].img)}

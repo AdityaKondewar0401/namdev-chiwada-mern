@@ -257,8 +257,8 @@ function FeaturesSection() {
               className="flex gap-2.5 overflow-x-auto snap-x snap-mandatory pb-1"
               style={{
                 scrollbarWidth: 'none',
-                WebkitOverflowScrolling: 'touch',
-                touchAction: 'pan-x pan-y',
+                touchAction: 'pan-x',
+                overflowY: 'hidden',
               }}
             >
               {FEATURES.map((f, i) => (
