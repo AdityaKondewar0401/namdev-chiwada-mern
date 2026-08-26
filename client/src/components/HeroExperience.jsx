@@ -343,9 +343,12 @@ export default function HeroExperience() {
           ══════════════════════════════════════ */}
       <div className="md:hidden" style={{ minHeight: '100%', position: 'relative', zIndex: 5 }}>
 
-        {/* Image zone: spans navbar-bottom to badge-top (53svh) so the packet sits centered */}
+        {/* Image zone: spans navbar-bottom to badge-top (50svh) so the packet sits centered.
+            FIX: packet made bigger (maxHeight 46svh→49svh, width 132vw→138vw) while the zone
+            itself shrank (53svh→50svh) so there's almost no empty space above/below it — and
+            every margin below was trimmed to get the whole hero back under one screen. */}
         <div style={{
-          position: 'absolute', top: 0, left: 0, right: 0, height: '53svh',
+          position: 'absolute', top: 0, left: 0, right: 0, height: '50svh',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           zIndex: 2, pointerEvents: 'none', overflow: 'visible',
         }}>
@@ -371,7 +374,7 @@ export default function HeroExperience() {
               src={cldUrl(PRODUCTS[current].img)}
               width={IMG_W}
               height={IMG_H}
-              style={{ width: '132vw', maxWidth: 'none', height: 'auto', maxHeight: '46svh', visibility: 'hidden', display: 'block' }}
+              style={{ width: '138vw', maxWidth: 'none', height: 'auto', maxHeight: '49svh', visibility: 'hidden', display: 'block' }}
             />
             <AnimatePresence custom={direction}>
               <motion.div
@@ -393,7 +396,7 @@ export default function HeroExperience() {
                   fetchpriority={current === 0 ? 'high' : 'auto'}
                   decoding="async"
                   style={{
-                    width: '132vw', maxWidth: 'none', height: 'auto', maxHeight: '46svh',
+                    width: '138vw', maxWidth: 'none', height: 'auto', maxHeight: '49svh',
                     filter: 'drop-shadow(0 28px 55px rgba(0,0,0,0.82)) drop-shadow(0 6px 22px rgba(212,168,55,0.50))',
                     display: 'block',
                   }}
@@ -406,66 +409,60 @@ export default function HeroExperience() {
         {/* Text block */}
         <div style={{
           position: 'relative', zIndex: 10,
-          padding: 'calc(53svh + 4px) 20px 18px',
+          padding: 'calc(50svh + 2px) 20px 8px',
           display: 'flex', flexDirection: 'column', alignItems: 'center',
         }}>
 
           <div
             className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/10 text-gold-light font-semibold uppercase"
-            style={{ fontSize: '0.46rem', padding: '4px 12px', marginBottom: 14, letterSpacing: '0.22em', fontFamily: "'Inter', sans-serif" }}
+            style={{ fontSize: '0.46rem', padding: '4px 12px', marginBottom: 10, letterSpacing: '0.22em', fontFamily: "'Inter', sans-serif" }}
           >
             ● NAMDEV CHIWDA · SINCE 1873 · SOLAPUR
           </div>
 
           <div className="relative text-center" style={{ marginBottom: 4, width: '100%', maxWidth: '94vw' }}>
-            <h1 style={{ lineHeight: 1.12, position: 'relative', zIndex: 1, width: '100%' }}>
+            <h1 style={{ lineHeight: 1.1, position: 'relative', zIndex: 1, width: '100%' }}>
               <span style={{
                 display: 'block', textAlign: 'center', fontFamily: "'Playfair Display', serif",
-                fontWeight: 800, fontStyle: 'normal', fontSize: 'clamp(2rem,8.8vw,3.2rem)',
+                fontWeight: 800, fontStyle: 'normal', fontSize: 'clamp(1.8rem,7.8vw,2.9rem)',
                 letterSpacing: '-0.005em', color: '#fff', textShadow: '0 6px 24px rgba(0,0,0,0.4)',
               }}>
                 Authentic Taste,
               </span>
               <span style={{
                 display: 'block', textAlign: 'center', fontFamily: "'Playfair Display', serif",
-                fontWeight: 800, fontStyle: 'normal', fontSize: 'clamp(2rem,8.8vw,3.2rem)',
+                fontWeight: 800, fontStyle: 'normal', fontSize: 'clamp(1.8rem,7.8vw,2.9rem)',
                 letterSpacing: '-0.005em', color: '#e7bf63', textShadow: '0 6px 24px rgba(224,112,0,0.3)',
-                // NEW: small explicit gap above this line (not a general
-                // line-height bump) — just enough extra vertical rhythm to
-                // push everything below (tagline, divider, CTA buttons)
-                // fully clear of the first-viewport fold, instead of the
-                // buttons showing a half-cut sliver at the bottom edge.
-                // Bump this a few px higher if your device still shows a
-                // sliver; it's deliberately modest per your request.
-                marginTop: 10,
+                marginTop: 6,
               }}>
                 Timeless Tradition
               </span>
             </h1>
           </div>
 
+          {/* FIX: bumped up per feedback ("increase the size of the text
+              below" the packet) — was clamp(0.78rem,4.6vw,1.22rem). */}
           <RotatingTagline
             static
-            wrapperStyle={{ marginTop: 16, marginBottom: 22, textAlign: 'center', width: '100%' }}
-            textStyle={{ textAlign: 'center', fontSize: 'clamp(0.78rem,4.6vw,1.22rem)', whiteSpace: 'nowrap' }}
+            wrapperStyle={{ marginTop: 8, marginBottom: 10, textAlign: 'center', width: '100%' }}
+            textStyle={{ textAlign: 'center', fontSize: 'clamp(0.95rem,5.4vw,1.4rem)', whiteSpace: 'nowrap' }}
           />
 
           {/* NOTE: mobile carousel dots removed per feedback — swipe left/right
               on the packet image still navigates between products, this was
-              purely the visual dot row. Divider's bottom margin bumped up a
-              little to keep the spacing balanced now that row is gone. */}
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 14, marginBottom: 34 }}>
+              purely the visual dot row. */}
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 14, marginBottom: 12 }}>
             <div style={{ width: 45, height: 1, background: 'rgba(212,168,55,0.45)' }} />
             <div style={{ width: 7, height: 7, background: '#D4A843', borderRadius: 999 }} />
             <div style={{ width: 45, height: 1, background: 'rgba(212,168,55,0.45)' }} />
           </div>
 
-          <div className="flex w-full justify-center" style={{ gap: 18, marginBottom: 16 }}>
+          <div className="flex w-full justify-center" style={{ gap: 18, marginBottom: 12 }}>
             <button
               onClick={() => navigate('/products')}
               className="btn-primary font-poppins"
               style={{
-                flex: 1, maxWidth: 165, height: 56, fontSize: '0.85rem', borderRadius: 999, fontWeight: 700,
+                flex: 1, maxWidth: 165, height: 48, fontSize: '0.85rem', borderRadius: 999, fontWeight: 700,
                 boxShadow: '0 15px 35px rgba(0,0,0,0.22)', display: 'flex', alignItems: 'center',
                 justifyContent: 'center', gap: 6, whiteSpace: 'nowrap',
               }}
@@ -476,7 +473,7 @@ export default function HeroExperience() {
               onClick={() => navigate('/about')}
               className="btn-outline font-poppins"
               style={{
-                flex: 1, maxWidth: 165, height: 56, fontSize: '0.85rem', borderRadius: 999, fontWeight: 700,
+                flex: 1, maxWidth: 165, height: 48, fontSize: '0.85rem', borderRadius: 999, fontWeight: 700,
                 boxShadow: '0 15px 35px rgba(0,0,0,0.22)', display: 'flex', alignItems: 'center',
                 justifyContent: 'center', whiteSpace: 'nowrap',
               }}
@@ -485,7 +482,7 @@ export default function HeroExperience() {
             </button>
           </div>
 
-          <div className="flex flex-wrap gap-x-5 gap-y-1.5 justify-center mb-2">
+          <div className="flex flex-wrap gap-x-5 gap-y-1 justify-center mb-1.5">
             {MOBILE_TRUST.map((t) => (
               <div key={t.label} className="flex items-center gap-1.5" style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.68)', fontFamily: "'Inter', sans-serif" }}>
                 <span style={{ fontSize: '0.75rem' }}>{t.icon}</span>
