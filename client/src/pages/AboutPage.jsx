@@ -499,6 +499,11 @@ function TimelineSection() {
     target: timelineRef,
     offset: ['start 0.8', 'end 0.25'],
   });
+  // Closing marker only fades in once the progress line has actually
+  // drawn its way down to it — otherwise it can render as an isolated
+  // dot floating above blank space if it appears before the line (or the
+  // cards above it) has caught up.
+  const starOpacity = useTransform(timelineProgress, [0.85, 1], [0, 1]);
 
   return (
     <section className="py-16 md:py-24 relative overflow-hidden"
@@ -554,12 +559,12 @@ function TimelineSection() {
             <TimelineItem key={index} item={item} />
           ))}
 
-          <div className="flex justify-center mt-4">
+          <motion.div className="flex justify-center mt-4" style={{ opacity: starOpacity }}>
             <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm"
               style={{ background: 'linear-gradient(135deg,#e07000,#d4af37)', boxShadow: '0 0 0 6px rgba(224,112,0,0.15)' }}>
               🌟
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>

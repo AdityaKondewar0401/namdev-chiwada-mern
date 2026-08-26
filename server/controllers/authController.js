@@ -27,6 +27,7 @@ const sendTokenResponse = async (user, statusCode, res) => {
       role: user.role,
       avatar: user.avatar,
       marketingConsent: user.marketingConsent,
+      createdAt: user.createdAt,
     },
   });
 };

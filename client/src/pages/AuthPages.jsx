@@ -153,6 +153,7 @@ function GoogleLoginButton() {
       window.google.accounts.id.initialize({
         client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
         callback: handleGoogleResponse,
+        cancel_on_tap_outside: false,
       });
 
       window.google.accounts.id.renderButton(
@@ -160,10 +161,16 @@ function GoogleLoginButton() {
         {
           theme: 'outline',
           size: 'large',
+          shape: 'pill',
           width: '100%',
           text: 'continue_with',
+          logo_alignment: 'left',
         }
       );
+
+      // One Tap — the small account-chooser card Google surfaces on its
+      // own (same UX as Gmail/Groww), on top of the explicit button above.
+      window.google.accounts.id.prompt();
 
       return true;
     };
@@ -355,6 +362,8 @@ export function RegisterPage() {
             {loading ? 'Creating Account...' : 'Create Account'}
           </button>
         </form>
+
+        <GoogleLoginButton />
 
         <p className="text-center text-sm text-brown-mid/60 mt-5">
           Already have an account?{' '}

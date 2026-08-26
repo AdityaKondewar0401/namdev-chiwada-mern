@@ -204,27 +204,22 @@ export default function Navbar() {
               <Link
                 key={l.to}
                 to={l.to}
-                className={`relative px-5 py-2.5 font-poppins font-semibold text-base transition-colors duration-200 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-saffron ${
-                  isActive(l.to) ? 'text-saffron' : 'text-brown-dark hover:text-saffron'
+                className={`relative px-5 py-2.5 font-poppins font-semibold text-base rounded-full transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-saffron ${
+                  isActive(l.to) ? 'text-white' : 'text-brown-dark hover:text-saffron'
                 }`}
               >
                 {isActive(l.to) && (
                   <motion.span
                     layoutId="nav-active-pill"
                     className="absolute inset-0 rounded-full -z-10"
-                    style={{ background: 'rgba(224,112,0,0.08)' }}
+                    style={{
+                      background: 'linear-gradient(135deg,#e07000,#ff9010)',
+                      boxShadow: '0 4px 16px rgba(224,112,0,0.35)',
+                    }}
                     transition={{ type: 'spring', stiffness: 380, damping: 32 }}
                   />
                 )}
                 <span className="relative z-10">{l.label}</span>
-                {isActive(l.to) && (
-                  <motion.span
-                    layoutId="nav-underline"
-                    className="absolute bottom-0.5 left-5 right-5 h-0.5 rounded-full"
-                    style={{ background: 'linear-gradient(90deg,#e07000,#d4af37)' }}
-                    transition={{ type: 'spring', stiffness: 380, damping: 32 }}
-                  />
-                )}
               </Link>
             ))}
           </div>

@@ -93,9 +93,22 @@ function FeaturedSuggestions() {
 }
 
 function StickyCheckoutBar({ total, onCheckout }) {
+  const [hidden, setHidden] = useState(false);
+
+  useEffect(() => {
+    const footer = document.querySelector('footer');
+    if (!footer) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setHidden(entry.isIntersecting),
+      { rootMargin: '0px' }
+    );
+    observer.observe(footer);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div
-      className="lg:hidden fixed z-40"
+      className={`lg:hidden fixed z-40 transition-opacity duration-200 ${hidden ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
       style={{ left: 12, right: 84, bottom: 'calc(12px + env(safe-area-inset-bottom, 0px))' }}
     >
       <button

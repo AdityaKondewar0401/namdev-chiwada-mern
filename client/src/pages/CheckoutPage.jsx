@@ -288,37 +288,40 @@ const styles = `
   }
 
   /* ── Payment cards ──
-     One restrained accent (the site's saffron) instead of the mismatched
-     indigo/green pairing — the two options are told apart by their icon
-     and copy, not by clashing color-coded panels. */
+     Deliberately broken out of the site's saffron/serif theme — this is
+     the moment a shopper hands over card details, and a payment-gateway
+     look (flat, cool-blue, sans-serif, checkmark-driven) reads as more
+     trustworthy here than the warm heritage styling used everywhere else. */
   .payment-card {
     position: relative;
-    border-radius: 16px;
+    border-radius: 14px;
     padding: 16px 18px;
     cursor: pointer;
-    transition: border-color 0.18s ease, background-color 0.18s ease;
-    border: 1.5px solid rgba(180,120,50,0.16);
-    background: rgba(255,255,255,0.55);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    transition: border-color 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
+    border: 1.5px solid #e2e8f0;
+    background: #f8fafc;
   }
   .payment-card:hover {
-    border-color: rgba(224,112,0,0.3);
+    border-color: #93c5fd;
   }
   .payment-card.selected {
-    border-color: #e07000;
-    background: rgba(224,112,0,0.045);
+    border-color: #2563eb;
+    background: #eff6ff;
+    box-shadow: 0 4px 20px rgba(37,99,235,0.12);
   }
 
   .radio-dot {
     width: 20px; height: 20px;
-    border-radius: 50%; border: 1.5px solid rgba(180,120,50,0.35);
+    border-radius: 50%; border: 1.5px solid #cbd5e1;
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0; transition: border-color 0.18s ease;
   }
-  .payment-card.selected .radio-dot { border-color: #e07000; }
+  .payment-card.selected .radio-dot { border-color: #2563eb; }
   .radio-dot-inner {
     width: 9px; height: 9px;
     border-radius: 50%; transition: transform 0.18s ease; transform: scale(0);
-    background: #e07000;
+    background: #2563eb;
   }
   .radio-dot-inner.visible { transform: scale(1); }
 
@@ -358,10 +361,11 @@ const styles = `
 
   .badge-secure {
     display: inline-flex; align-items: center; gap: 4px;
-    background: rgba(224,112,0,0.07);
-    border: 1px solid rgba(224,112,0,0.18);
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
     border-radius: 20px; padding: 3px 10px;
-    font-size: 10px; font-weight: 600; color: #9a5a00;
+    font-size: 10px; font-weight: 700; color: #2563eb;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
     letter-spacing: 0.05em; text-transform: uppercase;
   }
 
@@ -403,23 +407,23 @@ const styles = `
   }
 
   .payment-icon-circle {
-    width: 40px; height: 40px; border-radius: 50%;
+    width: 40px; height: 40px; border-radius: 12px;
     display: flex; align-items: center; justify-content: center;
     font-size: 18px; flex-shrink: 0;
-    background: rgba(224,112,0,0.08);
+    background: #e0e7ff;
     transition: background-color 0.18s ease;
   }
   .payment-card.selected .payment-icon-circle {
-    background: rgba(224,112,0,0.14);
+    background: #dbeafe;
   }
 
   .upi-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
   .upi-chip {
-    background: rgba(255,255,255,0.7);
-    border: 1px solid rgba(180,120,50,0.15);
+    background: #fff;
+    border: 1px solid #e2e8f0;
     border-radius: 8px; padding: 4px 10px;
-    font-size: 11px; color: #7a5c3a; font-weight: 600;
-    font-family: 'Lora', serif;
+    font-size: 11px; color: #334155; font-weight: 600;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
 
   .payment-note {
@@ -427,12 +431,13 @@ const styles = `
     padding: 9px 12px;
     border-radius: 10px;
     font-size: 12px;
-    font-family: 'Lora', serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-weight: 500;
     display: flex;
     align-items: center;
     gap: 6px;
-    background: rgba(224,112,0,0.06);
-    color: #9a5a00;
+    background: #dbeafe;
+    color: #1e40af;
   }
 
   .empty-cart-wrap {
@@ -950,8 +955,8 @@ function CheckoutPage() {
                 <motion.div className="card-panel" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.06 }}>
                   <div className="section-title">
                     <span style={{
-                      width: 36, height: 36, borderRadius: '50%',
-                      background: 'linear-gradient(135deg, #eceafd, #ded9fb)',
+                      width: 36, height: 36, borderRadius: 10,
+                      background: 'linear-gradient(135deg, #dbeafe, #bfdbfe)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18,
                     }}>💳</span>
                     Payment Method
@@ -972,15 +977,15 @@ function CheckoutPage() {
 
                         <div style={{ flex: 1 }}>
                           <div style={{
-                            fontFamily: "'Playfair Display', serif",
+                            fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
                             fontWeight: 700,
                             fontSize: 16,
-                            color: '#3d2800',
+                            color: '#0f172a',
                             marginBottom: 2,
                           }}>
                             Pay Online
                           </div>
-                          <div style={{ fontSize: 12, color: '#9a7c5a', fontFamily: "'Lora', serif" }}>
+                          <div style={{ fontSize: 12, color: '#64748b', fontFamily: "'Inter', system-ui, -apple-system, sans-serif" }}>
                             UPI, Cards, Net Banking, Wallets
                           </div>
                         </div>
@@ -1015,15 +1020,15 @@ function CheckoutPage() {
 
                         <div style={{ flex: 1 }}>
                           <div style={{
-                            fontFamily: "'Playfair Display', serif",
+                            fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
                             fontWeight: 700,
                             fontSize: 16,
-                            color: '#3d2800',
+                            color: '#0f172a',
                             marginBottom: 2,
                           }}>
                             Cash on Delivery
                           </div>
-                          <div style={{ fontSize: 12, color: '#9a7c5a', fontFamily: "'Lora', serif" }}>
+                          <div style={{ fontSize: 12, color: '#64748b', fontFamily: "'Inter', system-ui, -apple-system, sans-serif" }}>
                             Pay when your order arrives at your door
                           </div>
                         </div>
