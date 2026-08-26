@@ -288,40 +288,42 @@ const styles = `
   }
 
   /* ── Payment cards ──
-     Deliberately broken out of the site's saffron/serif theme — this is
-     the moment a shopper hands over card details, and a payment-gateway
-     look (flat, cool-blue, sans-serif, checkmark-driven) reads as more
-     trustworthy here than the warm heritage styling used everywhere else. */
+     Premium trust-card look built from the brand's own charcoal/gold
+     palette instead of a generic template blue — elevation and a gold
+     accent bar signal the selected state rather than a flat colour fill. */
   .payment-card {
     position: relative;
-    border-radius: 14px;
-    padding: 16px 18px;
+    border-radius: 16px;
+    padding: 18px 20px;
     cursor: pointer;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    transition: border-color 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
-    border: 1.5px solid #e2e8f0;
-    background: #f8fafc;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+    border: 1.5px solid #ece1cc;
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(43,26,8,0.04);
   }
   .payment-card:hover {
-    border-color: #93c5fd;
+    border-color: #d9ae67;
+    box-shadow: 0 6px 18px rgba(43,26,8,0.08);
+    transform: translateY(-1px);
   }
   .payment-card.selected {
-    border-color: #2563eb;
-    background: #eff6ff;
-    box-shadow: 0 4px 20px rgba(37,99,235,0.12);
+    border-color: #2b1a08;
+    background: linear-gradient(135deg, #fffaf0, #fffefb);
+    box-shadow: inset 4px 0 0 #e07000, 0 10px 28px rgba(43,26,8,0.12);
   }
 
   .radio-dot {
     width: 20px; height: 20px;
-    border-radius: 50%; border: 1.5px solid #cbd5e1;
+    border-radius: 50%; border: 1.5px solid #d8cba8;
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0; transition: border-color 0.18s ease;
   }
-  .payment-card.selected .radio-dot { border-color: #2563eb; }
+  .payment-card.selected .radio-dot { border-color: #2b1a08; }
   .radio-dot-inner {
     width: 9px; height: 9px;
     border-radius: 50%; transition: transform 0.18s ease; transform: scale(0);
-    background: #2563eb;
+    background: #e07000;
   }
   .radio-dot-inner.visible { transform: scale(1); }
 
@@ -361,10 +363,10 @@ const styles = `
 
   .badge-secure {
     display: inline-flex; align-items: center; gap: 4px;
-    background: #eff6ff;
-    border: 1px solid #bfdbfe;
+    background: #2b1a08;
+    border: 1px solid #2b1a08;
     border-radius: 20px; padding: 3px 10px;
-    font-size: 10px; font-weight: 700; color: #2563eb;
+    font-size: 10px; font-weight: 700; color: #f0c869;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     letter-spacing: 0.05em; text-transform: uppercase;
   }
@@ -407,96 +409,55 @@ const styles = `
   }
 
   .payment-icon-circle {
-    width: 40px; height: 40px; border-radius: 12px;
+    width: 42px; height: 42px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     font-size: 18px; flex-shrink: 0;
-    background: #e0e7ff;
-    transition: background-color 0.18s ease;
+    background: linear-gradient(135deg, #fff3dd, #fbe0ac);
+    border: 1px solid rgba(224,160,80,0.35);
+    transition: background 0.18s ease, border-color 0.18s ease;
   }
   .payment-card.selected .payment-icon-circle {
-    background: #dbeafe;
+    background: linear-gradient(135deg, #2b1a08, #4a3018);
+    border-color: #2b1a08;
   }
 
-  .upi-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .upi-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 14px; }
   .upi-chip {
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px; padding: 4px 10px;
-    font-size: 11px; color: #334155; font-weight: 600;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    width: 30px; height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    background: #fdfaf4;
+    border: 1px solid #ece1cc;
+    border-radius: 50%;
+    font-size: 13px;
+    cursor: default;
   }
 
   .payment-note {
-    margin-top: 12px;
+    margin-top: 14px;
     padding: 9px 12px;
-    border-radius: 10px;
+    border-radius: 8px;
     font-size: 12px;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     font-weight: 500;
     display: flex;
     align-items: center;
     gap: 6px;
-    background: #dbeafe;
-    color: #1e40af;
+    background: rgba(224,112,0,0.06);
+    border-left: 3px solid #e07000;
+    color: #5c3d1a;
   }
 
-  /* ── Payment panel — a clean light-blue fintech card (Razorpay-trust-badge
-     look), deliberately off the site's warm/heritage theme on purpose.
+  /* ── Payment panel — a premium trust card built from the brand's own
+     charcoal/gold palette instead of a generic template blue.
      Everything below is scoped under .payment-panel-fx so it only touches
      this one panel. */
   .payment-panel-fx {
-    background: linear-gradient(160deg, #f8fbff 0%, #eef4fc 100%);
-    border: 1px solid #dbeafe;
-    box-shadow: 0 12px 40px rgba(37,99,235,0.08), 0 0 0 1px rgba(255,255,255,0.6) inset;
+    background: linear-gradient(160deg, #fffdf8 0%, #fdf5e7 100%);
+    border: 1px solid rgba(224,160,80,0.22);
+    box-shadow: 0 20px 50px -18px rgba(43,26,8,0.18), 0 0 0 1px rgba(255,255,255,0.6) inset;
   }
 
-  .payment-panel-fx .section-title { color: #0f172a; }
-  .payment-panel-fx .badge-secure {
-    background: #dbeafe;
-    border: 1px solid #bfdbfe;
-    color: #2563eb;
-  }
-
-  .payment-panel-fx .payment-card {
-    background: #ffffff;
-    border: 1.5px solid #e2e8f0;
-  }
-  .payment-panel-fx .payment-card:hover {
-    border-color: #93c5fd;
-  }
-  .payment-panel-fx .payment-card.selected {
-    border: 1.5px solid #3b82f6;
-    background: #eff6ff;
-    box-shadow: 0 6px 20px rgba(59,130,246,0.15);
-  }
-
-  .payment-panel-fx .payment-icon-circle {
-    background: #dbeafe;
-    border: 1px solid #bfdbfe;
-  }
-  .payment-panel-fx .payment-card.selected .payment-icon-circle {
-    background: #3b82f6;
-  }
-
-  .payment-panel-fx .radio-dot { border-color: #cbd5e1; }
-  .payment-panel-fx .payment-card.selected .radio-dot {
-    border-color: #3b82f6;
-  }
-  .payment-panel-fx .radio-dot-inner {
-    background: #3b82f6;
-  }
-
-  .payment-panel-fx .upi-chip {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    color: #334155;
-  }
-
-  .payment-panel-fx .payment-note {
-    background: #dbeafe;
-    border: 1px solid #bfdbfe;
-    color: #1d4ed8;
-  }
+  .payment-panel-fx .section-title { color: #2b1a08; }
 
   .empty-cart-wrap {
     min-height: 100vh; background-color: #fdf3e7;
@@ -1014,7 +975,8 @@ function CheckoutPage() {
                   <div className="section-title">
                     <span style={{
                       width: 36, height: 36, borderRadius: 10,
-                      background: '#dbeafe',
+                      background: 'linear-gradient(135deg, #fff3dd, #fbe0ac)',
+                      border: '1px solid rgba(224,160,80,0.35)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18,
                     }}>💳</span>
                     Payment Method
@@ -1054,8 +1016,13 @@ function CheckoutPage() {
                       </div>
 
                       <div className="upi-chips">
-                        {['🏦 Net Banking', '💳 Credit/Debit', '📱 UPI', '👛 Wallets'].map(chip => (
-                          <span key={chip} className="upi-chip">{chip}</span>
+                        {[
+                          { icon: '🏦', label: 'Net Banking' },
+                          { icon: '💳', label: 'Credit/Debit' },
+                          { icon: '📱', label: 'UPI' },
+                          { icon: '👛', label: 'Wallets' },
+                        ].map(chip => (
+                          <span key={chip.label} className="upi-chip" title={chip.label}>{chip.icon}</span>
                         ))}
                       </div>
 

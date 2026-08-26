@@ -73,11 +73,32 @@
   .badge-blue { @apply bg-blue-500 text-white; }
 }
 
-/* Hero gradient animation */
+/* Hero gradient animation
+   FIX: `background-position` isn't GPU-compositable — animating it directly
+   forces a full main-thread repaint of the whole section every frame, for
+   the entire 8s loop, without end. On desktop the hero section is full-bleed
+   (much larger paint area than mobile's smaller image zone), so when that
+   repaint collided with the hero's other concurrent JS-driven updates
+   (product crossfade/tagline/order-count, every ~3.4-4.5s) the browser could
+   drop a frame — reading as the whole background flashing. Moved the same
+   gradient onto a ::before layer animated via `transform` instead (GPU
+   composited, no repaint) — identical colors/duration/easing/motion feel. */
 .hero-gradient {
+  position: relative;
+  background: #2a1200;
+}
+.hero-gradient::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
   background: linear-gradient(135deg, #2a1200 0%, #3d1c00 25%, #5c2800 50%, #7a3300 75%, #3d1c00 100%);
-  background-size: 300% 300%;
-  animation: gradientShift 8s ease infinite;
+  animation: gradientPan 8s ease infinite;
+  will-change: transform;
+  z-index: 0;
+  pointer-events: none;
 }
 
 /* Shimmer text */
@@ -123,9 +144,9 @@
 }
 .nav-cta-shine:hover::after { left: 125%; }
 
-@keyframes gradientShift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+@keyframes gradientPan {
+  0%, 100% { transform: translate(0%, 0%); }
+  50% { transform: translate(-16%, -16%); }
 }
 @keyframes marqueeScroll {
   0% { transform: translateX(0); }

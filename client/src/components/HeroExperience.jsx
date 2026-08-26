@@ -281,19 +281,31 @@ export default function HeroExperience() {
     touchStartX.current = null;
   };
 
-  // Mobile stays on the original mode="wait" behavior — untouched, per
-  // request. Only the desktop slide (below) uses the per-variant
-  // `position` trick to crossfade without a blank gap.
+  // FIX: mode="wait" was fully unmounting the outgoing image before the
+  // next one mounted — a real blank gap between slides every ~3.5s, which
+  // reads as the hero flickering. Same fix as desktop: overlap the two
+  // slides (default AnimatePresence mode) and use `position` per-variant
+  // so only the entering slide occupies layout flow while the exiting one
+  // is lifted out via `absolute` — no gap, no size/container change.
   const mobileSlideVariants = {
-    enter: { opacity: 0, x: -80, y: 0 },
-    center: { opacity: 1, x: 0, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } },
-    exit: { opacity: 0, x: 90, y: 0, transition: { duration: 0.3, ease: [0.55, 0, 1, 0.45] } },
+    enter: { opacity: 0, x: -80, y: 0, position: 'relative' },
+    center: { opacity: 1, x: 0, y: 0, position: 'relative', transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } },
+    exit: { opacity: 0, x: 90, y: 0, position: 'absolute', transition: { duration: 0.3, ease: [0.55, 0, 1, 0.45] } },
   };
 
+  // FIX: enter (0.5s) and exit (0.35s) used to start at the same instant, so
+  // for ~350ms both the outgoing and incoming product photos were
+  // simultaneously ~50%+ opaque, alpha-blended on top of each other. Photos
+  // with sharp printed text/graphics don't dissolve softly like video — that
+  // blend read as a corrupted double-exposure ghost frame (confirmed via
+  // screenshot: both labels legible at once), which is what "flickering"
+  // was. Exit is now much faster (old is gone in 0.15s) and enter is
+  // delayed until exit has mostly finished, so the two are barely ever
+  // visible at the same time — same crossfade feel, no double-exposure.
   const desktopSlideVariants = {
     enter: (dir) => ({ opacity: 0, x: dir > 0 ? 50 : -50, scale: 0.94, position: 'relative' }),
-    center: { opacity: 1, x: 0, scale: 1, position: 'relative', transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } },
-    exit: (dir) => ({ opacity: 0, x: dir > 0 ? -50 : 50, scale: 0.94, position: 'absolute', transition: { duration: 0.35 } }),
+    center: { opacity: 1, x: 0, scale: 1, position: 'relative', transition: { duration: 0.45, delay: 0.15, ease: [0.25, 0.46, 0.45, 0.94] } },
+    exit: (dir) => ({ opacity: 0, x: dir > 0 ? -50 : 50, scale: 0.94, position: 'absolute', transition: { duration: 0.15, ease: [0.55, 0, 1, 0.45] } }),
   };
 
   // Stable callback passed to HeroDots (desktop only now)
@@ -332,11 +344,11 @@ export default function HeroExperience() {
             border: '1px dashed rgba(212,175,55,0.18)', animation: 'spinSlow 22s linear infinite',
             top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
           }} />
-          <AnimatePresence mode="wait" custom={direction}>
+          <AnimatePresence custom={direction}>
             <motion.div
               key={current} custom={direction} variants={mobileSlideVariants}
               initial="enter" animate="center" exit="exit"
-              style={{ position: 'relative', zIndex: 3, pointerEvents: 'auto' }}
+              style={{ zIndex: 3, pointerEvents: 'auto' }}
             >
               <img
                 src={cldUrl(PRODUCTS[current].img)}
@@ -539,25 +551,39 @@ export default function HeroExperience() {
                     depend on a hardcoded aspect-ratio guess instead of the
                     real current image, leaving a large gap above the hero
                     text whenever that guess didn't match the actual photo. */}
-                <AnimatePresence custom={direction}>
-                  <motion.div key={current} custom={direction} variants={desktopSlideVariants}
-                    initial="enter" animate="center" exit="exit"
-                    style={{ inset: 0, animation: 'heroFloat 4s ease-in-out infinite', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <img
-                      src={cldUrl(PRODUCTS[current].img)}
-                      srcSet={cldSrcSet(PRODUCTS[current].img)}
-                      sizes="(min-width: 1024px) 760px, 56vw"
-                      alt={PRODUCTS[current].alt}
-                      width={IMG_W}
-                      height={IMG_H}
-                      loading={current === 0 ? 'eager' : 'lazy'}
-                      fetchpriority={current === 0 ? 'high' : 'auto'}
-                      decoding="async"
-                      style={{ width: 'clamp(300px,56vw,760px)', maxWidth: 'none', filter: 'drop-shadow(0 40px 70px rgba(0,0,0,0.6)) drop-shadow(0 8px 24px rgba(212,168,55,0.25))', display: 'block' }}
-                      draggable={false}
-                    />
-                  </motion.div>
-                </AnimatePresence>
+                {/* FIX: heroFloat used to live on the same keyed motion.div that
+                    Framer Motion also drives (x/scale/opacity for the
+                    crossfade). Both mechanisms write to the element's
+                    `transform` property, and the CSS animation wins the
+                    cascade — so Framer's slide-in transform was getting
+                    clobbered, and every ~3.5s auto-advance (shorter than the
+                    float's own 4s cycle) remounted the div and snapped the
+                    float animation back to its 0% frame, reading as a
+                    flicker/jump in sync with each slide change. Moving
+                    heroFloat onto this outer, never-remounted wrapper keeps
+                    it running continuously and leaves the inner motion.div
+                    free to own `transform` for the crossfade only. */}
+                <div style={{ width: '100%', display: 'flex', justifyContent: 'center', animation: 'heroFloat 4s ease-in-out infinite' }}>
+                  <AnimatePresence custom={direction}>
+                    <motion.div key={current} custom={direction} variants={desktopSlideVariants}
+                      initial="enter" animate="center" exit="exit"
+                      style={{ inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <img
+                        src={cldUrl(PRODUCTS[current].img)}
+                        srcSet={cldSrcSet(PRODUCTS[current].img)}
+                        sizes="(min-width: 1024px) 760px, 56vw"
+                        alt={PRODUCTS[current].alt}
+                        width={IMG_W}
+                        height={IMG_H}
+                        loading={current === 0 ? 'eager' : 'lazy'}
+                        fetchpriority={current === 0 ? 'high' : 'auto'}
+                        decoding="async"
+                        style={{ width: 'clamp(300px,56vw,760px)', maxWidth: 'none', filter: 'drop-shadow(0 40px 70px rgba(0,0,0,0.6)) drop-shadow(0 8px 24px rgba(212,168,55,0.25))', display: 'block' }}
+                        draggable={false}
+                      />
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
               </div>
               <HeroDots current={current} onSelect={handleDotSelect} className="mt-2 justify-center" />
             </motion.div>
