@@ -130,30 +130,12 @@ function StaggerHeading() {
   );
 }
 
-// `static` skips the rotation entirely and just shows TAGLINES[0] — used on
-// mobile per feedback: the cycling read as "three different lines" showing
-// up one after another, when only the first (Marathi) line should appear.
-function RotatingTagline({ wrapperStyle, textStyle, static: isStatic = false }) {
+function RotatingTagline({ wrapperStyle, textStyle }) {
   const [idx, setIdx] = useState(0);
   useEffect(() => {
-    if (isStatic) return;
     const t = setInterval(() => setIdx((i) => (i + 1) % TAGLINES.length), 3400);
     return () => clearInterval(t);
-  }, [isStatic]);
-  const textStyleMerged = {
-    fontFamily: "'Gotu', sans-serif", fontSize: 'clamp(0.82rem,2vw,1.3rem)',
-    background: 'linear-gradient(90deg,#ffd89b,#f0cc5a,#ffd89b)', backgroundSize: '200% auto',
-    WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
-    letterSpacing: '0.02em', margin: 0,
-    ...textStyle,
-  };
-  if (isStatic) {
-    return (
-      <div className="mb-6" style={{ minHeight: 'clamp(1.6rem,3vw,2.2rem)', position: 'relative', ...wrapperStyle }}>
-        <p style={textStyleMerged}>{TAGLINES[0]}</p>
-      </div>
-    );
-  }
+  }, []);
   return (
     <div className="mb-6" style={{ minHeight: 'clamp(1.6rem,3vw,2.2rem)', position: 'relative', ...wrapperStyle }}>
       <AnimatePresence mode="wait">
@@ -161,7 +143,13 @@ function RotatingTagline({ wrapperStyle, textStyle, static: isStatic = false }) 
           key={idx}
           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] }}
-          style={textStyleMerged}
+          style={{
+            fontFamily: "'Gotu', sans-serif", fontSize: 'clamp(0.82rem,2vw,1.3rem)',
+            background: 'linear-gradient(90deg,#ffd89b,#f0cc5a,#ffd89b)', backgroundSize: '200% auto',
+            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
+            letterSpacing: '0.02em', margin: 0,
+            ...textStyle,
+          }}
         >{TAGLINES[idx]}</motion.p>
       </AnimatePresence>
     </div>
@@ -293,17 +281,12 @@ export default function HeroExperience() {
     touchStartX.current = null;
   };
 
-  // FIX: an opacity-based crossfade (whether overlapping or mode="wait")
-  // showed two dissimilar product photos alpha-blended together — the same
-  // double-exposure bug fixed on desktop. Switched to a pure slide: no
-  // opacity animation, percentage-based x offset (105% of the image's own
-  // width, so it fully clears regardless of how wide the packet render
-  // is), both slides always `position: absolute`. Something opaque is on
-  // screen at every instant, so there's never a blend to look corrupted.
+  // REVERTED to earliest design phase per request: mobile stays on the
+  // original mode="wait" opacity crossfade — untouched from here on out.
   const mobileSlideVariants = {
-    enter: { x: '105%' },
-    center: { x: '0%', transition: { duration: 0.55, ease: [0.65, 0, 0.35, 1] } },
-    exit: { x: '-105%', transition: { duration: 0.55, ease: [0.65, 0, 0.35, 1] } },
+    enter: { opacity: 0, x: -80, y: 0 },
+    center: { opacity: 1, x: 0, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } },
+    exit: { opacity: 0, x: 90, y: 0, transition: { duration: 0.3, ease: [0.55, 0, 1, 0.45] } },
   };
 
   // FIX (attempt 3): an opacity crossfade (any overlap) gave a
@@ -343,12 +326,9 @@ export default function HeroExperience() {
           ══════════════════════════════════════ */}
       <div className="md:hidden" style={{ minHeight: '100%', position: 'relative', zIndex: 5 }}>
 
-        {/* Image zone: spans navbar-bottom to badge-top (50svh) so the packet sits centered.
-            FIX: packet made bigger (maxHeight 46svh→49svh, width 132vw→138vw) while the zone
-            itself shrank (53svh→50svh) so there's almost no empty space above/below it — and
-            every margin below was trimmed to get the whole hero back under one screen. */}
+        {/* Image zone: spans navbar-bottom to badge-top (53svh) so the packet sits centered */}
         <div style={{
-          position: 'absolute', top: 0, left: 0, right: 0, height: '50svh',
+          position: 'absolute', top: 0, left: 0, right: 0, height: '53svh',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           zIndex: 2, pointerEvents: 'none', overflow: 'visible',
         }}>
@@ -362,107 +342,97 @@ export default function HeroExperience() {
             border: '1px dashed rgba(212,175,55,0.18)', animation: 'spinSlow 22s linear infinite',
             top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
           }} />
-          {/* Clipping wrapper: sized off the actual current image (spacer
-              below), overflow:hidden so the slide's off-stage portion is
-              cut instead of spilling sideways past the packet's own
-              footprint. Kept separate from the outer zone (which stays
-              overflow:visible) so the decorative glow/ring aren't clipped. */}
-          <div style={{ position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3, pointerEvents: 'auto' }}>
-            <img
-              aria-hidden="true"
-              alt=""
-              src={cldUrl(PRODUCTS[current].img)}
-              width={IMG_W}
-              height={IMG_H}
-              style={{ width: '138vw', maxWidth: 'none', height: 'auto', maxHeight: '49svh', visibility: 'hidden', display: 'block' }}
-            />
-            <AnimatePresence custom={direction}>
-              <motion.div
-                key={current} custom={direction} variants={mobileSlideVariants}
-                initial="enter" animate="center" exit="exit"
-                style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              >
-                <img
-                  src={cldUrl(PRODUCTS[current].img)}
-                  srcSet={cldSrcSet(PRODUCTS[current].img)}
-                  sizes="90vw"
-                  alt={PRODUCTS[current].alt}
-                  draggable={false}
-                  width={IMG_W}
-                  height={IMG_H}
-                  // LCP handling: first slide loads eager + high priority; later
-                  // slides (reached only via swipe/autoplay) are lazy.
-                  loading={current === 0 ? 'eager' : 'lazy'}
-                  fetchpriority={current === 0 ? 'high' : 'auto'}
-                  decoding="async"
-                  style={{
-                    width: '138vw', maxWidth: 'none', height: 'auto', maxHeight: '49svh',
-                    filter: 'drop-shadow(0 28px 55px rgba(0,0,0,0.82)) drop-shadow(0 6px 22px rgba(212,168,55,0.50))',
-                    display: 'block',
-                  }}
-                />
-              </motion.div>
-            </AnimatePresence>
-          </div>
+          <AnimatePresence mode="wait" custom={direction}>
+            <motion.div
+              key={current} custom={direction} variants={mobileSlideVariants}
+              initial="enter" animate="center" exit="exit"
+              style={{ position: 'relative', zIndex: 3, pointerEvents: 'auto' }}
+            >
+              <img
+                src={cldUrl(PRODUCTS[current].img)}
+                srcSet={cldSrcSet(PRODUCTS[current].img)}
+                sizes="90vw"
+                alt={PRODUCTS[current].alt}
+                draggable={false}
+                width={IMG_W}
+                height={IMG_H}
+                // LCP handling: first slide loads eager + high priority; later
+                // slides (reached only via swipe/autoplay) are lazy.
+                loading={current === 0 ? 'eager' : 'lazy'}
+                fetchpriority={current === 0 ? 'high' : 'auto'}
+                decoding="async"
+                style={{
+                  width: '132vw', maxWidth: 'none', height: 'auto', maxHeight: '46svh',
+                  filter: 'drop-shadow(0 28px 55px rgba(0,0,0,0.82)) drop-shadow(0 6px 22px rgba(212,168,55,0.50))',
+                  display: 'block',
+                }}
+              />
+            </motion.div>
+          </AnimatePresence>
         </div>
 
         {/* Text block */}
         <div style={{
           position: 'relative', zIndex: 10,
-          padding: 'calc(50svh + 2px) 20px 8px',
+          padding: 'calc(53svh + 4px) 20px 18px',
           display: 'flex', flexDirection: 'column', alignItems: 'center',
         }}>
 
           <div
             className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/10 text-gold-light font-semibold uppercase"
-            style={{ fontSize: '0.46rem', padding: '4px 12px', marginBottom: 10, letterSpacing: '0.22em', fontFamily: "'Inter', sans-serif" }}
+            style={{ fontSize: '0.46rem', padding: '4px 12px', marginBottom: 14, letterSpacing: '0.22em', fontFamily: "'Inter', sans-serif" }}
           >
             ● NAMDEV CHIWDA · SINCE 1873 · SOLAPUR
           </div>
 
           <div className="relative text-center" style={{ marginBottom: 4, width: '100%', maxWidth: '94vw' }}>
-            <h1 style={{ lineHeight: 1.1, position: 'relative', zIndex: 1, width: '100%' }}>
+            <h1 style={{ lineHeight: 1.12, position: 'relative', zIndex: 1, width: '100%' }}>
               <span style={{
                 display: 'block', textAlign: 'center', fontFamily: "'Playfair Display', serif",
-                fontWeight: 800, fontStyle: 'normal', fontSize: 'clamp(1.8rem,7.8vw,2.9rem)',
+                fontWeight: 800, fontStyle: 'normal', fontSize: 'clamp(2rem,8.8vw,3.2rem)',
                 letterSpacing: '-0.005em', color: '#fff', textShadow: '0 6px 24px rgba(0,0,0,0.4)',
               }}>
                 Authentic Taste,
               </span>
               <span style={{
                 display: 'block', textAlign: 'center', fontFamily: "'Playfair Display', serif",
-                fontWeight: 800, fontStyle: 'normal', fontSize: 'clamp(1.8rem,7.8vw,2.9rem)',
+                fontWeight: 800, fontStyle: 'normal', fontSize: 'clamp(2rem,8.8vw,3.2rem)',
                 letterSpacing: '-0.005em', color: '#e7bf63', textShadow: '0 6px 24px rgba(224,112,0,0.3)',
-                marginTop: 6,
+                // NEW: small explicit gap above this line (not a general
+                // line-height bump) — just enough extra vertical rhythm to
+                // push everything below (tagline, divider, CTA buttons)
+                // fully clear of the first-viewport fold, instead of the
+                // buttons showing a half-cut sliver at the bottom edge.
+                // Bump this a few px higher if your device still shows a
+                // sliver; it's deliberately modest per your request.
+                marginTop: 10,
               }}>
                 Timeless Tradition
               </span>
             </h1>
           </div>
 
-          {/* FIX: bumped up per feedback ("increase the size of the text
-              below" the packet) — was clamp(0.78rem,4.6vw,1.22rem). */}
           <RotatingTagline
-            static
-            wrapperStyle={{ marginTop: 8, marginBottom: 10, textAlign: 'center', width: '100%' }}
-            textStyle={{ textAlign: 'center', fontSize: 'clamp(0.95rem,5.4vw,1.4rem)', whiteSpace: 'nowrap' }}
+            wrapperStyle={{ marginTop: 16, marginBottom: 22, textAlign: 'center', width: '100%' }}
+            textStyle={{ textAlign: 'center', fontSize: '1.22rem' }}
           />
 
           {/* NOTE: mobile carousel dots removed per feedback — swipe left/right
               on the packet image still navigates between products, this was
-              purely the visual dot row. */}
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 14, marginBottom: 12 }}>
+              purely the visual dot row. Divider's bottom margin bumped up a
+              little to keep the spacing balanced now that row is gone. */}
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 14, marginBottom: 34 }}>
             <div style={{ width: 45, height: 1, background: 'rgba(212,168,55,0.45)' }} />
             <div style={{ width: 7, height: 7, background: '#D4A843', borderRadius: 999 }} />
             <div style={{ width: 45, height: 1, background: 'rgba(212,168,55,0.45)' }} />
           </div>
 
-          <div className="flex w-full justify-center" style={{ gap: 18, marginBottom: 12 }}>
+          <div className="flex w-full justify-center" style={{ gap: 18, marginBottom: 16 }}>
             <button
               onClick={() => navigate('/products')}
               className="btn-primary font-poppins"
               style={{
-                flex: 1, maxWidth: 165, height: 48, fontSize: '0.85rem', borderRadius: 999, fontWeight: 700,
+                flex: 1, maxWidth: 165, height: 56, fontSize: '0.85rem', borderRadius: 999, fontWeight: 700,
                 boxShadow: '0 15px 35px rgba(0,0,0,0.22)', display: 'flex', alignItems: 'center',
                 justifyContent: 'center', gap: 6, whiteSpace: 'nowrap',
               }}
@@ -473,7 +443,7 @@ export default function HeroExperience() {
               onClick={() => navigate('/about')}
               className="btn-outline font-poppins"
               style={{
-                flex: 1, maxWidth: 165, height: 48, fontSize: '0.85rem', borderRadius: 999, fontWeight: 700,
+                flex: 1, maxWidth: 165, height: 56, fontSize: '0.85rem', borderRadius: 999, fontWeight: 700,
                 boxShadow: '0 15px 35px rgba(0,0,0,0.22)', display: 'flex', alignItems: 'center',
                 justifyContent: 'center', whiteSpace: 'nowrap',
               }}
@@ -482,7 +452,7 @@ export default function HeroExperience() {
             </button>
           </div>
 
-          <div className="flex flex-wrap gap-x-5 gap-y-1 justify-center mb-1.5">
+          <div className="flex flex-wrap gap-x-5 gap-y-1.5 justify-center mb-2">
             {MOBILE_TRUST.map((t) => (
               <div key={t.label} className="flex items-center gap-1.5" style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.68)', fontFamily: "'Inter', sans-serif" }}>
                 <span style={{ fontSize: '0.75rem' }}>{t.icon}</span>
