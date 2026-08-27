@@ -118,7 +118,7 @@ app.use('/api/shipping', require('./routes/shipping'));
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'OK',
-    message: 'Namdev Chiwada API running 🎉',
+    message: 'Namdev Chiwda API running 🎉',
     environment: process.env.NODE_ENV,
     timestamp: new Date().toISOString(),
   });

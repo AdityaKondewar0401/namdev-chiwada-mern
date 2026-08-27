@@ -18,7 +18,7 @@ const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email';
 const BREVO_API_KEY = process.env.BREVO_API_KEY;
 
 const SENDER = {
-  name: 'Namdev Chiwada',
+  name: 'Namdev Chiwda',
   email: process.env.EMAIL_USER,
 };
 
