@@ -486,7 +486,7 @@ function StatsSection() {
       label: 'Years of Legacy',
     },
     {
-      value: '10K+',
+      value: '100K+',
       label: 'Happy Customers',
     },
     {

@@ -183,7 +183,7 @@ function StatsStrip() {
   const isInView = useInView(ref, { once: true, margin: '-100px' });
   const years = useCountUp(150, 1600, isInView);
   const generations = useCountUp(6, 1200, isInView);
-  const customers = useCountUp(10, 1400, isInView);
+  const customers = useCountUp(100, 1400, isInView);
 
   const stats = [
     { value: `${years}+`, label: 'Years of Legacy' },
