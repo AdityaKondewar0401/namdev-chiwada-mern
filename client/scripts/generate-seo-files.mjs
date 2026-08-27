@@ -49,7 +49,7 @@ const PUBLIC_DIR = path.resolve(__dirname, '..', 'public');
 // client/src/config/seo.config.js — kept in sync there for the same reason
 // documented in that file: one place to change when the real domain goes
 // live, or to point at a staging domain for testing.
-const SITE_URL = (process.env.VITE_SITE_URL || 'https://namdevchiwda.com').replace(/\/+$/, '');
+const SITE_URL = (process.env.VITE_SITE_URL || 'https://www.namdevchiwda.com').replace(/\/+$/, '');
 
 // API base to fetch product slugs from at build time. Falls back to the
 // same production API origin already used as the Vite dev proxy target

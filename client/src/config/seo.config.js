@@ -12,7 +12,7 @@
 // domain so canonical/OG/JSON-LD URLs are still correct-shaped even before
 // namdevchiwda.com is actually connected and pointed at the deployment.
 
-const RAW_SITE_URL = import.meta.env.VITE_SITE_URL || 'https://namdevchiwda.com';
+const RAW_SITE_URL = import.meta.env.VITE_SITE_URL || 'https://www.namdevchiwda.com';
 
 // Strip any trailing slash so every consumer can safely do `${SITE_URL}/path`.
 export const SITE_URL = RAW_SITE_URL.replace(/\/+$/, '');
