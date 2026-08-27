@@ -8,6 +8,7 @@ import api from '../services/api';
 import toast from 'react-hot-toast';
 import PageWrapper from '../components/PageWrapper';
 import SEO from '../components/SEO';
+import { SITE_NAME } from '../config/seo.config';
 
 // Mirrors server/utils/weight.js — parses a cart line's `size` label
 // ("250g", "1kg", ...) into grams so we can warn the shopper about the
@@ -781,7 +782,7 @@ function CheckoutPage() {
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID,
         amount, currency,
-        name: 'Namdev Chiwada',
+        name: SITE_NAME,
         description: 'Secure Checkout',
         // Absolute URL — Razorpay's checkout can render in a different
         // context (iframe), so a relative path doesn't always resolve.
@@ -855,7 +856,7 @@ function CheckoutPage() {
   if (cart.length === 0) {
     return (
       <PageWrapper>
-        <SEO title="Checkout | Namdev Chiwda" canonical="/checkout" robots="noindex,nofollow" />
+        <SEO title={`Checkout | ${SITE_NAME}`} canonical="/checkout" robots="noindex,nofollow" />
         <style>{styles}</style>
         <div className="empty-cart-wrap">
           <div style={{ fontSize: 64 }}>🛒</div>
@@ -881,7 +882,7 @@ function CheckoutPage() {
 
   return (
     <PageWrapper>
-      <SEO title="Checkout | Namdev Chiwda" canonical="/checkout" robots="noindex,nofollow" />
+      <SEO title={`Checkout | ${SITE_NAME}`} canonical="/checkout" robots="noindex,nofollow" />
       <style>{styles}</style>
       <div className="checkout-bg">
         <div style={{ maxWidth: 1100, margin: '0 auto', padding: '40px 16px 0' }}>

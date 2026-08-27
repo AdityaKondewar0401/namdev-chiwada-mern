@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { orderAPI } from '../services/api';
 import PageWrapper from '../components/PageWrapper';
 import SEO from '../components/SEO';
+import { SITE_NAME } from '../config/seo.config';
 
 // ── Constants ──────────────────────────────────────────
 const WHATSAPP_NUMBER = '919130160491'; // ← Replace with your actual WhatsApp number (with country code, no +)
@@ -590,7 +591,7 @@ export default function OrdersPage() {
   return (
     <PageWrapper>
       <SEO
-        title={id ? 'Order Details | Namdev Chiwda' : 'My Orders | Namdev Chiwda'}
+        title={id ? `Order Details | ${SITE_NAME}` : `My Orders | ${SITE_NAME}`}
         canonical={id ? `/orders/${id}` : '/orders'}
         robots="noindex,nofollow"
       />

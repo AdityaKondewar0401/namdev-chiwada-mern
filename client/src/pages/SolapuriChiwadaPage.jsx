@@ -3,13 +3,14 @@ import PageWrapper from '../components/PageWrapper';
 import SEO from '../components/SEO';
 import Breadcrumbs from '../components/Breadcrumbs';
 import { buildBreadcrumbSchema, buildFAQSchema } from '../utils/structuredData';
+import { SITE_NAME } from '../config/seo.config';
 
 // client/src/pages/SolapuriChiwadaPage.jsx
 //
 // Public SEO landing page targeting "Solapuri Chiwada" (Step 5 of the SEO
 // plan). Structured per the plan's suggested outline: what it is, what
 // makes it different, ingredients/preparation, Solapur's snack tradition,
-// Namdev Chiwada's heritage, product recommendations, and FAQs. All
+// Namdev Chiwda's heritage, product recommendations, and FAQs. All
 // heritage facts reuse the same true information already on
 // AboutPage/OurHistoryPage — nothing here is invented.
 
@@ -27,7 +28,7 @@ const FAQS = [
   {
     question: 'How is Solapuri Chiwada different from other regional Chiwadas?',
     answer:
-      'While Chiwada is made across Maharashtra, Solapuri Chiwada is distinguished by its specific masala blend — ground fresh rather than using pre-mixed spice powders — and a preparation style passed down through generations of Solapur-based snack makers, including the Namdev Chiwada family recipe dating to 1873.',
+      'While Chiwada is made across Maharashtra, Solapuri Chiwada is distinguished by its specific masala blend — ground fresh rather than using pre-mixed spice powders — and a preparation style passed down through generations of Solapur-based snack makers, including the Namdev Chiwda family recipe dating to 1873.',
   },
   {
     question: 'What are the main ingredients in Solapuri Chiwada?',
@@ -35,14 +36,14 @@ const FAQS = [
       'A traditional Solapuri Chiwada base includes flattened rice (poha), peanuts, curry leaves, mustard seeds, green chilli, turmeric, rock salt, a touch of sugar, and pure ghee, finished with a hand-ground masala blend.',
   },
   {
-    question: 'Which Namdev Chiwada product is less spicy?',
+    question: 'Which Namdev Chiwda product is less spicy?',
     answer:
-      'Namdev Chiwada (our signature poha-based blend) is categorised as mild, making it a good starting point if you prefer a gentler heat level. Maka Chiwada, our corn-based option, is spicier.',
+      'Namdev Chiwda (our signature poha-based blend) is categorised as mild, making it a good starting point if you prefer a gentler heat level. Maka Chiwada, our corn-based option, is spicier.',
   },
   {
     question: 'Do you deliver Solapuri Chiwada across Maharashtra?',
     answer:
-      'Yes — Namdev Chiwada ships from our Solapur warehouse across Maharashtra, with Cash on Delivery and online payment available at checkout.',
+      'Yes — Namdev Chiwda ships from our Solapur warehouse across Maharashtra, with Cash on Delivery and online payment available at checkout.',
   },
 ];
 
@@ -65,8 +66,8 @@ export default function SolapuriChiwadaPage() {
   return (
     <PageWrapper>
       <SEO
-        title="Solapuri Chiwada | Authentic Solapur-Style Chiwada — Namdev Chiwada"
-        description="Discover Solapuri Chiwada — the hand-ground, ghee-roasted style of Chiwada from Solapur, Maharashtra. Learn what makes it different and shop Namdev Chiwada's authentic recipe, made since 1873."
+        title={`Solapuri Chiwada | Authentic Solapur-Style Chiwada — ${SITE_NAME}`}
+        description={`Discover Solapuri Chiwada — the hand-ground, ghee-roasted style of Chiwada from Solapur, Maharashtra. Learn what makes it different and shop ${SITE_NAME}'s authentic recipe, made since 1873.`}
         canonical="/solapuri-chiwada"
         jsonLd={[buildBreadcrumbSchema(BREADCRUMB_ITEMS), buildFAQSchema(FAQS)]}
       />
@@ -121,7 +122,7 @@ export default function SolapuriChiwadaPage() {
               batches so the texture stays consistent — crisp, not soggy or overly oily.
             </p>
             <p className="text-brown-mid/80 leading-relaxed">
-              At Namdev Chiwada, this is exactly the process we've followed since 1873: the same
+              At Namdev Chiwda, this is exactly the process we've followed since 1873: the same
               hand-ground masala, the same ghee-based roasting, the same attention to batch size
               over speed.
             </p>
@@ -139,7 +140,7 @@ export default function SolapuriChiwadaPage() {
               that gives Solapuri Chiwada its signature aroma.
             </p>
             <p className="text-brown-mid/80 leading-relaxed">
-              Namdev Chiwada's version follows this same base, with our own family masala blend
+              Namdev Chiwda's version follows this same base, with our own family masala blend
               carried forward since 1873.
             </p>
           </section>
@@ -161,9 +162,9 @@ export default function SolapuriChiwadaPage() {
           {/* Heritage tie-in */}
           <section>
             <div className="section-eyebrow">Our Heritage</div>
-            <h2 className="section-title mb-4">Namdev Chiwada's Heritage</h2>
+            <h2 className="section-title mb-4">Namdev Chiwda's Heritage</h2>
             <p className="text-brown-mid/80 leading-relaxed mb-4">
-              Six generations later, Namdev Chiwada still follows the recipe our founder Bappa
+              Six generations later, Namdev Chiwda still follows the recipe our founder Bappa
               perfected in 1873 in Navipeth, Solapur — the same masala, the same roasting method,
               batch after batch.
             </p>
@@ -171,7 +172,7 @@ export default function SolapuriChiwadaPage() {
               to="/our-history"
               className="text-saffron font-semibold text-sm hover:text-saffron-light underline underline-offset-2"
             >
-              Read the full Namdev Chiwada story →
+              Read the full Namdev Chiwda story →
             </Link>
           </section>
 
@@ -182,7 +183,7 @@ export default function SolapuriChiwadaPage() {
             <div className="grid sm:grid-cols-2 gap-4">
               <Link to="/products/namdev-chiwada" className="card p-5 block hover:-translate-y-1">
                 <div className="font-serif font-bold text-brown-dark text-lg mb-1">
-                  Namdev Chiwada
+                  Namdev Chiwda
                 </div>
                 <p className="text-brown-mid/70 text-sm leading-relaxed">
                   Our house-signature blend — slow-roasted poha with pure ghee and hand-ground

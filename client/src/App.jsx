@@ -45,6 +45,7 @@ const AdminPage = lazy(() => import('./pages/AdminPage'));
 // of this page.
 import { LoginPage, RegisterPage } from './pages/AuthPages';
 import SEO from './components/SEO';
+import { SITE_NAME } from './config/seo.config';
 
 // Redirects the legacy /namkeen/:id URL to the real, working product page
 // instead of rendering the broken NamkeenDetailPage (see import comment
@@ -282,7 +283,7 @@ function AnimatedRoutes() {
           element={
             <Layout>
               <SEO
-                title="Page Not Found | Namdev Chiwda"
+                title={`Page Not Found | ${SITE_NAME}`}
                 description="The page you're looking for doesn't exist."
                 canonical="/"
                 robots="noindex,nofollow"

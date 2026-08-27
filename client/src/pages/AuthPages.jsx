@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-hot-toast';
 import PageWrapper from '../components/PageWrapper';
 import SEO from '../components/SEO';
+import { SITE_NAME } from '../config/seo.config';
 
 // ─────────────────────────────────────────────
 // AuthPages (Login + Register) — REDESIGNED
@@ -243,12 +244,12 @@ export function LoginPage() {
   return (
     <PageWrapper>
       <SEO
-        title="Login | Namdev Chiwda"
-        description="Sign in to your Namdev Chiwda account."
+        title={`Login | ${SITE_NAME}`}
+        description={`Sign in to your ${SITE_NAME} account.`}
         canonical="/login"
         robots="noindex,nofollow"
       />
-      <AuthCard title="Welcome Back" subtitle="Sign in to your Namdev Chiwda account">
+      <AuthCard title="Welcome Back" subtitle={`Sign in to your ${SITE_NAME} account`}>
         <form onSubmit={handleSubmit} className="space-y-4">
 
           <IconField
@@ -316,12 +317,12 @@ export function RegisterPage() {
   return (
     <PageWrapper>
       <SEO
-        title="Create Account | Namdev Chiwda"
-        description="Create your Namdev Chiwda account."
+        title={`Create Account | ${SITE_NAME}`}
+        description={`Create your ${SITE_NAME} account.`}
         canonical="/register"
         robots="noindex,nofollow"
       />
-      <AuthCard title="Create Account" subtitle="Join Namdev Chiwda — it's free!">
+      <AuthCard title="Create Account" subtitle={`Join ${SITE_NAME} — it's free!`}>
         <form onSubmit={handleSubmit} className="space-y-4">
 
           {[

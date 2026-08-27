@@ -17,7 +17,7 @@ const RAW_SITE_URL = import.meta.env.VITE_SITE_URL || 'https://www.namdevchiwda.
 // Strip any trailing slash so every consumer can safely do `${SITE_URL}/path`.
 export const SITE_URL = RAW_SITE_URL.replace(/\/+$/, '');
 
-export const SITE_NAME = 'Namdev Chiwada';
+export const SITE_NAME = 'Namdev Chiwda';
 
 export const SITE_NAME_MARATHI = 'नामदेव चिवडा';
 
@@ -26,7 +26,7 @@ export const SITE_NAME_MARATHI = 'नामदेव चिवडा';
 export const DEFAULT_OG_IMAGE = `${SITE_URL}/images/chiwada-1.jpg`;
 
 export const DEFAULT_DESCRIPTION =
-  'Namdev Chiwada — authentic Solapuri Chiwada and traditional Maharashtrian snacks, serving Solapur since 1873. Order online, delivered across Maharashtra.';
+  'Namdev Chiwda — authentic Solapuri Chiwada and traditional Maharashtrian snacks, serving Solapur since 1873. Order online, delivered across Maharashtra.';
 
 export const TWITTER_HANDLE = null; // No confirmed official X/Twitter handle yet — omit rather than guess.
 

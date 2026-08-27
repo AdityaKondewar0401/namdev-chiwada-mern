@@ -130,12 +130,13 @@ function StaggerHeading() {
   );
 }
 
-function RotatingTagline({ wrapperStyle, textStyle }) {
+function RotatingTagline({ wrapperStyle, textStyle, rotate = true }) {
   const [idx, setIdx] = useState(0);
   useEffect(() => {
+    if (!rotate) return;
     const t = setInterval(() => setIdx((i) => (i + 1) % TAGLINES.length), 3400);
     return () => clearInterval(t);
-  }, []);
+  }, [rotate]);
   return (
     <div className="mb-6" style={{ minHeight: 'clamp(1.6rem,3vw,2.2rem)', position: 'relative', ...wrapperStyle }}>
       <AnimatePresence mode="wait">
@@ -413,6 +414,7 @@ export default function HeroExperience() {
           </div>
 
           <RotatingTagline
+            rotate={false}
             wrapperStyle={{ marginTop: 16, marginBottom: 22, textAlign: 'center', width: '100%' }}
             textStyle={{ textAlign: 'center', fontSize: '1.22rem' }}
           />

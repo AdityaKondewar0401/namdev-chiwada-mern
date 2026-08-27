@@ -8,6 +8,7 @@ import PageWrapper from '../components/PageWrapper';
 import SEO from '../components/SEO';
 import Breadcrumbs from '../components/Breadcrumbs';
 import { buildBreadcrumbSchema } from '../utils/structuredData';
+import { SITE_NAME } from '../config/seo.config';
 
 const BREADCRUMB_ITEMS = [
   { label: 'Home', path: '/' },
@@ -135,8 +136,8 @@ export default function ProductsPage() {
   return (
     <PageWrapper>
       <SEO
-        title="Chiwada & Maharashtrian Snacks | Namdev Chiwada"
-        description="Shop authentic Solapuri Chiwada, Bakarvadi, Maka Chiwada, and traditional Maharashtrian namkeen from Namdev Chiwada — freshly made and delivered across Maharashtra."
+        title={`Chiwada & Maharashtrian Snacks | ${SITE_NAME}`}
+        description={`Shop authentic Solapuri Chiwada, Bakarvadi, Maka Chiwada, and traditional Maharashtrian namkeen from ${SITE_NAME} — freshly made and delivered across Maharashtra.`}
         canonical="/products"
         jsonLd={buildBreadcrumbSchema(BREADCRUMB_ITEMS)}
       />

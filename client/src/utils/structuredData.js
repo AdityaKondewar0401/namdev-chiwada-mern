@@ -37,6 +37,25 @@ export function buildOrganizationSchema() {
 }
 
 /**
+ * WebSite schema — homepage only, alongside Organization. `potentialAction`
+ * reflects the real search behavior already wired up in Navbar.jsx
+ * (submits to /products?search=<query>), not an invented capability.
+ */
+export function buildWebsiteSchema() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: SITE_NAME,
+    url: SITE_URL,
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: `${SITE_URL}/products?search={search_term_string}`,
+      'query-input': 'required name=search_term_string',
+    },
+  };
+}
+
+/**
  * Product schema, built entirely from an actual Product document fetched
  * from the API. Only includes aggregateRating when the product genuinely
  * has reviews (reviews > 0) — the same rating/review count already shown
@@ -60,6 +79,7 @@ export function buildProductSchema(product) {
       name: SITE_NAME,
     },
     sku: product._id,
+    ...(product.category && { category: product.category }),
     offers: {
       '@type': 'Offer',
       url: canonicalUrl,

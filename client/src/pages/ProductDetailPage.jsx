@@ -11,6 +11,7 @@ import PageWrapper from '../components/PageWrapper';
 import SEO from '../components/SEO';
 import Breadcrumbs from '../components/Breadcrumbs';
 import { buildProductSchema, buildBreadcrumbSchema } from '../utils/structuredData';
+import { SITE_NAME } from '../config/seo.config';
 import toast from 'react-hot-toast';
 
 const TABS = ['Ingredients', 'Nutrition', 'Info'];
@@ -166,7 +167,7 @@ export default function ProductDetailPage() {
     return (
       <PageWrapper>
         <SEO
-          title="Product Not Found — Namdev Chiwada"
+          title={`Product Not Found — ${SITE_NAME}`}
           description="The product you're looking for doesn't exist or may have been removed."
           canonical={`/products/${routeSlug}`}
           robots="noindex,nofollow"
@@ -253,12 +254,12 @@ export default function ProductDetailPage() {
   return (
     <PageWrapper>
       <SEO
-        title={`${product.name} | Authentic Solapuri Chiwada — Namdev Chiwada`}
+        title={`${product.name} | Authentic Solapuri Chiwada — ${SITE_NAME}`}
         description={seoDescription}
         canonical={`/products/${productSlug}`}
         type="product"
         image={product.img}
-        imageAlt={`${product.name} – Namdev Chiwada`}
+        imageAlt={`${product.name} – ${SITE_NAME}`}
         jsonLd={[buildProductSchema(product), buildBreadcrumbSchema(breadcrumbItems)]}
       />
       <style>{`
@@ -410,6 +411,7 @@ export default function ProductDetailPage() {
             <div className="sticky top-24 flex flex-col gap-3">
               {thumbs.map((img, i) => (
                 <button key={i} onClick={() => setMainImg(img)}
+                  aria-label={`View ${product.name} — image ${i + 1}`}
                   className={`relative rounded-xl overflow-hidden transition-all duration-200 ${
                     mainImg === img ? 'ring-2 shadow-md' : 'ring-1 ring-brown-dark/5 opacity-60 hover:opacity-100'
                   }`}
@@ -484,6 +486,7 @@ export default function ProductDetailPage() {
                   product={product} currentSize={currentSize} discount={discount}
                   selectedSizeIdx={selectedSizeIdx} setSelectedSizeIdx={setSelectedSizeIdx}
                   activeTab={activeTab} setActiveTab={setActiveTab}
+                  renderH1={false}
                 />
 
                 <div className="flex items-center gap-3 mt-5">
@@ -560,7 +563,15 @@ function MobileHandle() {
   return <div className="w-10 h-1 rounded-full bg-brown-dark/10 mx-auto mb-5" />;
 }
 
-function ProductInfo({ product, currentSize, discount, selectedSizeIdx, setSelectedSizeIdx, activeTab, setActiveTab }) {
+function ProductInfo({ product, currentSize, discount, selectedSizeIdx, setSelectedSizeIdx, activeTab, setActiveTab, renderH1 = true }) {
+  // This component is mounted twice — once in the mobile layout, once in
+  // the desktop layout (both stay in the DOM simultaneously, CSS-hidden by
+  // breakpoint, not conditionally rendered). Rendering <h1> in both would
+  // give the page two H1s at once regardless of viewport, so only one
+  // instance renders a real <h1>; the other renders a visually identical
+  // <div> — same mobile-first-indexing rationale already used for the
+  // homepage hero heading in HeroExperience.jsx.
+  const NameTag = renderH1 ? 'h1' : 'div';
   return (
     <div className="flex flex-col gap-4">
 
@@ -573,10 +584,10 @@ function ProductInfo({ product, currentSize, discount, selectedSizeIdx, setSelec
             </span>
           )}
         </div>
-        <h1 className="font-serif font-black text-brown-dark leading-tight"
+        <NameTag className="font-serif font-black text-brown-dark leading-tight"
           style={{ fontSize: 'clamp(1.5rem,3vw,2.1rem)' }}>
           {product.name}
-        </h1>
+        </NameTag>
         {product.namMarathi && (
           <div className="text-sm text-brown-mid/60 mt-0.5" style={{ fontFamily: "'Gotu', sans-serif" }}>
             {product.namMarathi}

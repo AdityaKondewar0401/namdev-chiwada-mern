@@ -1,6 +1,6 @@
 const PRODUCTS = [
   {
-    name: 'Namdev Chiwada',
+    name: 'Namdev Chiwda',
     namMarathi: 'नामदेव चिवडा',
     slug: 'namdev-chiwada',
     sub: 'House Signature Blend',

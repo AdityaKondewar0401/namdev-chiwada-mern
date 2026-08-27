@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { SITE_NAME } from '../config/seo.config';
 
 const MILESTONES = [
   { icon: '🚶', label: 'Left his village', sub: 'Rani Savargaon' },
@@ -149,7 +150,7 @@ export default function HeritageTimeline() {
               whiteSpace: 'nowrap', minHeight: 48,
             }}
           >
-            Read more →
+            Read {SITE_NAME}'s Story →
           </Link>
         </motion.div>
       </div>

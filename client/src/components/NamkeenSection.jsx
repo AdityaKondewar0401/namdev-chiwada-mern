@@ -1,10 +1,17 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { productAPI } from '../services/api';
 import { useWishlist } from '../context/WishlistContext';
 import QuantityStepper from './QuantityStepper';
 import WishlistIcon from './WishlistIcon';
+import { SITE_NAME } from '../config/seo.config';
+
+// motion(Link) so each featured product card is a real crawlable <a href>
+// (search engines and screen readers don't follow onClick handlers on a
+// div) while keeping the existing Framer Motion entrance/hover animation —
+// same pattern already used in ProductCard.jsx.
+const MotionLink = motion(Link);
 
 // ── Individual Product Card ────────────────────────────
 function NamkeenCard({ product, index }) {
@@ -12,8 +19,6 @@ function NamkeenCard({ product, index }) {
   const [selectedSizeIdx, setSelectedSizeIdx] = useState(0);
   const { toggle, isWishlisted } = useWishlist();
   const wishlisted = isWishlisted(product._id);
-
-  const navigate = useNavigate();
 
   // FIXED: Use front hero image first
   const images = [
@@ -39,7 +44,8 @@ function NamkeenCard({ product, index }) {
     sizes[selectedSizeIdx];
 
   return (
-    <motion.div
+    <MotionLink
+      to={`/products/${product.slug || product._id}`}
       initial={{
         opacity: 0,
         y: 40,
@@ -61,11 +67,6 @@ function NamkeenCard({ product, index }) {
         boxShadow:
           '0 20px 60px rgba(224,112,0,0.18)',
       }}
-      onClick={() =>
-        navigate(
-          `/products/${product._id}`
-        )
-      }
       className="bg-white rounded-3xl overflow-hidden flex flex-col cursor-pointer group"
       style={{
         boxShadow:
@@ -363,7 +364,7 @@ function NamkeenCard({ product, index }) {
           },transparent)`,
         }}
       />
-    </motion.div>
+    </MotionLink>
   );
 }
 
@@ -374,8 +375,6 @@ export default function NamkeenSection() {
 
   const [loading, setLoading] =
     useState(true);
-
-  const navigate = useNavigate();
 
   useEffect(() => {
     productAPI
@@ -464,8 +463,9 @@ export default function NamkeenSection() {
           </h2>
 
           <p className="text-brown-mid/60 text-sm italic">
-            Crafted with
-            tradition,
+            Crafted by
+            {' '}{SITE_NAME}
+            {' '}with tradition,
             served with
             love since
             1873
@@ -525,8 +525,8 @@ export default function NamkeenSection() {
           transition={{ duration: 0.5, delay: 0.3 }}
           className="flex justify-center mt-10 sm:mt-14"
         >
-          <button
-            onClick={() => navigate('/products')}
+          <Link
+            to="/products"
             className="group inline-flex items-center gap-2 px-8 py-3.5 rounded-full font-bold text-sm sm:text-base transition-all duration-300"
             style={{
               color: '#e07000',
@@ -546,7 +546,7 @@ export default function NamkeenSection() {
           >
             View All Products
             <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
-          </button>
+          </Link>
         </motion.div>
       </div>
     </section>

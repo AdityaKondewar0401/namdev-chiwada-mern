@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useWishlist } from '../context/WishlistContext';
 import QuantityStepper from './QuantityStepper';
 import WishlistIcon from './WishlistIcon';
@@ -8,8 +8,12 @@ import WishlistIcon from './WishlistIcon';
 const MAROON = '#6E1E27';
 const GOLD_SOFT = 'rgba(184,134,46,0.14)';
 
+// motion(Link) so the whole card is a real crawlable <a href> (search
+// engines and screen readers don't follow onClick handlers on a div) while
+// keeping the existing Framer Motion entrance/hover animation.
+const MotionLink = motion(Link);
+
 export default function ProductCard({ product, index = 0 }) {
-  const navigate = useNavigate();
   const { toggle, isWishlisted } = useWishlist();
   const [selectedSizeIdx, setSelectedSizeIdx] = useState(0);
 
@@ -18,12 +22,12 @@ export default function ProductCard({ product, index = 0 }) {
   const wishlisted = isWishlisted(product._id);
 
   return (
-    <motion.div
+    <MotionLink
+      to={`/products/${product.slug || product._id}`}
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5, delay: index * 0.07 }}
-      onClick={() => navigate(`/products/${product.slug || product._id}`)}
       className="bg-white rounded-2xl sm:rounded-3xl overflow-hidden flex flex-col cursor-pointer group relative w-full"
       style={{ boxShadow: '0 4px 20px rgba(58,35,23,0.07)', border: '1px solid rgba(184,134,46,0.10)' }}
       whileHover={{ y: -5, boxShadow: '0 16px 40px rgba(110,30,39,0.14)' }}>
@@ -66,7 +70,7 @@ export default function ProductCard({ product, index = 0 }) {
         {/* Product image */}
         <img
           src={product.img}
-          alt={`${product.name} – authentic Solapuri snack by Namdev Chiwada`}
+          alt={`${product.name} – authentic Solapuri snack by Namdev Chiwda`}
           loading="lazy"
           width={400}
           height={400}
@@ -142,6 +146,6 @@ export default function ProductCard({ product, index = 0 }) {
           />
         </div>
       </div>
-    </motion.div>
+    </MotionLink>
   );
 }

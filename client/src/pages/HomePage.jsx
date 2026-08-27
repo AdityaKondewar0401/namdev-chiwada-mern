@@ -5,7 +5,8 @@ import useReveal from '../hooks/useReveal';
 import PageWrapper from '../components/PageWrapper';
 import NamkeenSection from '../components/NamkeenSection';
 import SEO from '../components/SEO';
-import { buildOrganizationSchema } from '../utils/structuredData';
+import { buildOrganizationSchema, buildWebsiteSchema } from '../utils/structuredData';
+import { SITE_NAME } from '../config/seo.config';
 
 // ── New / redesigned homepage sections ──
 import HeroExperience from '../components/HeroExperience';
@@ -33,7 +34,7 @@ const FEATURES = [
     icon: '🔥',
     image: 'https://res.cloudinary.com/dz7ykg6qr/image/upload/v1786263602/an-assortment-of-whole-spices-arranged-in-harmonious-chaos-photo_oyphny.jpg',
     title: 'Perfectly Roasted Blend',
-    desc: 'Each batch is carefully roasted and blended for that signature Namdev crunch.',
+    desc: 'Each batch of Namdev Chiwda is roasted and blended in Solapur for that signature crunch.',
   },
   {
     icon: '🏅',
@@ -113,7 +114,7 @@ function GlassFeatureCard({
         ) : (
           <img
             src={f.image}
-            alt={f.title}
+            alt=""
             loading="lazy"
             className="w-full h-full object-cover"
             onError={(e) => {
@@ -776,7 +777,7 @@ function ExploreMoreLinks() {
     <section className="py-8 md:py-10 bg-cream">
       <div ref={ref} className="reveal max-w-4xl mx-auto px-5 sm:px-6 text-center">
         <div className="text-xs font-bold tracking-widest uppercase text-brown-mid/40 mb-4">
-          Explore Namdev Chiwada
+          Explore {SITE_NAME}
         </div>
         <div className="flex flex-wrap items-center justify-center gap-2.5">
           {EXPLORE_LINKS.map((link) => (
@@ -798,10 +799,10 @@ export default function HomePage() {
   return (
     <PageWrapper>
       <SEO
-        title="Namdev Chiwada | Authentic Solapuri Chiwada Since 1873"
-        description="Namdev Chiwada brings you authentic Solapuri Chiwada and traditional Maharashtrian snacks, crafted with the same recipe since 1873. Order online, delivered fresh across Maharashtra."
+        title={`${SITE_NAME} | Authentic Solapuri Chiwda Since 1873`}
+        description={`${SITE_NAME} — authentic Solapuri Chiwda and traditional Maharashtrian snacks, crafted in Solapur since 1873. Order online and get fresh delivery across Maharashtra.`}
         canonical="/"
-        jsonLd={buildOrganizationSchema()}
+        jsonLd={[buildOrganizationSchema(), buildWebsiteSchema()]}
       />
 
       <HeroExperience />

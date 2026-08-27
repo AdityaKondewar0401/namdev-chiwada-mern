@@ -29,7 +29,7 @@ const SOCIALS = [
 
 // Includes the SEO landing pages (Step 14 of the SEO plan) alongside the
 // original core links — same real pages already linked from HomePage's
-// "Explore Namdev Chiwada" band and ProductsPage's header links, so every
+// "Explore Namdev Chiwda" band and ProductsPage's header links, so every
 // page footer reinforces the same internal link graph.
 const QUICK_LINKS = [
   ["Home", "/"],
@@ -109,7 +109,7 @@ export default function Footer() {
                 >
                   <img
                     src={`https://cdn.simpleicons.org/${slug}/${color}`}
-                    alt={label}
+                    alt=""
                     width={18}
                     height={18}
                     loading="lazy"

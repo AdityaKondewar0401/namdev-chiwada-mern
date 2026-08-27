@@ -3,13 +3,14 @@ import PageWrapper from '../components/PageWrapper';
 import SEO from '../components/SEO';
 import Breadcrumbs from '../components/Breadcrumbs';
 import { buildBreadcrumbSchema, buildFAQSchema } from '../utils/structuredData';
+import { SITE_NAME } from '../config/seo.config';
 
 // client/src/pages/ChiwadaPage.jsx
 //
 // Public SEO landing page targeting the generic "Chiwada / Chiwda / Chivda"
 // search intent (Step 5 of the SEO plan). This is deliberately written as a
 // genuinely useful explainer page, not a thin doorway page — real content
-// about what Chiwada is, its variations, and how Namdev Chiwada makes it,
+// about what Chiwada is, its variations, and how Namdev Chiwda makes it,
 // with links into the actual product catalog. All brand-history facts
 // (1873, six generations) are the same true facts already used on
 // AboutPage/HomePage — nothing here is invented.
@@ -33,17 +34,17 @@ const FAQS = [
   {
     question: 'What is the difference between Poha Chiwada and Corn Chiwada?',
     answer:
-      'Poha Chiwada uses flattened rice as its base and has a lighter, crisper texture, while Corn Chiwada is made from roasted corn flakes and has a heartier crunch. Namdev Chiwada makes both — Namdev Chiwada (our signature poha-based blend) and Maka Chiwada (our corn-based, Kolhapuri-spiced version).',
+      'Poha Chiwada uses flattened rice as its base and has a lighter, crisper texture, while Corn Chiwada is made from roasted corn flakes and has a heartier crunch. Namdev Chiwda makes both — Namdev Chiwda (our signature poha-based blend) and Maka Chiwada (our corn-based, Kolhapuri-spiced version).',
   },
   {
     question: 'How long does Chiwada stay fresh?',
     answer:
-      'Namdev Chiwada products are made in small batches without artificial preservatives, and typically stay fresh for 30–45 days when stored in a cool, dry place in an airtight container. Exact shelf life is printed on each product page and pack.',
+      'Namdev Chiwda products are made in small batches without artificial preservatives, and typically stay fresh for 30–45 days when stored in a cool, dry place in an airtight container. Exact shelf life is printed on each product page and pack.',
   },
   {
     question: 'Do you deliver Chiwada across Maharashtra?',
     answer:
-      'Yes. Namdev Chiwada ships from our Solapur warehouse across Maharashtra, with Cash on Delivery and online payment options available at checkout.',
+      'Yes. Namdev Chiwda ships from our Solapur warehouse across Maharashtra, with Cash on Delivery and online payment options available at checkout.',
   },
 ];
 
@@ -69,8 +70,8 @@ export default function ChiwadaPage() {
   return (
     <PageWrapper>
       <SEO
-        title="Chiwada / Chiwda | Authentic Maharashtrian Chiwada — Namdev Chiwada"
-        description="What is Chiwada? Learn about this classic Maharashtrian savoury snack — its ingredients, regional variations like Solapuri Chiwada, and how Namdev Chiwada has made it since 1873."
+        title={`Chiwada / Chiwda | Authentic Maharashtrian Chiwada — ${SITE_NAME}`}
+        description={`What is Chiwada? Learn about this classic Maharashtrian savoury snack — its ingredients, regional variations like Solapuri Chiwada, and how ${SITE_NAME} has made it since 1873.`}
         canonical="/chiwada"
         jsonLd={[buildBreadcrumbSchema(BREADCRUMB_ITEMS), buildFAQSchema(FAQS)]}
       />
@@ -94,7 +95,7 @@ export default function ChiwadaPage() {
             </h1>
             <p className="text-white/70 max-w-xl mx-auto">
               Crunchy, spiced, and endlessly snackable — here's what makes Chiwada (or Chiwda) a
-              staple across Maharashtrian homes, and how Namdev Chiwada has made it since 1873.
+              staple across Maharashtrian homes, and how Namdev Chiwda has made it since 1873.
             </p>
           </div>
         </div>
@@ -126,7 +127,7 @@ export default function ChiwadaPage() {
             <div className="grid sm:grid-cols-2 gap-4">
               <Link to="/products/namdev-chiwada" className="card p-5 block hover:-translate-y-1">
                 <div className="font-serif font-bold text-brown-dark text-lg mb-1">
-                  Namdev Chiwada (Poha-Based)
+                  Namdev Chiwda (Poha-Based)
                 </div>
                 <p className="text-brown-mid/70 text-sm leading-relaxed">
                   Our signature blend — slow-roasted flattened rice with pure ghee, curry leaves,
@@ -148,9 +149,9 @@ export default function ChiwadaPage() {
           {/* Heritage tie-in */}
           <section>
             <div className="section-eyebrow">Our Approach</div>
-            <h2 className="section-title mb-4">How Namdev Chiwada Makes It</h2>
+            <h2 className="section-title mb-4">How Namdev Chiwda Makes It</h2>
             <p className="text-brown-mid/80 leading-relaxed mb-4">
-              Namdev Chiwada has been made in Solapur since 1873, when our founder Bappa began
+              Namdev Chiwda has been made in Solapur since 1873, when our founder Bappa began
               selling fresh chiwda door to door from a wooden box. Six generations later, the
               recipe, the roasting method, and the hand-ground masala have stayed the same — no
               artificial colours, no shortcuts.
@@ -159,7 +160,7 @@ export default function ChiwadaPage() {
               to="/our-history"
               className="text-saffron font-semibold text-sm hover:text-saffron-light underline underline-offset-2"
             >
-              Read the full Namdev Chiwada story →
+              Read the full Namdev Chiwda story →
             </Link>
           </section>
 

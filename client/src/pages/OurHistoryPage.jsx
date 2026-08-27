@@ -3,10 +3,11 @@ import PageWrapper from '../components/PageWrapper';
 import SEO from '../components/SEO';
 import Breadcrumbs from '../components/Breadcrumbs';
 import { buildBreadcrumbSchema, buildFAQSchema } from '../utils/structuredData';
+import { SITE_NAME } from '../config/seo.config';
 
 // client/src/pages/OurHistoryPage.jsx
 //
-// Public SEO landing page targeting "Namdev Chiwada history", "Solapur
+// Public SEO landing page targeting "Namdev Chiwda history", "Solapur
 // Chiwada", "heritage snacks" and "Serving Solapur Since 1873" (Step 6 of
 // the SEO plan). Deliberately written in a plainer, chronological,
 // text-forward style — distinct wording and structure from AboutPage.jsx
@@ -23,19 +24,19 @@ const BREADCRUMB_ITEMS = [
 
 const FAQS = [
   {
-    question: 'When was Namdev Chiwada founded?',
+    question: 'When was Namdev Chiwda founded?',
     answer:
-      'Namdev Chiwada traces its roots to 1873 in Solapur, Maharashtra, when our founder — known within the family as Bappa — began selling fresh chiwda from a wooden box, carried through the city\'s lanes.',
+      'Namdev Chiwda traces its roots to 1873 in Solapur, Maharashtra, when our founder — known within the family as Bappa — began selling fresh chiwda from a wooden box, carried through the city\'s lanes.',
   },
   {
-    question: 'How many generations has Namdev Chiwada been run by?',
+    question: 'How many generations has Namdev Chiwda been run by?',
     answer:
       'The recipe and business have been carried forward through six generations of the same family, from Bappa\'s original chiwda in 1873 to today.',
   },
   {
-    question: 'Where is Namdev Chiwada based?',
+    question: 'Where is Namdev Chiwda based?',
     answer:
-      'Namdev Chiwada is based in Solapur, Maharashtra, where it has operated since 1873.',
+      'Namdev Chiwda is based in Solapur, Maharashtra, where it has operated since 1873.',
   },
   {
     question: 'Has the recipe changed over the years?',
@@ -90,8 +91,8 @@ export default function OurHistoryPage() {
   return (
     <PageWrapper>
       <SEO
-        title="Our History | Namdev Chiwada – Serving Solapur Since 1873"
-        description="The history of Namdev Chiwada — from one founder selling fresh chiwda door to door in Solapur in 1873, to six generations of the same family recipe today."
+        title={`Our History | ${SITE_NAME} – Serving Solapur Since 1873`}
+        description={`The history of ${SITE_NAME} — from one founder selling fresh chiwda door to door in Solapur in 1873, to six generations of the same family recipe today.`}
         canonical="/our-history"
         jsonLd={[buildBreadcrumbSchema(BREADCRUMB_ITEMS), buildFAQSchema(FAQS)]}
       />
@@ -126,7 +127,7 @@ export default function OurHistoryPage() {
             <div className="section-eyebrow">The Beginning</div>
             <h2 className="section-title mb-4">Where It Started</h2>
             <p className="text-brown-mid/80 leading-relaxed">
-              Namdev Chiwada's history begins in 1873 in Solapur, Maharashtra. Our founder — known
+              Namdev Chiwda's history begins in 1873 in Solapur, Maharashtra. Our founder — known
               within the family simply as Bappa — arrived with no capital and no contacts, only the
               resolve to build something of his own. What he built was a small chiwda-making
               business that, six generations later, still carries his name and his recipe.
@@ -162,10 +163,10 @@ export default function OurHistoryPage() {
             <div className="section-eyebrow">What Hasn't Changed</div>
             <h2 className="section-title mb-4">The Same Recipe, Six Generations On</h2>
             <p className="text-brown-mid/80 leading-relaxed mb-4">
-              What makes Namdev Chiwada's history unusual isn't just its length — it's how little
+              What makes Namdev Chiwda's history unusual isn't just its length — it's how little
               the core recipe has changed. The same hand-ground masala, the same ghee-based
               roasting method Bappa used in 1873, has been carried forward by each generation of
-              the family since. Today, that same Namdev Chiwada recipe is available online, shipped
+              the family since. Today, that same Namdev Chiwda recipe is available online, shipped
               from Solapur across Maharashtra.
             </p>
             <Link

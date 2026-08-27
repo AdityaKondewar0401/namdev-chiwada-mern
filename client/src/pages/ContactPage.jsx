@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import PageWrapper from '../components/PageWrapper';
 import SEO from '../components/SEO';
 import { buildBreadcrumbSchema } from '../utils/structuredData';
+import { SITE_NAME } from '../config/seo.config';
 
 // Intentionally NO LocalBusiness structured data and no additional
 // address/map SEO here (Step 4 / Step 10 of the SEO plan) — the business
@@ -153,8 +154,8 @@ export default function ContactPage() {
   return (
     <PageWrapper>
       <SEO
-        title="Contact Namdev Chiwada | Maharashtrian Snacks"
-        description="Get in touch with Namdev Chiwada for order queries, bulk orders, or feedback — reach us by phone, email, or WhatsApp."
+        title={`Contact ${SITE_NAME} | Solapur, Maharashtra`}
+        description={`Get in touch with ${SITE_NAME} for order queries, bulk orders, or feedback — reach us by phone, email, or WhatsApp.`}
         canonical="/contact"
         jsonLd={buildBreadcrumbSchema(CONTACT_BREADCRUMB_ITEMS)}
       />
@@ -232,7 +233,7 @@ export default function ContactPage() {
               {/* Live embedded map — replaces the old static placeholder box */}
               <div className="mt-6 rounded-xl2 overflow-hidden border-2 border-saffron/10">
                 <iframe
-                  title="Namdev Chiwda location"
+                  title={`${SITE_NAME} location`}
                   src={`https://www.google.com/maps?q=${MAP_QUERY}&z=16&output=embed`}
                   width="100%"
                   height="220"
@@ -259,7 +260,7 @@ export default function ContactPage() {
             {/* Contact Form */}
             <motion.div initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}>
               <div className="bg-white rounded-xl2 shadow-saffron border border-saffron/10 p-8">
-                <h3 className="font-serif font-bold text-brown-dark text-xl mb-6">Send Us a Message</h3>
+                <h2 className="font-serif font-bold text-brown-dark text-xl mb-6">Send Us a Message</h2>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {inp('fname', 'First Name', 'Rahul', 'text', true)}
@@ -311,7 +312,7 @@ export default function ContactPage() {
             className="bg-brown-dark rounded-xl2 p-8 text-center"
           >
             <div className="text-4xl mb-3">💬</div>
-            <h3 className="font-serif font-bold text-white text-xl mb-2">Prefer WhatsApp?</h3>
+            <h2 className="font-serif font-bold text-white text-xl mb-2">Prefer WhatsApp?</h2>
             <p className="text-white/60 text-sm mb-5">Chat with us directly for instant replies and order assistance</p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" rel="noreferrer"

@@ -3,6 +3,7 @@ import PageWrapper from '../components/PageWrapper';
 import SEO from '../components/SEO';
 import Breadcrumbs from '../components/Breadcrumbs';
 import { buildBreadcrumbSchema, buildFAQSchema } from '../utils/structuredData';
+import { SITE_NAME } from '../config/seo.config';
 
 // client/src/pages/MaharashtrianSnacksPage.jsx
 //
@@ -26,12 +27,12 @@ const FAQS = [
   {
     question: 'What is the difference between Chiwada, Bakarvadi, and Farsan?',
     answer:
-      'Chiwada is a poha- or corn-based savoury mix; Bakarvadi is a spiral fried pastry with a spiced coconut-sesame filling; Farsan is a broader term covering a range of Gujarati- and Maharashtrian-style fried snacks, including sev and other gram-flour based mixes. Namdev Chiwada makes all three.',
+      'Chiwada is a poha- or corn-based savoury mix; Bakarvadi is a spiral fried pastry with a spiced coconut-sesame filling; Farsan is a broader term covering a range of Gujarati- and Maharashtrian-style fried snacks, including sev and other gram-flour based mixes. Namdev Chiwda makes all three.',
   },
   {
-    question: 'Are Namdev Chiwada snacks vegetarian?',
+    question: 'Are Namdev Chiwda snacks vegetarian?',
     answer:
-      'Yes, all Namdev Chiwada products are 100% vegetarian, made with no artificial colours.',
+      'Yes, all Namdev Chiwda products are 100% vegetarian, made with no artificial colours.',
   },
   {
     question: 'Do you deliver Maharashtrian snacks outside Solapur?',
@@ -59,8 +60,8 @@ export default function MaharashtrianSnacksPage() {
   return (
     <PageWrapper>
       <SEO
-        title="Maharashtrian Snacks & Namkeen | Namdev Chiwada"
-        description="Shop authentic Maharashtrian snacks and namkeen from Namdev Chiwada — Chiwada, Bakarvadi, and Farsan, made in Solapur since 1873 using traditional recipes and pure ingredients."
+        title={`Maharashtrian Snacks & Namkeen | ${SITE_NAME}`}
+        description={`Shop authentic Maharashtrian snacks and namkeen from ${SITE_NAME} — Chiwada, Bakarvadi, and Farsan, made in Solapur since 1873 using traditional recipes and pure ingredients.`}
         canonical="/maharashtrian-snacks"
         jsonLd={[buildBreadcrumbSchema(BREADCRUMB_ITEMS), buildFAQSchema(FAQS)]}
       />
@@ -101,7 +102,7 @@ export default function MaharashtrianSnacksPage() {
               pastries like Bakarvadi, and gram-flour based mixes broadly known as Farsan. What
               connects them is a shared tradition of small-batch preparation, bold regional
               spicing, and recipes passed down within families and local snack-making businesses —
-              much like Namdev Chiwada's own recipe, unchanged since 1873.
+              much like Namdev Chiwda's own recipe, unchanged since 1873.
             </p>
           </section>
 
@@ -113,7 +114,7 @@ export default function MaharashtrianSnacksPage() {
               <Link to="/chiwada" className="card p-5 block hover:-translate-y-1">
                 <div className="font-serif font-bold text-brown-dark text-lg mb-1">Chiwada</div>
                 <p className="text-brown-mid/70 text-sm leading-relaxed">
-                  Poha- or corn-based roasted mixes — our signature Namdev Chiwada and spicy Maka
+                  Poha- or corn-based roasted mixes — our signature Namdev Chiwda and spicy Maka
                   Chiwada.
                 </p>
               </Link>
@@ -137,9 +138,9 @@ export default function MaharashtrianSnacksPage() {
           {/* Namdev's role */}
           <section>
             <div className="section-eyebrow">Our Story</div>
-            <h2 className="section-title mb-4">Namdev Chiwada in This Tradition</h2>
+            <h2 className="section-title mb-4">Namdev Chiwda in This Tradition</h2>
             <p className="text-brown-mid/80 leading-relaxed mb-4">
-              Namdev Chiwada has been part of Solapur's snack-making tradition since 1873, when our
+              Namdev Chiwda has been part of Solapur's snack-making tradition since 1873, when our
               founder Bappa began selling fresh chiwda from a wooden box. Six generations later, we
               still make our full namkeen range — Chiwada, Bakarvadi, and Farsan — using the same
               recipes, real ghee, and hand-ground spices, with no artificial colours.
@@ -148,7 +149,7 @@ export default function MaharashtrianSnacksPage() {
               to="/our-history"
               className="text-saffron font-semibold text-sm hover:text-saffron-light underline underline-offset-2"
             >
-              Read the full Namdev Chiwada story →
+              Read the full Namdev Chiwda story →
             </Link>
           </section>
 

@@ -4,6 +4,7 @@ import { useWishlist } from '../context/WishlistContext';
 import ProductCard from '../components/ProductCard';
 import PageWrapper from '../components/PageWrapper';
 import SEO from '../components/SEO';
+import { SITE_NAME } from '../config/seo.config';
 
 export default function WishlistPage() {
   const { wishlistProducts, loading } = useWishlist();
@@ -11,7 +12,7 @@ export default function WishlistPage() {
 
   return (
     <PageWrapper>
-      <SEO title="My Wishlist | Namdev Chiwda" canonical="/wishlist" robots="noindex,nofollow" />
+      <SEO title={`My Wishlist | ${SITE_NAME}`} canonical="/wishlist" robots="noindex,nofollow" />
       <div className="min-h-screen bg-cream px-5 lg:px-10 py-8 max-w-7xl mx-auto">
         <div className="mb-6">
           <div className="section-eyebrow">Saved For Later</div>

@@ -70,8 +70,8 @@ async function sendOrderConfirmation(order, userEmail) {
   <!-- Top brand bar -->
   <tr>
     <td style="background:#2d1a00; padding:16px 24px; text-align:center;">
-      <img src="${LOGO_URL}" alt="Namdev Chiwada" width="34" style="display:inline-block; vertical-align:middle; border-radius:6px;" />
-      <span style="color:#f0cc5a; font-size:13px; font-weight:700; letter-spacing:0.1em; vertical-align:middle; margin-left:10px;">NAMDEV CHIWADA</span>
+      <img src="${LOGO_URL}" alt="Namdev Chiwda" width="34" style="display:inline-block; vertical-align:middle; border-radius:6px;" />
+      <span style="color:#f0cc5a; font-size:13px; font-weight:700; letter-spacing:0.1em; vertical-align:middle; margin-left:10px;">NAMDEV CHIWDA</span>
     </td>
   </tr>
 
@@ -205,7 +205,7 @@ async function sendOrderConfirmation(order, userEmail) {
 
   await sendViaBrevo({
     to: userEmail,
-    subject: `🎉 Order Confirmed — ₹${(order.total || 0).toLocaleString()} · Namdev Chiwada`,
+    subject: `🎉 Order Confirmed — ₹${(order.total || 0).toLocaleString()} · Namdev Chiwda`,
     html,
   });
 }
