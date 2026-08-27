@@ -81,7 +81,7 @@ async function fetchProductUrls() {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10_000);
 
-    const res = await fetch(`${API_BASE}/api/products?limit=1000`, {
+    const res = await fetch(`${API_BASE}/api/products?limit=100`, {
       signal: controller.signal,
     });
     clearTimeout(timeout);
