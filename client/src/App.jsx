@@ -100,8 +100,16 @@ function RouteLoader() {
 function AnimatedRoutes() {
   const location = useLocation();
 
+  // FIX (page-navigation flicker): `mode="wait"` makes AnimatePresence fully
+  // unmount the outgoing page (its 0.2s fade-out) *before* mounting the next
+  // one — so on every navigation there's a real gap where nothing but the
+  // bare bg-cream backdrop (RouteLoader/the new page's own opacity-0 initial
+  // state) is on screen, which reads as the whole page flashing blank.
+  // `mode="popLayout"` keeps the exiting page fading out (still visible,
+  // just pulled out of layout flow) while the next page mounts and fades in
+  // underneath it at the same time — same crossfade look, no blank gap.
   return (
-    <AnimatePresence mode="wait">
+    <AnimatePresence mode="popLayout">
       <Suspense fallback={<RouteLoader />}>
       <Routes location={location} key={location.pathname}>
         {/* Public Routes */}
