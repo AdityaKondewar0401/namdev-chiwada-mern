@@ -527,6 +527,13 @@ function TimelineSection() {
           <p style={{ fontFamily: "'Gotu',sans-serif", color: '#7a3300', fontSize: '1.05rem' }}>
             एक माणूस, एक स्वप्न, एक चव
           </p>
+          <Link
+            to="/our-history"
+            className="inline-block mt-3 text-sm font-semibold underline underline-offset-2"
+            style={{ color: '#e07000' }}
+          >
+            Read the full illustrated timeline on Our History →
+          </Link>
         </FadeIn>
 
         <div ref={timelineRef} className="relative">

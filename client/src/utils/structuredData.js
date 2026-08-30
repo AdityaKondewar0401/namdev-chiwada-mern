@@ -22,9 +22,21 @@ export function buildOrganizationSchema() {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: SITE_NAME,
+    // Registered business-license name — distinct from the customer-facing
+    // brand (SITE_NAME). `legalName` is the correct schema.org field for
+    // this so the brand spelling above is never affected by it.
+    legalName: 'Namdev Chiwda Sweet Home',
+    foundingDate: '1873',
     url: SITE_URL,
     logo: `${SITE_URL}/images/logo.png`,
     sameAs: Object.values(SOCIAL_PROFILES),
+    // Real, already publicly displayed in the site footer and order emails —
+    // not a newly-invented number.
+    identifier: {
+      '@type': 'PropertyValue',
+      name: 'FSSAI License Number',
+      value: '21526041003460',
+    },
     contactPoint: {
       '@type': 'ContactPoint',
       contactType: 'customer service',

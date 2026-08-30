@@ -172,10 +172,14 @@ export default function ContactPage() {
             </nav>
             <h1 className="font-serif font-black text-white mb-3" style={{ fontSize: 'clamp(2rem,4vw,3rem)' }}>Get in Touch</h1>
             <p className="text-white/70">
+              {/* Plain <a> tags, not <Link> — these need a real page load so
+                  the homepage's hash-scroll effect runs against final,
+                  settled layout instead of racing the route-change fade
+                  transition (AnimatedRoutes' popLayout in App.jsx). */}
               We'd love to hear from you — orders, inquiries,{' '}
-              <Link to="/#corporate-gifting" className="underline hover:text-white">corporate gifting</Link>
+              <a href="/#corporate-gifting" className="underline hover:text-white">corporate gifting</a>
               {' '}or{' '}
-              <Link to="/#distributorship" className="underline hover:text-white">distributorship</Link>
+              <a href="/#distributorship" className="underline hover:text-white">distributorship</a>
             </p>
             <div className="flex items-center justify-center gap-4 mt-4 flex-wrap">
               {['🕐 Reply within 24 hrs', '💬 WhatsApp available', '📍 Solapur, Maharashtra'].map((t) => (

@@ -802,14 +802,66 @@ export default function HomePage() {
   // hash — react-router doesn't auto-scroll to it, so do it once mounted.
   useEffect(() => {
     if (!hash) return;
-    // Give above-the-fold images/animations a moment to settle layout
-    // before measuring. `behavior: 'auto'` (not 'smooth') is deliberate —
-    // the page's global `scroll-behavior: smooth` overshoots badly on a
-    // jump this long (3000+ px) and never corrects itself.
-    const timer = setTimeout(() => {
-      document.querySelector(hash)?.scrollIntoView({ behavior: 'auto', block: 'start' });
-    }, 300);
-    return () => clearTimeout(timer);
+    // The page's global CSS `scroll-behavior: smooth` still interferes with
+    // scrollIntoView even when `behavior: 'instant'` is passed — on a jump
+    // this long (3000+ px) the browser starts an animation, doesn't run it
+    // to completion, and leaves the scroll partway short with no error.
+    // Forcing `scroll-behavior: auto` on the root element for the instant
+    // of the call (and restoring it right after) is what actually makes
+    // this land exactly on target every time.
+    //
+    // A fixed number of timed retries isn't enough either: below-the-fold
+    // sections (the product grid swaps between a loading skeleton, an empty
+    // state, and a real grid depending on how long the product fetch takes)
+    // can shift the page's height at an unpredictable moment. Watching the
+    // page for actual size changes and re-snapping on every one — instead
+    // of guessing timing — handles that regardless of network speed.
+    //
+    // On top of that, arriving here via an in-app link click (rather than a
+    // fresh page load) overlaps with the outgoing page's exit-fade
+    // animation (see AnimatedRoutes' `popLayout` in App.jsx) — a brief
+    // window where layout can still settle without the resize necessarily
+    // being observed on `document.body` itself. A few fixed-delay snaps
+    // layered on top of the observer catch that case too.
+    let done = false;
+    const snap = () => {
+      const el = document.querySelector(hash);
+      if (!el) return;
+      // Restoring `scrollBehavior` synchronously (same tick as the call)
+      // re-enables the CSS `smooth` rule before the browser has actually
+      // finished applying the instant scroll, which lets `smooth` take
+      // back over mid-scroll and settle short. Waiting a frame first
+      // gives the instant scroll time to actually land before `smooth`
+      // is allowed to matter again.
+      const prev = document.documentElement.style.scrollBehavior;
+      document.documentElement.style.scrollBehavior = 'auto';
+      el.scrollIntoView({ behavior: 'instant', block: 'start' });
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          document.documentElement.style.scrollBehavior = prev;
+        });
+      });
+    };
+    snap();
+    const observer = new ResizeObserver(() => {
+      if (!done) snap();
+    });
+    observer.observe(document.body);
+    const retryTimers = [50, 150, 300, 500, 800, 1200, 2000, 3200, 4600, 6200].map((delay) =>
+      setTimeout(() => {
+        if (!done) snap();
+      }, delay)
+    );
+    const stopTimer = setTimeout(() => {
+      done = true;
+      observer.disconnect();
+    }, 7000);
+    return () => {
+      done = true;
+      retryTimers.forEach(clearTimeout);
+      observer.disconnect();
+      clearTimeout(stopTimer);
+    };
   }, [hash]);
 
   return (
