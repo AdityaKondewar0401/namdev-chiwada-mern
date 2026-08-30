@@ -495,6 +495,21 @@ export default function NamkeenSection() {
             )}
           </div>
         ) : (
+          products.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-16"
+            >
+              <div className="text-5xl mb-4">🌾</div>
+              <div className="font-serif font-bold text-brown-dark text-xl mb-2">
+                New Products Coming Soon
+              </div>
+              <div className="text-brown-mid/60 text-sm max-w-md mx-auto">
+                We're refreshing our collection — check back shortly, or reach out to us directly for the latest.
+              </div>
+            </motion.div>
+          ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {products.map(
               (
@@ -515,6 +530,7 @@ export default function NamkeenSection() {
               )
             )}
           </div>
+          )
         )}
 
         {/* View All Products — single centered CTA, naturally responsive across mobile and desktop */}
