@@ -39,12 +39,17 @@ const FAQS = [
   {
     question: 'How long does Chiwada stay fresh?',
     answer:
-      'Namdev Chiwda products are made in small batches without artificial preservatives, and typically stay fresh for 30–45 days when stored in a cool, dry place in an airtight container. Exact shelf life is printed on each product page and pack.',
+      'Namdev Chiwda products are made in small batches without artificial preservatives. Shelf life: 75 days from the date of manufacture, when stored in a cool, dry place in an airtight container. Exact shelf life is printed on each product page and pack.',
   },
   {
     question: 'Do you deliver Chiwada across Maharashtra?',
     answer:
-      'Yes. Namdev Chiwda ships from our Solapur warehouse across Maharashtra, with Cash on Delivery and online payment options available at checkout.',
+      'Yes. Namdev Chiwda ships from our Solapur warehouse across Maharashtra, with priority delivery in Pune and Solapur, and Cash on Delivery and online payment options available at checkout.',
+  },
+  {
+    question: 'Is Chiwada the same as Chevdo?',
+    answer:
+      'They come from the same idea — a roasted, savoury snack mix — but Chevdo is the Gujarati name for a similar snack, typically built around sev and different spicing, while Chiwda is the Maharashtrian version, usually poha- or corn-based with curry leaves and mustard seeds. The concept overlaps, but the base ingredients, spice blend, and regional recipe are different.',
   },
 ];
 

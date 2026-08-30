@@ -43,7 +43,7 @@ const FAQS = [
   {
     question: 'Do you deliver Solapuri Chiwada across Maharashtra?',
     answer:
-      'Yes — Namdev Chiwda ships from our Solapur warehouse across Maharashtra, with Cash on Delivery and online payment available at checkout.',
+      'Yes — Namdev Chiwda ships from our Solapur warehouse across Maharashtra, with priority delivery in Pune and Solapur, and Cash on Delivery and online payment available at checkout.',
   },
 ];
 
@@ -154,7 +154,7 @@ export default function SolapuriChiwadaPage() {
               home kitchens to small family businesses that have supplied the city's lanes and
               markets for generations. Chiwada, in particular, became a defining Solapur snack:
               practical to carry, long-lasting, and suited to the city's tea-stall culture. Namdev
-              Chiwada's own story is part of that tradition, beginning in 1873 when our founder
+              Chiwda's own story is part of that tradition, beginning in 1873 when our founder
               carried fresh chiwda through Solapur's lanes in a wooden box, one customer at a time.
             </p>
           </section>

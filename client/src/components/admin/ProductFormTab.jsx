@@ -304,7 +304,7 @@ export default function ProductFormTab({ editProduct, onSave, onCancel }) {
                 placeholder="Besan Sev, Peanuts, Curry Leaves, Rock Salt" className="form-input text-sm" />
             </div>
             <Field label="Shelf Life / Info" fieldKey="info"
-              placeholder="Shelf life: 45 days. No artificial colors. 100% Vegetarian." form={form} onChange={f} />
+              placeholder="Shelf life: 75 days from the date of manufacture. No artificial colors. 100% Vegetarian." form={form} onChange={f} />
           </div>
         </div>
 

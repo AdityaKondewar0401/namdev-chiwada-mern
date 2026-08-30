@@ -72,6 +72,7 @@ const CONTACT_ITEMS = [
   { icon: '📞', label: 'Phone / WhatsApp', value: '+91 91301 60491', link: `tel:${PHONE_TEL}` },
   { icon: '✉️', label: 'Email', value: EMAIL, link: `mailto:${EMAIL}` },
   { icon: '🕐', label: 'Business Hours', value: 'Mon–Sat: 9:00 AM – 8:00 PM\nSunday: 10:00 AM – 6:00 PM' },
+  { icon: '🚚', label: 'Delivery & Payment', value: 'Delivered across Maharashtra, with priority delivery in Pune and Solapur.\nCash on Delivery and online payment both available at checkout.' },
 ];
 
 const SOCIALS = [
@@ -155,7 +156,7 @@ export default function ContactPage() {
     <PageWrapper>
       <SEO
         title={`Contact ${SITE_NAME} | Solapur, Maharashtra`}
-        description={`Get in touch with ${SITE_NAME} for order queries, bulk orders, or feedback — reach us by phone, email, or WhatsApp.`}
+        description={`Get in touch with ${SITE_NAME} for order queries, bulk orders, or feedback — reach us by phone, email, or WhatsApp. Delivery across Maharashtra with Cash on Delivery available.`}
         canonical="/contact"
         jsonLd={buildBreadcrumbSchema(CONTACT_BREADCRUMB_ITEMS)}
       />
@@ -170,7 +171,12 @@ export default function ContactPage() {
               <span className="text-white">Contact</span>
             </nav>
             <h1 className="font-serif font-black text-white mb-3" style={{ fontSize: 'clamp(2rem,4vw,3rem)' }}>Get in Touch</h1>
-            <p className="text-white/70">We'd love to hear from you — orders, inquiries, corporate gifting</p>
+            <p className="text-white/70">
+              We'd love to hear from you — orders, inquiries,{' '}
+              <Link to="/#corporate-gifting" className="underline hover:text-white">corporate gifting</Link>
+              {' '}or{' '}
+              <Link to="/#distributorship" className="underline hover:text-white">distributorship</Link>
+            </p>
             <div className="flex items-center justify-center gap-4 mt-4 flex-wrap">
               {['🕐 Reply within 24 hrs', '💬 WhatsApp available', '📍 Solapur, Maharashtra'].map((t) => (
                 <span key={t} className="text-xs font-semibold text-white/60">{t}</span>

@@ -27,6 +27,7 @@ const EMAIL = 'care@namdevchiwda.com';
 export default function DistributorshipBand() {
   return (
     <section
+      id="distributorship"
       className="py-14 md:py-20 relative overflow-hidden"
       style={{ background: 'linear-gradient(135deg, #23140a 0%, #3d1c00 60%, #4a2200 100%)' }}
     >

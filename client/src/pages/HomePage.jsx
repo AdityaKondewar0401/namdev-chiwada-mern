@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import useReveal from '../hooks/useReveal';
 import PageWrapper from '../components/PageWrapper';
@@ -540,7 +540,7 @@ function StatsSection() {
 // ── Corporate Gifting CTA ──
 function CTASection() {
   return (
-    <section className="py-9 md:py-20 bg-cream-mid text-center">
+    <section id="corporate-gifting" className="py-9 md:py-20 bg-cream-mid text-center">
       <div className="max-w-2xl mx-auto px-4 sm:px-6">
         <div className="text-3xl md:text-5xl mb-2 md:mb-4">
           🎁
@@ -796,6 +796,22 @@ function ExploreMoreLinks() {
 }
 
 export default function HomePage() {
+  const { hash } = useLocation();
+
+  // Links like /#corporate-gifting (Footer, ContactPage) land here with a
+  // hash — react-router doesn't auto-scroll to it, so do it once mounted.
+  useEffect(() => {
+    if (!hash) return;
+    // Give above-the-fold images/animations a moment to settle layout
+    // before measuring. `behavior: 'auto'` (not 'smooth') is deliberate —
+    // the page's global `scroll-behavior: smooth` overshoots badly on a
+    // jump this long (3000+ px) and never corrects itself.
+    const timer = setTimeout(() => {
+      document.querySelector(hash)?.scrollIntoView({ behavior: 'auto', block: 'start' });
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [hash]);
+
   return (
     <PageWrapper>
       <SEO

@@ -16,6 +16,17 @@ import toast from 'react-hot-toast';
 
 const TABS = ['Ingredients', 'Nutrition', 'Info'];
 
+/* Per-product SEO title descriptor — only "Namdev Chiwda" (namdev-chiwada) is
+   actually Solapuri Chiwda, so the other products get their own accurate
+   descriptor instead of sharing that claim. */
+const PRODUCT_SEO_DESCRIPTOR = {
+  'namdev-chiwada': 'Authentic Solapuri Chiwda',
+  bakarvadi: 'Authentic Maharashtrian Bakarvadi',
+  'maka-chiwada': 'Traditional Maka Chiwada',
+  'special-farsan': 'Authentic Maharashtrian Farsan',
+};
+const DEFAULT_PRODUCT_SEO_DESCRIPTOR = 'Authentic Maharashtrian Snack';
+
 /* Heritage palette accents — layered on top of the existing brand tokens
    (cream / brown / saffron) without touching the tailwind config. */
 const GOLD = '#B8862E';
@@ -201,6 +212,7 @@ export default function ProductDetailPage() {
     { label: product.name, path: `/products/${productSlug}` },
   ];
   const seoDescription = (product.desc || product.intro || '').slice(0, 160);
+  const seoDescriptor = PRODUCT_SEO_DESCRIPTOR[product.slug] || DEFAULT_PRODUCT_SEO_DESCRIPTOR;
 
   const handleAddToCart = () => {
     addToCart(product, currentSize.weight, currentSize.price, qty);
@@ -254,7 +266,7 @@ export default function ProductDetailPage() {
   return (
     <PageWrapper>
       <SEO
-        title={`${product.name} | Authentic Solapuri Chiwada — ${SITE_NAME}`}
+        title={`${product.name} | ${seoDescriptor} — ${SITE_NAME}`}
         description={seoDescription}
         canonical={`/products/${productSlug}`}
         type="product"

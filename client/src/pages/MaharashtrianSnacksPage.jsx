@@ -37,7 +37,7 @@ const FAQS = [
   {
     question: 'Do you deliver Maharashtrian snacks outside Solapur?',
     answer:
-      'Yes — we ship from our Solapur warehouse across Maharashtra, with Cash on Delivery and online payment available at checkout.',
+      'Yes — we ship from our Solapur warehouse across Maharashtra, with priority delivery in Pune and Solapur, and Cash on Delivery and online payment available at checkout.',
   },
 ];
 

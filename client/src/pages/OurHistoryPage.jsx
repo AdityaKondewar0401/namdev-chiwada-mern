@@ -116,7 +116,7 @@ export default function OurHistoryPage() {
             </h1>
             <p className="text-white/70 max-w-xl mx-auto">
               How one founder's wooden box of fresh chiwda became six generations of Namdev
-              Chiwada.
+              Chiwda.
             </p>
           </div>
         </div>
