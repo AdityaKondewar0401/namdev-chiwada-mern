@@ -7,13 +7,9 @@ import SEO from '../components/SEO';
 import { buildBreadcrumbSchema } from '../utils/structuredData';
 import { SITE_NAME } from '../config/seo.config';
 
-// Intentionally NO LocalBusiness structured data and no additional
-// address/map SEO here (Step 4 / Step 10 of the SEO plan) — the business
-// asked not to make the physical shop address more discoverable via
-// search. Only a plain BreadcrumbList is added. The visible address/map
-// on this page predate this SEO pass and are left as-is; if the address
-// should be hidden from the public page entirely, that's a separate,
-// deliberate content decision to make with the business owner.
+// Intentionally NO LocalBusiness structured data here — the business is
+// online-only with no physical storefront, so there's no address/hours
+// to mark up. Only a plain BreadcrumbList is added.
 const CONTACT_BREADCRUMB_ITEMS = [
   { label: 'Home', path: '/' },
   { label: 'Contact', path: '/contact' },
@@ -44,19 +40,12 @@ const CONTACT_BREADCRUMB_ITEMS = [
 //    of vanishing into nothing. Added a secondary "or send via
 //    WhatsApp" button next to it (pre-fills a wa.me message) since
 //    this page's own copy already says WhatsApp gets faster replies.
-// 4. The address had a stray space before the comma ("205/A ,Suhas")
-//    — fixed.
-// 5. The Google Maps link was an ephemeral share-URL full of
-//    session-specific tracking params that can break over time.
-//    Replaced with the stable `maps/search/?api=1&query=lat,lng`
-//    format, and the "map" is now a real embedded, no-API-key iframe
-//    instead of a static placeholder box with a pin emoji.
-// 6. The four social buttons (Instagram/Facebook/YouTube/WhatsApp)
+// 4. The four social buttons (Instagram/Facebook/YouTube/WhatsApp)
 //    had no onClick/href at all — clicking any of them did nothing.
 //    WhatsApp now actually opens the real chat; the other three
 //    (no confirmed handles/URLs to link to) at least give honest
 //    feedback ("page coming soon") instead of silently doing nothing.
-// 7. Removed an unused `useReveal()` import — it was wired to a ref
+// 5. Removed an unused `useReveal()` import — it was wired to a ref
 //    on an element that never had the `reveal` CSS class needed for
 //    it to do anything, so it was running an IntersectionObserver
 //    for zero visual effect. Framer Motion's own `whileInView` on
@@ -68,10 +57,8 @@ const PHONE_TEL = '+919130160491';
 const EMAIL = 'care@namdevchiwda.com';
 
 const CONTACT_ITEMS = [
-  { icon: '📍', label: 'Address', value: '205/A, Suhas Building, Killa Road, Near DCC Bank,\nSolapur, Maharashtra – 413007' },
   { icon: '📞', label: 'Phone / WhatsApp', value: '+91 91301 60491', link: `tel:${PHONE_TEL}` },
   { icon: '✉️', label: 'Email', value: EMAIL, link: `mailto:${EMAIL}` },
-  { icon: '🕐', label: 'Business Hours', value: 'Mon–Sat: 9:00 AM – 8:00 PM\nSunday: 10:00 AM – 6:00 PM' },
   { icon: '🚚', label: 'Delivery & Payment', value: 'Delivered across Maharashtra, with priority delivery in Pune and Solapur.\nCash on Delivery and online payment both available at checkout.' },
 ];
 
@@ -81,11 +68,6 @@ const SOCIALS = [
   { icon: '▶️', label: 'YouTube' },
   { icon: '💬', label: 'WhatsApp' },
 ];
-
-// Stable lat/lng for the shop, extracted from the old ephemeral share URL
-const MAP_LAT = 17.6763333;
-const MAP_LNG = 75.9023333;
-const MAP_QUERY = `${MAP_LAT},${MAP_LNG}`;
 
 const FIELD_ICONS = { fname: '👤', lname: '👤', email: '✉️', phone: '📱' };
 
@@ -182,7 +164,7 @@ export default function ContactPage() {
               <a href="/#distributorship" className="underline hover:text-white">distributorship</a>
             </p>
             <div className="flex items-center justify-center gap-4 mt-4 flex-wrap">
-              {['🕐 Reply within 24 hrs', '💬 WhatsApp available', '📍 Solapur, Maharashtra'].map((t) => (
+              {['🕐 Reply within 24 hrs', '💬 WhatsApp available', '🚚 Ships across Maharashtra'].map((t) => (
                 <span key={t} className="text-xs font-semibold text-white/60">{t}</span>
               ))}
             </div>
@@ -193,7 +175,7 @@ export default function ContactPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
             {/* Info */}
             <motion.div initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
-              <h2 className="font-serif font-bold text-brown-dark text-xl mb-6">Visit Us or Get in Touch</h2>
+              <h2 className="font-serif font-bold text-brown-dark text-xl mb-6">Get in Touch</h2>
               <div className="divide-y divide-saffron/10">
                 {CONTACT_ITEMS.map(({ icon, label, value, link }, i) => (
                   <motion.div
@@ -237,32 +219,6 @@ export default function ContactPage() {
                       {icon}
                     </button>
                   ))}
-                </div>
-              </div>
-
-              {/* Live embedded map — replaces the old static placeholder box */}
-              <div className="mt-6 rounded-xl2 overflow-hidden border-2 border-saffron/10">
-                <iframe
-                  title={`${SITE_NAME} location`}
-                  src={`https://www.google.com/maps?q=${MAP_QUERY}&z=16&output=embed`}
-                  width="100%"
-                  height="220"
-                  style={{ border: 0, display: 'block' }}
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                />
-                <div className="bg-cream-mid px-4 py-3 flex items-center justify-between flex-wrap gap-2">
-                  <div>
-                    <div className="font-bold text-brown-mid text-sm">Namdev Chiwda, Solapur</div>
-                    <div className="text-xs text-brown-mid/60">Near DCC Bank</div>
-                  </div>
-                  <a
-                    href={`https://www.google.com/maps/search/?api=1&query=${MAP_QUERY}`}
-                    target="_blank" rel="noreferrer"
-                    className="text-saffron text-xs font-semibold hover:text-saffron-light transition-colors whitespace-nowrap"
-                  >
-                    Open in Google Maps →
-                  </a>
                 </div>
               </div>
             </motion.div>

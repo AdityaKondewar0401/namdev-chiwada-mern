@@ -24,7 +24,7 @@ function getShadowfaxConfig() {
 
   const authToken = process.env.SHADOWFAX_AUTH_TOKEN || '';
 
-  // Namdev Chiwada's own warehouse — this is the pickup point for every
+  // Namdev Chiwda's own warehouse — this is the pickup point for every
   // forward order. There is deliberately no separate RTO address: the
   // business does not want a returns workflow, so RTO details always
   // mirror the pickup warehouse (Shadowfax's API requires an rto_details

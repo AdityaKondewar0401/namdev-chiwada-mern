@@ -3,9 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import useReveal from '../hooks/useReveal';
 
 const TESTIMONIALS = [
-  { name: 'Vedant Lavate', city: 'Kolhapur', text: 'The Special Namkeen takes me back to my childhood in Solapur. Absolutely authentic!', rating: 5 },
+  { name: 'Vedant Lavate', city: 'Kolhapur', text: 'The Namdev Chiwda takes me back to my childhood in Solapur. Absolutely authentic!', rating: 5 },
   { name: 'Aditya Pawar', city: 'SambajiNagar', text: 'Ordered the Bakarwadi for Diwali gifting — everyone loved it. Will order again!', rating: 5 },
-  { name: 'Umesh Chakure', city: 'Latur', text: 'The Dagdi Chiwda is perfectly crispy with just the right amount of spice. Love it!', rating: 5 },
 ];
 
 function Card({ t }) {

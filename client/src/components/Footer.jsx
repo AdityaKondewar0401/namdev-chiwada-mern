@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { MapPin, Phone, Mail, Clock } from "lucide-react";
+import { Phone, Mail } from "lucide-react";
 
 // Real links per the business's actual profiles/number. WhatsApp is back in
 // this row with the actual number — the floating WhatsAppFloat button is a
@@ -42,20 +42,13 @@ const QUICK_LINKS = [
 ];
 
 const PRODUCTS = [
-  "Special Namkeen",
-  "Dagdi Chiwda",
-  "Maka Chiwda",
+  "Namdev Chiwda",
   "Bakarwadi",
 ];
 
 const CONTACT = [
-  {
-    Icon: MapPin,
-    text: "205/A, Suhas Building, Killa Road, Solapur – 413007",
-  },
   { Icon: Phone, text: "+91 9130160491" },
   { Icon: Mail, text: "care@namdevchiwda.com" },
-  { Icon: Clock, text: "Mon–Sat: 9AM–8PM · Sun: 10AM–6PM" },
 ];
 
 function ColumnLabel({ children }) {

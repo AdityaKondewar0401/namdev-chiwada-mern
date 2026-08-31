@@ -137,7 +137,7 @@ export default function ProductsPage() {
     <PageWrapper>
       <SEO
         title={`Chiwada & Maharashtrian Snacks | ${SITE_NAME}`}
-        description={`Shop authentic Solapuri Chiwada, Bakarvadi, Maka Chiwada, and traditional Maharashtrian namkeen from ${SITE_NAME} — freshly made and delivered across Maharashtra.`}
+        description={`Shop authentic Solapuri Chiwada and Bakarwadi from ${SITE_NAME} — freshly made and delivered across Maharashtra.`}
         canonical="/products"
         jsonLd={buildBreadcrumbSchema(BREADCRUMB_ITEMS)}
       />
@@ -163,7 +163,7 @@ export default function ProductsPage() {
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search chiwda, bakarvadi..."
+                placeholder="Search chiwda, bakarwadi..."
                 className="flex-1 px-4 py-3 rounded-full bg-white/10 border border-white/25 text-white placeholder-white/50 outline-none focus:border-white/60 text-sm"
               />
               <button type="submit"

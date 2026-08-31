@@ -1,4 +1,4 @@
-# Namdev Chiwada MERN - Permanent Agent Context
+# Namdev Chiwda MERN - Permanent Agent Context
 
 This file is the durable project briefing for future AI coding agents. It is written for agents, not end users. Use it to understand architecture, contracts, conventions, and integration traps without re-reading the entire repository.
 
@@ -6,7 +6,7 @@ Prefer verified source code over this document if the repository changes later.
 
 ## 1. Project Overview
 
-Namdev Chiwada is a full-stack MERN e-commerce application for a Solapur snack brand. The customer app supports product discovery, product detail pages, cart, wishlist, account/profile, COD checkout, Razorpay online checkout, order history, and order tracking. Admin users can manage products, images, orders, and promo codes.
+Namdev Chiwda is a full-stack MERN e-commerce application for a Solapur snack brand. The customer app supports product discovery, product detail pages, cart, wishlist, account/profile, COD checkout, Razorpay online checkout, order history, and order tracking. Admin users can manage products, images, orders, and promo codes.
 
 The repository contains two real application packages plus a root orchestration package:
 

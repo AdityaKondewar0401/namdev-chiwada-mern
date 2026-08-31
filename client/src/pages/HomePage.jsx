@@ -16,12 +16,8 @@ import DistributorshipBand from '../components/DistributorshipBand';
 import StickyShopBar from '../components/StickyShopBar';
 
 const MARQUEE_ITEMS = [
-  'Dagdi-Poha Chiwda',
-  'Maka Chiwda',
+  'Namdev Chiwda',
   'Bakarwadi',
-  'Lasun Sev',
-  'Shengdana Chutney',
-  'Special Farsan',
   'Authentic Taste',
 ];
 

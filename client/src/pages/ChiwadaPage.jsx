@@ -32,9 +32,9 @@ const FAQS = [
       '"Chiwada", "Chiwda", and "Chivda" are simply different English spellings of the same Marathi word (चिवडा) for this snack. There is no difference in the product itself — it is a regional/transliteration variation, most common across Maharashtra.',
   },
   {
-    question: 'What is the difference between Poha Chiwada and Corn Chiwada?',
+    question: 'What is Namdev Chiwda made from?',
     answer:
-      'Poha Chiwada uses flattened rice as its base and has a lighter, crisper texture, while Corn Chiwada is made from roasted corn flakes and has a heartier crunch. Namdev Chiwda makes both — Namdev Chiwda (our signature poha-based blend) and Maka Chiwada (our corn-based, Kolhapuri-spiced version).',
+      'Namdev Chiwda is our signature poha-based blend — flattened rice slow-roasted with pure ghee, curry leaves, and hand-ground Solapur masala, giving it a light, crisp texture in every bite.',
   },
   {
     question: 'How long does Chiwada stay fresh?',
@@ -139,13 +139,13 @@ export default function ChiwadaPage() {
                   and hand-ground Solapur masala. The recipe we've made since 1873.
                 </p>
               </Link>
-              <Link to="/products/maka-chiwada" className="card p-5 block hover:-translate-y-1">
+              <Link to="/products/bakarwadi" className="card p-5 block hover:-translate-y-1">
                 <div className="font-serif font-bold text-brown-dark text-lg mb-1">
-                  Maka Chiwada (Corn-Based)
+                  Bakarwadi
                 </div>
                 <p className="text-brown-mid/70 text-sm leading-relaxed">
-                  Crispy corn flakes chiwada spiced with bold Kolhapuri masala — a fiery,
-                  heartier-crunch alternative for spice lovers.
+                  Spiral pastry rolls with a spiced coconut-sesame filling, fried to golden
+                  perfection.
                 </p>
               </Link>
             </div>

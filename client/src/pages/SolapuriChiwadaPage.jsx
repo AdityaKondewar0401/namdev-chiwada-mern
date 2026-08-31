@@ -38,7 +38,7 @@ const FAQS = [
   {
     question: 'Which Namdev Chiwda product is less spicy?',
     answer:
-      'Namdev Chiwda (our signature poha-based blend) is categorised as mild, making it a good starting point if you prefer a gentler heat level. Maka Chiwada, our corn-based option, is spicier.',
+      'Namdev Chiwda (our signature poha-based blend) is categorised as mild, making it a good starting point if you prefer a gentler heat level. Bakarwadi has a spicier, more robust masala profile.',
   },
   {
     question: 'Do you deliver Solapuri Chiwada across Maharashtra?',
@@ -190,8 +190,8 @@ export default function SolapuriChiwadaPage() {
                   Solapur masala. Mild heat, six generations of recipe.
                 </p>
               </Link>
-              <Link to="/products/bakarvadi" className="card p-5 block hover:-translate-y-1">
-                <div className="font-serif font-bold text-brown-dark text-lg mb-1">Bakarvadi</div>
+              <Link to="/products/bakarwadi" className="card p-5 block hover:-translate-y-1">
+                <div className="font-serif font-bold text-brown-dark text-lg mb-1">Bakarwadi</div>
                 <p className="text-brown-mid/70 text-sm leading-relaxed">
                   Another Maharashtrian classic from the same kitchen — spiral pastry rolls with a
                   spiced coconut-sesame filling.

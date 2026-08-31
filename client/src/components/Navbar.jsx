@@ -269,7 +269,7 @@ export default function Navbar() {
                     autoFocus
                     value={desktopQuery}
                     onChange={(e) => setDesktopQuery(e.target.value)}
-                    placeholder="Search chiwda, farsan…"
+                    placeholder="Search chiwda, bakarwadi…"
                     className="flex-1 bg-transparent text-sm text-brown-dark placeholder:text-brown-mid/40 outline-none min-w-0"
                   />
                   <button
@@ -435,7 +435,7 @@ export default function Navbar() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search for chiwda, farsan, bakarwadi…"
+                  placeholder="Search for chiwda, bakarwadi…"
                   className="flex-1 bg-transparent text-sm text-brown-dark placeholder:text-brown-mid/40 focus:outline-none"
                 />
                 <button type="submit" className="text-xs font-bold text-saffron flex-shrink-0">Go</button>

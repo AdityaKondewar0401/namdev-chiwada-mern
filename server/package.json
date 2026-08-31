@@ -1,7 +1,7 @@
 {
   "name": "namdev-chiwada-server",
   "version": "1.0.0",
-  "description": "Backend for Namdev Chiwada MERN app",
+  "description": "Backend for Namdev Chiwda MERN app",
   "main": "server.js",
   "engines": {
     "node": "24.x"

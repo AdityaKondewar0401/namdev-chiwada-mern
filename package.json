@@ -1,7 +1,7 @@
 {
   "name": "namdev-chiwada-mern",
   "version": "1.0.0",
-  "description": "Full MERN stack app for Namdev Chiwada — Authentic Maharashtrian Snacks",
+  "description": "Full MERN stack app for Namdev Chiwda — Authentic Maharashtrian Snacks",
   "engines": {
     "node": "24.x"
   },

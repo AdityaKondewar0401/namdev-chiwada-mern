@@ -1,4 +1,4 @@
-# 🍛 Namdev Chiwada — Full MERN Stack App
+# 🍛 Namdev Chiwda — Full MERN Stack App
 
 > Authentic Maharashtrian Snacks E-Commerce Platform  
 > Converted from static HTML to production-ready MERN stack
@@ -217,4 +217,4 @@ npm run build
 
 ---
 
-Made with ❤️ in Solapur · Namdev Chiwada © 2025
+Made with ❤️ in Solapur · Namdev Chiwda © 2025

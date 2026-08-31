@@ -21,9 +21,7 @@ const TABS = ['Ingredients', 'Nutrition', 'Info'];
    descriptor instead of sharing that claim. */
 const PRODUCT_SEO_DESCRIPTOR = {
   'namdev-chiwada': 'Authentic Solapuri Chiwda',
-  bakarvadi: 'Authentic Maharashtrian Bakarvadi',
-  'maka-chiwada': 'Traditional Maka Chiwada',
-  'special-farsan': 'Authentic Maharashtrian Farsan',
+  bakarwadi: 'Authentic Maharashtrian Bakarwadi',
 };
 const DEFAULT_PRODUCT_SEO_DESCRIPTOR = 'Authentic Maharashtrian Snack';
 
