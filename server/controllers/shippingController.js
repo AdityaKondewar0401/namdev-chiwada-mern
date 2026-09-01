@@ -231,7 +231,20 @@ exports.createShipment = async (req, res, next) => {
       });
     }
 
-    const result = await shadowfaxService.createWarehouseOrder(order);
+    let result;
+    try {
+      result = await shadowfaxService.createWarehouseOrder(order);
+    } catch (sfxErr) {
+      // Persist the failure so it survives a refresh — otherwise a failed
+      // attempt looks identical to "never tried" (no awbNumber, no error)
+      // once the toast disappears. Admin-only endpoint, so the real
+      // Shadowfax error text is safe to surface directly.
+      order.courier.error = `Shipment creation failed: ${sfxErr.message}`;
+      order.courier.lastSyncedAt = new Date();
+      await order.save().catch(() => {});
+      return res.status(502).json({ success: false, message: order.courier.error, order });
+    }
+
     order.courier.awbNumber = result.awbNumber;
     order.courier.shadowfaxOrderId = result.shadowfaxOrderId;
     order.courier.status = result.status;

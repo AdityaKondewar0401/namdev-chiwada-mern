@@ -1233,11 +1233,17 @@ Flow:
    7kg weight cap (client-side copies exist in `CheckoutPage.jsx` for UX,
    but these two server checks are authoritative) before creating the
    order.
-2. Immediately after the order is created — for COD immediately, for
-   ONLINE only once `paymentStatus === 'paid'` — it calls
-   `createShadowfaxShipmentForOrder()`, which never blocks or fails order
-   placement; failures land in `order.courier.error` for admin retry via
-   `POST /api/shipping/orders/:id/create-shipment`.
+2. Shipment creation is a deliberate admin action, not automatic.
+   `placeOrder` no longer calls Shadowfax at all — an admin must click
+   "Create Shipment" in `OrdersTab.jsx`
+   (`POST /api/shipping/orders/:id/create-shipment`,
+   `shippingController.createShipment`) once the order exists. This gives
+   the admin a review step before a real courier pickup is requested.
+   On failure, the Shadowfax error is persisted to `order.courier.error`
+   (and `lastSyncedAt`) before the 502 response, so a failed attempt
+   survives a page refresh instead of looking identical to "never tried"
+   — `OrdersTab.jsx`'s "⚠️ Shipment not created" badge depends on this
+   being saved.
 3. Shadowfax's Push Callback webhook updates `order.courier` and
    forward-progresses `order.status` (via `mapShadowfaxStatusToOrderStatus`)
    — it never regresses an order already `delivered` or `cancelled`.
