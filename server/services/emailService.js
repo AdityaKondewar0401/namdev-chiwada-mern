@@ -1,4 +1,4 @@
-const { sendViaBrevo } = require('../config/email');
+const { sendViaResend } = require('../config/email');
 
 const LOGO_URL = `${process.env.CLIENT_URL || 'https://namdev-chiwada-mern.vercel.app'}/images/logo.png`;
 
@@ -203,7 +203,7 @@ async function sendOrderConfirmation(order, userEmail) {
 </body>
 </html>`;
 
-  await sendViaBrevo({
+  await sendViaResend({
     to: userEmail,
     subject: `🎉 Order Confirmed — ₹${(order.total || 0).toLocaleString()} · Namdev Chiwda`,
     html,

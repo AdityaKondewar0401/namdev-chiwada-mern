@@ -21,7 +21,7 @@ Business domain summary:
 - Auth is JWT-based, persisted in browser `localStorage`.
 - Admin authorization is role-based with `User.role === "admin"`.
 - Payments use Razorpay for online checkout and Cash on Delivery for COD.
-- Transactional order email uses Brevo HTTPS API.
+- Transactional order email uses Resend HTTPS API.
 - Product images upload through Cloudinary.
 
 ## 2. High-Level Architecture
@@ -45,7 +45,7 @@ External providers
   -> Google Identity Services for sign-in
   -> Razorpay for online payment
   -> Cloudinary for uploaded product images
-  -> Brevo API for transactional email
+  -> Resend API for transactional email
 ```
 
 There is no broad backend service layer. Domain orchestration mostly lives in controllers. The main service exception is `server/services/emailService.js`, and shared price math lives in `server/utils/pricing.js`.
@@ -226,7 +226,7 @@ Important frontend config:
 | Google auth | `google-auth-library` | Server verifies Google ID token against `GOOGLE_CLIENT_ID`. |
 | Payment | `razorpay`, Node `crypto` | Creates Razorpay orders and verifies HMAC signatures. |
 | Uploads | Cloudinary, Multer, `multer-storage-cloudinary` | Admin-only product image uploads. |
-| Email | Brevo HTTPS API via native `fetch` | SMTP is intentionally not used. |
+| Email | Resend HTTPS API via native `fetch` | SMTP is intentionally not used. |
 | Logging/dev | Morgan, Nodemon | Morgan only in development. |
 
 Install or change dependencies in the owning subpackage (`client/` or `server/`) unless the change is truly root-level orchestration.
@@ -1016,13 +1016,13 @@ CLOUDINARY_API_SECRET=...
 RAZORPAY_KEY_ID=...
 RAZORPAY_KEY_SECRET=...
 
-EMAIL_USER=verified-brevo-sender@example.com
-BREVO_API_KEY=...
+EMAIL_USER=verified-resend-sender@example.com
+RESEND_API_KEY=...
 ```
 
 Notes:
 
-- `EMAIL_PASS` is not used by the current Brevo implementation.
+- `EMAIL_PASS` is not used by the current Resend implementation.
 - `CLIENT_URL` is used for CORS and email/logo links. Set it in deployed environments.
 - `VITE_API_URL` should point at the API origin. Axios helper paths include `/api/...`.
 - If `VITE_API_URL` is absent, Axios relative `/api` calls may work in Vite because of the proxy, but Google login raw `fetch(`${import.meta.env.VITE_API_URL}/api/auth/google`)` will fail.
@@ -1101,7 +1101,7 @@ Server:
 - `cloudinary`
 - `multer`
 - `multer-storage-cloudinary`
-- `nodemailer` is installed but current email sending uses Brevo HTTPS API, not SMTP.
+- `nodemailer` is installed but current email sending uses Resend HTTPS API, not SMTP.
 
 ## 23. Known Design Decisions
 
@@ -1109,7 +1109,7 @@ Server:
 - Product, cart, and order items use snapshots so old carts/orders remain readable if product data changes.
 - Server-side cart and pricing are intended to be the authority for payment/order totals.
 - Transactional email is intentionally best-effort after order creation.
-- Brevo HTTPS API is used instead of SMTP because platform SMTP egress can be blocked.
+- Resend HTTPS API is used instead of SMTP because platform SMTP egress can be blocked.
 - Cloudinary upload transforms cap image dimensions at 800x800, use automatic quality, and use automatic fetch format.
 - Admin dashboard analytics are computed client-side from fetched orders/products instead of adding analytics endpoints.
 - Contact form opens user email/WhatsApp instead of pretending to submit to a nonexistent API.
@@ -1193,7 +1193,7 @@ When adding or changing a feature:
 - For protected backend mutations, verify route middleware and controller validation.
 - For product/cart/order changes, inspect all three schemas plus UI/email renderers.
 - For promo/payment changes, inspect `server/utils/pricing.js`, `orderController.js`, `paymentController.js`, `CartPage.jsx`, and `CheckoutPage.jsx`.
-- For deployment-sensitive changes, account for Vercel SPA fallback, API origin env vars, CORS, MongoDB, Cloudinary, Razorpay, Google, and Brevo env vars.
+- For deployment-sensitive changes, account for Vercel SPA fallback, API origin env vars, CORS, MongoDB, Cloudinary, Razorpay, Google, and Resend env vars.
 - Do not incidentally fix known constraints. If a trap must be fixed, scope it deliberately across affected files.
 
 ## 28. Shipping / Courier — Shadowfax (Forward Operations, Warehouse - Order Creation)
@@ -1211,7 +1211,7 @@ Files:
   ("250g", "1kg", ...) into grams and sums them per order.
 - `server/services/shadowfaxService.js` — the only place that calls the
   Shadowfax API (native `fetch`, same convention as `config/email.js`
-  Brevo calls — no axios dependency added). Exposes pincode
+  Resend calls — no axios dependency added). Exposes pincode
   serviceability, warehouse order creation, single/bulk tracking (v4),
   order update, cancellation, escalation, and POD lookup, plus
   `mapShadowfaxStatusToOrderStatus` (Shadowfax `status_id` -> our

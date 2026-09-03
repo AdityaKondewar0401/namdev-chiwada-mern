@@ -4,7 +4,7 @@
 // Creation model (we ship from our own warehouse, not a marketplace).
 //
 // Uses native `fetch` (Node 24, same convention as
-// server/config/email.js / Brevo) instead of adding axios as a new server
+// server/config/email.js / Resend) instead of adding axios as a new server
 // dependency purely for this integration.
 //
 // Every exported function throws a `ShadowfaxApiError` on failure so
