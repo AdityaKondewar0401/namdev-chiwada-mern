@@ -209,8 +209,8 @@ export default function ProductsPage() {
           {!error && (
             <AnimatePresence mode="wait">
               {loading ? (
-                <div className="grid grid-cols-1 gap-5 sm:gap-6 max-w-4xl mx-auto">
-                  {Array(2).fill(0).map((_, i) => <ProductSkeleton key={i} />)}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 lg:gap-6 max-w-4xl sm:max-w-none mx-auto">
+                  {Array(4).fill(0).map((_, i) => <ProductSkeleton key={i} />)}
                 </div>
               ) : products.length === 0 ? (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-24">
@@ -225,7 +225,7 @@ export default function ProductsPage() {
                 </motion.div>
               ) : (
                 <motion.div key={sort + search} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                  className="grid grid-cols-1 gap-5 sm:gap-6 max-w-4xl mx-auto">
+                  className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 lg:gap-6 max-w-4xl sm:max-w-none mx-auto">
                   {products.map((p, i) => (
                     <ProductCard key={p._id} product={p} index={i} />
                   ))}
