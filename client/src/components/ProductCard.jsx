@@ -38,7 +38,7 @@ export default function ProductCard({ product, index = 0 }) {
   const [selectedSizeIdx, setSelectedSizeIdx] = useState(0);
   const isDesktop = useIsDesktop();
 
-  const sizes = product.sizes || [{ weight: product.weight, price: product.price }];
+  const sizes = product.sizes?.length > 0 ? product.sizes : [{ weight: product.weight, price: product.price }];
   const currentSize = sizes[selectedSizeIdx];
   const wishlisted = isWishlisted(product._id);
 
@@ -80,7 +80,7 @@ export default function ProductCard({ product, index = 0 }) {
 
         {/* Wishlist */}
         <button
-          onClick={(e) => { e.stopPropagation(); toggle(product._id, product); }}
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggle(product._id, product); }}
           aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
           className={`absolute top-2 right-2 sm:top-3 sm:right-3 z-10 w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center shadow-md backdrop-blur-sm transition-all duration-200 hover:scale-110 ${
             wishlisted ? 'bg-red-50 text-red-500' : 'bg-white/85 text-brown-dark'
@@ -128,11 +128,11 @@ export default function ProductCard({ product, index = 0 }) {
 
         {/* Size selector — quiet, only shown when there's a real choice */}
         {sizes.length > 1 && (
-          <div className="flex gap-2 sm:gap-1.5 flex-wrap" onClick={(e) => e.stopPropagation()}>
+          <div className="flex gap-2 sm:gap-1.5 flex-wrap" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
             {sizes.map((s, i) => (
               <button
                 key={i}
-                onClick={(e) => { e.stopPropagation(); setSelectedSizeIdx(i); }}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSelectedSizeIdx(i); }}
                 className="px-3 py-1 sm:px-2.5 sm:py-1 rounded-full text-xs sm:text-[11px] font-bold border transition-all duration-200 whitespace-nowrap"
                 style={{
                   background: selectedSizeIdx === i ? 'linear-gradient(135deg,#e07000,#ff9010)' : 'transparent',
@@ -146,7 +146,7 @@ export default function ProductCard({ product, index = 0 }) {
         )}
 
         {/* Price + Stepper */}
-        <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3 mt-auto pt-1" onClick={(e) => e.stopPropagation()}>
+        <div className="flex flex-row items-center justify-between gap-3 mt-auto pt-1" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
           <div className="flex-shrink-0 flex items-baseline gap-1.5">
             <span className="font-black text-xl sm:text-xl" style={{ color: MAROON }}>
               ₹{currentSize.price}

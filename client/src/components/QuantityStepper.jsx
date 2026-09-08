@@ -21,6 +21,11 @@ export default function QuantityStepper({
   );
 
   const handleAdd = (e) => {
+    // preventDefault, not just stopPropagation: this button sits inside a
+    // motion(Link) card. React Router's Link only skips navigation when
+    // event.defaultPrevented is true — stopPropagation alone doesn't stop
+    // its own onClick from also firing and navigating to the product page.
+    e.preventDefault();
     e.stopPropagation();
     if (disabled) return;
 
@@ -35,7 +40,14 @@ export default function QuantityStepper({
   const handleIncrease = (
     e
   ) => {
+    e.preventDefault();
     e.stopPropagation();
+
+    // Matches the server's update-quantity ceiling (express-validator caps
+    // qty at 99) — without this, clicking past it would update the UI
+    // optimistically and then get silently reverted when the debounced
+    // API call comes back 400.
+    if (qty >= 99) return;
 
     updateQuantity(
       product._id,
@@ -47,6 +59,7 @@ export default function QuantityStepper({
   const handleDecrease = (
     e
   ) => {
+    e.preventDefault();
     e.stopPropagation();
 
     if (qty === 1) {
@@ -141,9 +154,10 @@ export default function QuantityStepper({
           transition={{
             duration: 0.15,
           }}
-          onClick={(e) =>
-            e.stopPropagation()
-          }
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
           className={`w-full flex items-center justify-between rounded-full overflow-hidden ${
             compact
               ? 'h-9'

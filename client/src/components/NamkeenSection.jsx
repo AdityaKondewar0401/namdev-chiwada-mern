@@ -111,7 +111,7 @@ function NamkeenCard({ product, index }) {
 
         {/* Wishlist */}
         <button
-          onClick={(e) => { e.stopPropagation(); toggle(product._id, product); }}
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggle(product._id, product); }}
           aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
           className={`absolute top-4 right-4 sm:top-3 sm:right-3 z-10 w-10 h-10 sm:w-9 sm:h-9 rounded-full flex items-center justify-center shadow-md backdrop-blur-sm transition-all duration-200 hover:scale-110 ${
             wishlisted ? 'bg-red-50 text-red-500' : 'bg-white/90 text-brown-dark'
@@ -252,9 +252,10 @@ function NamkeenCard({ product, index }) {
           className="mb-4"
           onClick={(
             e
-          ) =>
-            e.stopPropagation()
-          }
+          ) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
         >
           <div className="text-xs font-bold uppercase tracking-wider text-brown-dark mb-2">
             Net Weight
@@ -273,6 +274,7 @@ function NamkeenCard({ product, index }) {
                   onClick={(
                     e
                   ) => {
+                    e.preventDefault();
                     e.stopPropagation();
                     setSelectedSizeIdx(
                       i
@@ -311,9 +313,10 @@ function NamkeenCard({ product, index }) {
           className="flex items-center gap-3 mt-auto"
           onClick={(
             e
-          ) =>
-            e.stopPropagation()
-          }
+          ) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
         >
           <div className="flex-shrink-0">
             <div
