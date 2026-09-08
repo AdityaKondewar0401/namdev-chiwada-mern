@@ -1,4 +1,5 @@
 const Product = require('../models/Product');
+const Cart = require('../models/Cart');
 const SEED_PRODUCTS = require('../config/seedData');
 
 // Escapes regex metacharacters so user search input is always matched
@@ -135,6 +136,12 @@ exports.deleteProduct = async (req, res, next) => {
     if (!product) {
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
+
+    // A deleted product must disappear from every cart it's sitting in —
+    // otherwise a user who added it before deletion keeps seeing it
+    // indefinitely, since cart lines snapshot name/img/price at add time
+    // and never re-check that the product still exists.
+    await Cart.updateMany({}, { $pull: { items: { product: product._id } } });
 
     res.json({ success: true, message: `"${product.name}" deleted successfully` });
   } catch (err) {

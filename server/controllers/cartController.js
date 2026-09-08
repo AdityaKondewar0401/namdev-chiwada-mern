@@ -33,6 +33,16 @@ exports.getCart = async (req, res, next) => {
       });
     }
 
+    // Defense in depth: a line whose product no longer exists (e.g. an
+    // admin deletion that predates the cascade cleanup) populates to
+    // null. Strip it here too, and persist the cleanup so it doesn't
+    // keep resurfacing on every fetch.
+    const orphaned = cart.items.filter((item) => !item.product);
+    if (orphaned.length > 0) {
+      cart.items = cart.items.filter((item) => item.product);
+      await cart.save();
+    }
+
     res.json({
       success: true,
       cart,

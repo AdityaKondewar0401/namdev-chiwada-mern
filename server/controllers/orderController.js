@@ -58,13 +58,19 @@ exports.placeOrder = async (req, res, next) => {
       _id: { $in: cart.items.map((item) => item.product) },
     }).select('inStock');
     const inStockById = new Map(cartProducts.map((p) => [p._id.toString(), p.inStock]));
+    // A product missing from this map was deleted after being added to the
+    // cart — inStockById.get(...) would return undefined, which is !== false
+    // and would silently sail through the old check below. Treat "not found"
+    // the same as out-of-stock so a deleted product can never be ordered.
     const outOfStockItem = cart.items.find(
-      (item) => inStockById.get(item.product.toString()) === false
+      (item) => inStockById.get(item.product.toString()) !== true
     );
     if (outOfStockItem) {
       return res.status(400).json({
         success: false,
-        message: `"${outOfStockItem.name}" just went out of stock. Please remove it from your cart to continue.`,
+        message: inStockById.has(outOfStockItem.product.toString())
+          ? `"${outOfStockItem.name}" just went out of stock. Please remove it from your cart to continue.`
+          : `"${outOfStockItem.name}" is no longer available. Please remove it from your cart to continue.`,
       });
     }
 
