@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useWishlist } from '../context/WishlistContext';
@@ -13,9 +13,30 @@ const GOLD_SOFT = 'rgba(184,134,46,0.14)';
 // keeping the existing Framer Motion entrance/hover animation.
 const MotionLink = motion(Link);
 
+// Mirrors Tailwind's `sm` breakpoint. QuantityStepper needs to be a direct
+// flex child of the price row for its `w-full` to size correctly against
+// that row (wrapping it in a `hidden sm:block` / `sm:hidden` pair to swap
+// `compact` per breakpoint broke that — the extra div has no width of its
+// own, so the percentage-width button collapsed to its text's width
+// instead of filling the row). Picking `compact` in JS keeps it a single,
+// unwrapped instance.
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(min-width: 640px)').matches
+  );
+  useEffect(() => {
+    const mql = window.matchMedia('(min-width: 640px)');
+    const onChange = (e) => setIsDesktop(e.matches);
+    mql.addEventListener('change', onChange);
+    return () => mql.removeEventListener('change', onChange);
+  }, []);
+  return isDesktop;
+}
+
 export default function ProductCard({ product, index = 0 }) {
   const { toggle, isWishlisted } = useWishlist();
   const [selectedSizeIdx, setSelectedSizeIdx] = useState(0);
+  const isDesktop = useIsDesktop();
 
   const sizes = product.sizes || [{ weight: product.weight, price: product.price }];
   const currentSize = sizes[selectedSizeIdx];
@@ -138,23 +159,13 @@ export default function ProductCard({ product, index = 0 }) {
           </div>
 
           {/* Mobile: full-size stepper. Desktop: compact, to fit the dense multi-column grid. */}
-          <div className="sm:hidden">
-            <QuantityStepper
-              product={product}
-              size={currentSize.weight}
-              price={currentSize.price}
-              disabled={!product.inStock}
-            />
-          </div>
-          <div className="hidden sm:block">
-            <QuantityStepper
-              product={product}
-              size={currentSize.weight}
-              price={currentSize.price}
-              disabled={!product.inStock}
-              compact
-            />
-          </div>
+          <QuantityStepper
+            product={product}
+            size={currentSize.weight}
+            price={currentSize.price}
+            disabled={!product.inStock}
+            compact={isDesktop}
+          />
         </div>
       </div>
     </MotionLink>
