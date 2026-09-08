@@ -5,6 +5,8 @@ import useReveal from '../hooks/useReveal';
 const TESTIMONIALS = [
   { name: 'Vedant Lavate', city: 'Kolhapur', text: 'The Namdev Chiwda takes me back to my childhood in Solapur. Absolutely authentic!', rating: 5 },
   { name: 'Aditya Pawar', city: 'SambajiNagar', text: 'Ordered the Bakarwadi for Diwali gifting — everyone loved it. Will order again!', rating: 5 },
+  { name: 'Umesh Chakure', city: 'Nashik', text: "Namdev Chiwda's khamang taste reminds me of Solapur streets — crunchy, spicy, and totally addictive!", rating: 5 },
+  { name: 'Priya Joshi', city: 'Pune', text: 'Fresh, crunchy, and perfectly spiced — this has become our family\'s go-to evening snack!', rating: 5 },
 ];
 
 function Card({ t }) {
@@ -95,8 +97,8 @@ export default function TestimonialsCarousel() {
           </div>
         </div>
 
-        {/* DESKTOP: original 3-column grid, unchanged */}
-        <div className="hidden md:grid md:grid-cols-3 gap-6">
+        {/* DESKTOP: 2x2 on tablet, single row of 4 on wide desktop */}
+        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {TESTIMONIALS.map((t, i) => (
             <motion.div
               key={t.name}
