@@ -80,7 +80,9 @@ export default function ProductDetailPage() {
   const [zoomOrigin, setZoomOrigin]           = useState('50% 50%');
   const [isZooming, setIsZooming]             = useState(false);
   const [mobileIdx, setMobileIdx]             = useState(0);
-  const [stickyVisible, setStickyVisible]     = useState(true);
+  const [pastRelatedSentinel, setPastRelatedSentinel] = useState(false);
+  const [footerVisible, setFooterVisible]     = useState(false);
+  const stickyVisible = !pastRelatedSentinel && !footerVisible;
 
   const mobileScrollRef = useRef(null);
   const relatedSentinelRef = useRef(null);
@@ -103,13 +105,31 @@ export default function ProductDetailPage() {
     const observer = new IntersectionObserver(
       ([entry]) => {
         const scrolledPast = entry.boundingClientRect.top < 0;
-        setStickyVisible(!scrolledPast);
+        setPastRelatedSentinel(scrolledPast);
       },
       { rootMargin: '0px 0px -10% 0px' }
     );
     observer.observe(el);
     return () => observer.disconnect();
   }, [related.length]);
+
+  // Belt-and-suspenders: the sentinel above hides the bar once the buyer
+  // has scrolled past the product/related-products content, but with no
+  // related products (this catalog only ever has 2 SKUs) that sentinel
+  // sits right before the footer with almost no gap, and the bar was
+  // still visible by the time the footer scrolled into view. Hide it
+  // outright whenever the footer is on screen, same pattern as the cart
+  // page's sticky checkout bar.
+  useEffect(() => {
+    const footer = document.querySelector('footer');
+    if (!footer) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setFooterVisible(entry.isIntersecting),
+      { rootMargin: '0px' }
+    );
+    observer.observe(footer);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     setLoading(true);
