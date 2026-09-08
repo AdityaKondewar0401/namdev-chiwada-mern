@@ -16,14 +16,14 @@ async function sendOrderConfirmation(order, userEmail) {
 
   const itemsHtml = (order.items || [])
     .map(
-      (item) => `
+      (item, i) => `
     <tr>
-      <td style="padding:13px 0; color:#2d1a00; font-size:14px; font-weight:600; border-bottom:1px solid rgba(224,112,0,0.1);">
+      <td style="padding:14px 16px; color:#2d1a00; font-size:14px; font-weight:600; ${i > 0 ? 'border-top:1px solid rgba(224,112,0,0.1);' : ''}">
         ${item.name}
         ${item.size ? `<span style="color:#9a7c5a; font-weight:400; font-size:12px;"> · ${item.size}</span>` : ''}
         <span style="color:#9a7c5a; font-weight:400; font-size:12px;"> × ${item.qty}</span>
       </td>
-      <td style="padding:13px 0; text-align:right; color:#2d1a00; font-size:14px; font-weight:700; white-space:nowrap; border-bottom:1px solid rgba(224,112,0,0.1);">
+      <td style="padding:14px 16px; text-align:right; color:#2d1a00; font-size:14px; font-weight:700; white-space:nowrap; ${i > 0 ? 'border-top:1px solid rgba(224,112,0,0.1);' : ''}">
         ₹${(item.price * item.qty).toLocaleString()}
       </td>
     </tr>`
@@ -42,21 +42,29 @@ async function sendOrderConfirmation(order, userEmail) {
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Order Confirmed</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+<!--[if mso]>
 <style>
-  body { margin:0; padding:0; background:#fef3e0; }
+  * { font-family: Arial, sans-serif !important; }
+</style>
+<![endif]-->
+<style>
+  body { margin:0; padding:0; background:#f2e4c8; font-family:'Poppins', Arial, Helvetica, sans-serif; }
   table { border-collapse:collapse; }
   img { border:0; display:block; }
   a { text-decoration:none; }
-  .wrapper { width:100%; background:#fef3e0; padding:20px 0; }
-  .container { max-width:560px; margin:0 auto; background:#fffdf7; }
+  h1, h2, div, td, span { font-family:'Poppins', Arial, Helvetica, sans-serif; }
+  .wrapper { width:100%; background:radial-gradient(circle at 50% 0%, #fbe7bd 0%, #f2e4c8 55%); padding:32px 16px; }
+  .container { max-width:560px; margin:0 auto; background:#fffdf7; border-radius:28px; overflow:hidden; box-shadow:0 20px 45px rgba(45,26,0,0.16), 0 2px 8px rgba(45,26,0,0.08); }
+  .card { border-radius:18px; overflow:hidden; }
+  .pill { border-radius:999px; }
 
   @media only screen and (max-width:480px) {
-    .container { width:100% !important; }
+    .wrapper { padding:18px 10px; }
+    .container { border-radius:20px; }
     .pad { padding-left:18px !important; padding-right:18px !important; }
-    .hero-title { font-size:26px !important; }
-    .hero-pad { padding:36px 18px 32px !important; }
-    .status-icon { width:32px !important; height:32px !important; font-size:14px !important; line-height:32px !important; }
-    .status-label { font-size:9px !important; }
+    .hero-title { font-size:25px !important; }
+    .hero-pad { padding:34px 18px 30px !important; }
     .total-num { font-size:24px !important; }
   }
 </style>
@@ -69,56 +77,30 @@ async function sendOrderConfirmation(order, userEmail) {
 
   <!-- Top brand bar -->
   <tr>
-    <td style="background:#2d1a00; padding:16px 24px; text-align:center;">
-      <img src="${LOGO_URL}" alt="Namdev Chiwda" width="34" style="display:inline-block; vertical-align:middle; border-radius:6px;" />
-      <span style="color:#f0cc5a; font-size:13px; font-weight:700; letter-spacing:0.1em; vertical-align:middle; margin-left:10px;">NAMDEV CHIWDA</span>
+    <td style="background:#2d1a00; padding:22px 24px; text-align:center;">
+      <img src="${LOGO_URL}" alt="Namdev Chiwda" width="130" style="display:inline-block; vertical-align:middle; border-radius:16px;" />
+      <span style="color:#f0cc5a; font-size:23px; font-weight:700; letter-spacing:0.12em; vertical-align:middle; margin-left:14px;">NAMDEV CHIWDA</span>
     </td>
   </tr>
 
   <!-- Hero -->
   <tr>
-    <td class="hero-pad" style="background:linear-gradient(135deg,#e07000,#ff9010); background-color:#e07000; padding:44px 24px 38px; text-align:center;">
-      <div style="font-size:44px; line-height:1; margin-bottom:12px;">🎉</div>
-      <div class="hero-title" style="color:#fff; font-size:30px; font-weight:900; line-height:1.2; letter-spacing:-0.01em; font-family:Georgia, 'Times New Roman', serif;">
+    <td class="hero-pad" style="background:linear-gradient(160deg,#ff9a2e,#e07000 55%,#c85f00); background-color:#e07000; padding:46px 24px 40px; text-align:center;">
+      <div style="display:inline-block; width:68px; height:68px; line-height:68px; border-radius:22px; background:rgba(255,255,255,0.18); font-size:34px; margin-bottom:18px;">🎉</div>
+      <div class="hero-title" style="color:#fff; font-size:29px; font-weight:800; line-height:1.25; letter-spacing:-0.01em;">
         You're all set, ${firstName}!
       </div>
-      <div style="color:rgba(255,255,255,0.85); font-size:13px; margin-top:10px; font-weight:600; letter-spacing:0.02em;">
+      <div class="pill" style="display:inline-block; margin-top:14px; background:rgba(255,255,255,0.16); color:#fff; font-size:12px; font-weight:700; letter-spacing:0.03em; padding:7px 16px;">
         Order #${orderShort} · Confirmed just now
       </div>
     </td>
   </tr>
 
-  <!-- Status timeline -->
-  <tr>
-    <td style="background:#fffdf7; border-bottom:1px solid rgba(224,112,0,0.1); padding:20px 12px;">
-      <table role="presentation" width="100%">
-        <tr>
-          <td align="center" style="width:25%;">
-            <div class="status-icon" style="width:34px; height:34px; border-radius:50%; background:#e07000; color:#fff; line-height:34px; font-size:15px; margin:0 auto 6px; font-weight:700;">✓</div>
-            <div class="status-label" style="font-size:9.5px; font-weight:800; color:#2d1a00; letter-spacing:0.03em;">PLACED</div>
-          </td>
-          <td align="center" style="width:25%;">
-            <div class="status-icon" style="width:34px; height:34px; border-radius:50%; background:#fdf3c8; color:#d4af37; line-height:34px; font-size:15px; margin:0 auto 6px;">🔥</div>
-            <div class="status-label" style="font-size:9.5px; font-weight:800; color:#c8902a; letter-spacing:0.03em;">PREPARING</div>
-          </td>
-          <td align="center" style="width:25%;">
-            <div class="status-icon" style="width:34px; height:34px; border-radius:50%; background:#fef3e0; color:#d9c4a0; line-height:34px; font-size:15px; margin:0 auto 6px;">🛵</div>
-            <div class="status-label" style="font-size:9.5px; font-weight:800; color:#c0a880; letter-spacing:0.03em;">ON THE WAY</div>
-          </td>
-          <td align="center" style="width:25%;">
-            <div class="status-icon" style="width:34px; height:34px; border-radius:50%; background:#fef3e0; color:#d9c4a0; line-height:34px; font-size:15px; margin:0 auto 6px;">📦</div>
-            <div class="status-label" style="font-size:9.5px; font-weight:800; color:#c0a880; letter-spacing:0.03em;">DELIVERED</div>
-          </td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-
   <!-- Items -->
   <tr>
-    <td class="pad" style="background:#fffdf7; padding:28px 26px 6px;">
-      <div style="font-size:11px; font-weight:800; letter-spacing:0.1em; color:#c8902a; margin-bottom:8px;">YOUR ORDER</div>
-      <table role="presentation" width="100%">
+    <td class="pad" style="background:#fffdf7; padding:28px 26px 22px;">
+      <div style="font-size:11px; font-weight:800; letter-spacing:0.08em; color:#c8902a; margin-bottom:10px;">YOUR ORDER</div>
+      <table role="presentation" class="card" width="100%" style="background:#fef8ec; border:1px solid rgba(224,112,0,0.12);">
         ${itemsHtml}
       </table>
     </td>
@@ -126,30 +108,36 @@ async function sendOrderConfirmation(order, userEmail) {
 
   <!-- Big total -->
   <tr>
-    <td class="pad" style="background:#fffdf7; padding:18px 26px 28px;">
-      <table role="presentation" width="100%">
+    <td class="pad" style="background:#fffdf7; padding:0 26px 26px;">
+      <table role="presentation" class="card" width="100%" style="background:linear-gradient(135deg,#fff6e4,#fdecc9);">
         <tr>
-          <td style="font-size:15px; font-weight:700; color:#2d1a00;">Total paid</td>
-          <td class="total-num" align="right" style="font-size:28px; font-weight:900; color:#e07000; letter-spacing:-0.01em; font-family:Georgia, 'Times New Roman', serif;">
-            ₹${(order.total || 0).toLocaleString()}
+          <td style="padding:18px 20px;">
+            <table role="presentation" width="100%">
+              <tr>
+                <td style="font-size:14px; font-weight:700; color:#2d1a00;">Total paid</td>
+                <td class="total-num" align="right" style="font-size:27px; font-weight:800; color:#e07000; letter-spacing:-0.01em;">
+                  ₹${(order.total || 0).toLocaleString()}
+                </td>
+              </tr>
+            </table>
+            ${freeShip ? `
+            <div class="pill" style="display:inline-block; background:#1ea064; color:#fff; font-size:11px; font-weight:800; padding:6px 14px; margin-top:10px;">
+              🚚 FREE SHIPPING
+            </div>` : ''}
           </td>
         </tr>
       </table>
-      ${freeShip ? `
-      <div style="display:inline-block; background:#e6faf2; color:#1ea064; font-size:11px; font-weight:800; padding:5px 12px; border-radius:999px; margin-top:8px;">
-        🚚 FREE SHIPPING
-      </div>` : ''}
     </td>
   </tr>
 
   <!-- CTA -->
   <tr>
-    <td class="pad" style="background:#fffdf7; padding:0 26px 32px;">
+    <td class="pad" style="background:#fffdf7; padding:0 26px 34px;">
       <table role="presentation" width="100%">
         <tr>
-          <td style="border-radius:999px; background:linear-gradient(135deg,#e07000,#ff9010); background-color:#e07000; text-align:center;">
+          <td class="pill" style="background:linear-gradient(135deg,#ff9a2e,#e07000); background-color:#e07000; text-align:center; box-shadow:0 10px 22px rgba(224,112,0,0.35);">
             <a href="${baseUrl}/orders/${order._id}"
-               style="display:block; color:#fff; font-weight:800; font-size:15px; padding:16px; letter-spacing:0.01em;">
+               style="display:block; color:#fff; font-weight:800; font-size:15px; padding:16px; letter-spacing:0.02em;">
               TRACK MY ORDER →
             </a>
           </td>
@@ -160,20 +148,21 @@ async function sendOrderConfirmation(order, userEmail) {
 
   <!-- Delivery + payment details -->
   <tr>
-    <td class="pad" style="background:#fef3e0; padding:24px 26px; border-top:1px solid rgba(224,112,0,0.12);">
-      <table role="presentation" width="100%">
-        <tr><td style="font-size:11px; font-weight:800; letter-spacing:0.08em; color:#c8902a; padding-bottom:4px;">DELIVERING TO</td></tr>
+    <td class="pad" style="background:#fef3e0; padding:26px;">
+      <table role="presentation" class="card" width="100%" style="background:#fffdf7; border:1px solid rgba(224,112,0,0.12);">
         <tr>
-          <td style="font-size:13px; color:#7a5c3a; line-height:1.6;">
-            ${addr.fullName || ''}<br/>
-            ${addr.line1 || ''}${addr.line2 ? `, ${addr.line2}` : ''}<br/>
-            ${addr.city || ''}, ${addr.state || ''} - ${addr.pincode || ''}
-          </td>
-        </tr>
-        <tr><td style="font-size:11px; font-weight:800; letter-spacing:0.08em; color:#c8902a; padding-top:16px; padding-bottom:4px;">PAYMENT</td></tr>
-        <tr>
-          <td style="font-size:13px; color:#7a5c3a;">
-            ${order.paymentMethod === 'ONLINE' ? '💳 Paid Online' : '💵 Cash on Delivery'}
+          <td style="padding:18px 20px;">
+            <div style="font-size:11px; font-weight:800; letter-spacing:0.08em; color:#c8902a; margin-bottom:6px;">DELIVERING TO</div>
+            <div style="font-size:13px; color:#5a4326; line-height:1.6;">
+              ${addr.fullName || ''}<br/>
+              ${addr.line1 || ''}${addr.line2 ? `, ${addr.line2}` : ''}<br/>
+              ${addr.city || ''}, ${addr.state || ''} - ${addr.pincode || ''}
+            </div>
+            <div style="height:1px; background:rgba(224,112,0,0.14); margin:14px 0;"></div>
+            <div style="font-size:11px; font-weight:800; letter-spacing:0.08em; color:#c8902a; margin-bottom:6px;">PAYMENT</div>
+            <div style="font-size:13px; color:#5a4326;">
+              ${order.paymentMethod === 'ONLINE' ? '💳 Paid Online' : '💵 Cash on Delivery'}
+            </div>
           </td>
         </tr>
       </table>
@@ -182,15 +171,15 @@ async function sendOrderConfirmation(order, userEmail) {
 
   <!-- Footer -->
   <tr>
-    <td style="background:#2d1a00; padding:26px 24px; text-align:center;">
-      <div style="color:#f0cc5a; font-size:13px; font-weight:700; margin-bottom:6px;">
+    <td style="background:#2d1a00; padding:28px 24px; text-align:center;">
+      <div style="color:#f0cc5a; font-size:13px; font-weight:700; margin-bottom:8px;">
         Since 1873. Still crunchy. Still Solapur. 🌾
       </div>
-      <div style="color:rgba(255,255,255,0.5); font-size:11px; line-height:1.6;">
+      <div style="color:rgba(255,255,255,0.55); font-size:11px; line-height:1.6;">
         Questions? Reply here or WhatsApp
         <a href="https://wa.me/919130160491" style="color:#ff9010; font-weight:700;">+91 91301 60491</a>
       </div>
-      <div style="color:rgba(255,255,255,0.35); font-size:10px; margin-top:8px;">
+      <div style="color:rgba(255,255,255,0.35); font-size:10px; margin-top:10px;">
         FSSAI Lic. No: 21526041003460
       </div>
     </td>
