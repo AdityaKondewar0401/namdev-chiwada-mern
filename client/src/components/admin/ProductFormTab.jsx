@@ -14,7 +14,7 @@ const EMPTY_FORM = {
   category: 'mild', tag: '', badge: '', badgeColor: '#e07000',
   price: '', originalPrice: '', weight: '250g', img: '', images: '',
   rating: 4.5, reviews: 0, featured: false, inStock: true, info: '',
-  ingredients: '', sizes: '250g:180,500g:340',
+  ingredients: '', nutrition: '', sizes: '250g:180,500g:340',
 };
 
 const Field = ({ label, fieldKey, type = 'text', placeholder = '', hint = '', form, onChange }) => (
@@ -36,6 +36,7 @@ export default function ProductFormTab({ editProduct, onSave, onCancel }) {
     ...editProduct,
     images: editProduct.images?.join(',') || '',
     ingredients: editProduct.ingredients?.join(',') || '',
+    nutrition: editProduct.nutrition?.map((pair) => pair.join(':')).join(',') || '',
     sizes: editProduct.sizes?.map((s) => `${s.weight}:${s.price}`).join(',') || '',
   } : EMPTY_FORM);
   const [loading, setLoading] = useState(false);
@@ -129,8 +130,15 @@ export default function ProductFormTab({ editProduct, onSave, onCancel }) {
         ? form.ingredients.split(',').map((i) => i.trim()).filter(Boolean)
         : [];
 
+      const nutrition = form.nutrition
+        ? form.nutrition.split(',').map((pair) => {
+            const [label, value] = pair.split(':');
+            return [label?.trim(), value?.trim()];
+          }).filter(([label, value]) => label && value)
+        : [];
+
       const data = {
-        ...form, sizes, images, ingredients,
+        ...form, sizes, images, ingredients, nutrition,
         price: Number(form.price),
         originalPrice: Number(form.originalPrice) || undefined,
         rating: Number(form.rating),
@@ -305,6 +313,12 @@ export default function ProductFormTab({ editProduct, onSave, onCancel }) {
             </div>
             <Field label="Shelf Life / Info" fieldKey="info"
               placeholder="Shelf life: 75 days from the date of manufacture. No artificial colors. 100% Vegetarian." form={form} onChange={f} />
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-brown-mid/70 mb-1.5">Nutritional Information (label:value, comma separated)</label>
+              <input value={form.nutrition || ''} onChange={(e) => f('nutrition', e.target.value)}
+                placeholder="Calories:142 kcal,Protein:5g,Fat:6g,Carbohydrates:15g" className="form-input text-sm" />
+              <p className="text-xs text-brown-mid/40 mt-1">Format: Calories:142 kcal,Protein:5g (per serving)</p>
+            </div>
           </div>
         </div>
 

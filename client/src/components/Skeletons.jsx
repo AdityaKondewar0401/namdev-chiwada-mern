@@ -1,14 +1,14 @@
 export function ProductSkeleton() {
   return (
-    <div className="bg-white rounded-2xl sm:rounded-xl2 overflow-hidden shadow-saffron border border-saffron/5">
-      <div className="skeleton w-full" style={{ aspectRatio: '1/1' }} />
-      <div className="p-2.5 sm:p-4 space-y-2 sm:space-y-2.5">
-        <div className="skeleton h-4 sm:h-5 w-3/4 rounded" />
-        <div className="skeleton h-3 sm:h-3.5 w-1/2 rounded" />
-        <div className="skeleton h-3 sm:h-3.5 w-1/3 rounded" />
+    <div className="bg-white rounded-2xl sm:rounded-[2rem] overflow-hidden shadow-saffron border border-saffron/5 flex flex-col sm:flex-row">
+      <div className="skeleton w-full sm:w-[42%] sm:flex-shrink-0" style={{ aspectRatio: '1/1' }} />
+      <div className="p-4 sm:p-8 flex-1 space-y-2.5 sm:space-y-3.5 sm:flex sm:flex-col sm:justify-center">
+        <div className="skeleton h-5 sm:h-6 w-3/4 rounded" />
+        <div className="skeleton h-3.5 w-1/2 rounded" />
+        <div className="skeleton h-3.5 w-2/3 rounded" />
         <div className="flex justify-between mt-2 sm:mt-3">
-          <div className="skeleton h-6 sm:h-7 w-14 sm:w-16 rounded" />
-          <div className="skeleton h-7 sm:h-8 w-16 sm:w-20 rounded-full" />
+          <div className="skeleton h-7 sm:h-8 w-16 sm:w-20 rounded" />
+          <div className="skeleton h-9 sm:h-11 w-24 sm:w-28 rounded-full" />
         </div>
       </div>
     </div>

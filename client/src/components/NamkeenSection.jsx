@@ -67,7 +67,7 @@ function NamkeenCard({ product, index }) {
         boxShadow:
           '0 20px 60px rgba(224,112,0,0.18)',
       }}
-      className="bg-white rounded-3xl overflow-hidden flex flex-col cursor-pointer group"
+      className="bg-white rounded-3xl sm:rounded-[2rem] overflow-hidden flex flex-col sm:flex-row cursor-pointer group"
       style={{
         boxShadow:
           '0 4px 24px rgba(45,26,0,0.08)',
@@ -75,10 +75,10 @@ function NamkeenCard({ product, index }) {
     >
       {/* IMAGE */}
       <div
-        className="relative overflow-hidden"
+        className="relative overflow-hidden sm:w-1/2 sm:flex-shrink-0"
         style={{
           aspectRatio:
-            '4/3',
+            '1/1',
         }}
       >
         {/* Out of stock */}
@@ -93,9 +93,9 @@ function NamkeenCard({ product, index }) {
         {/* Badge */}
         {product.badge &&
           product.inStock && (
-            <div className="absolute top-3 left-3 z-10">
+            <div className="absolute top-4 left-4 z-10">
               <span
-                className="px-3 py-1 rounded-full text-xs font-bold text-white"
+                className="px-3.5 py-1.5 rounded-full text-xs font-bold text-white shadow-md"
                 style={{
                   background:
                     product.badgeColor ||
@@ -113,7 +113,7 @@ function NamkeenCard({ product, index }) {
         <button
           onClick={(e) => { e.stopPropagation(); toggle(product._id, product); }}
           aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
-          className={`absolute top-3 right-3 z-10 w-9 h-9 rounded-full flex items-center justify-center shadow-md backdrop-blur-sm transition-all duration-200 hover:scale-110 ${
+          className={`absolute top-4 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center shadow-md backdrop-blur-sm transition-all duration-200 hover:scale-110 ${
             wishlisted ? 'bg-red-50 text-red-500' : 'bg-white/90 text-brown-dark'
           }`}
         >
@@ -180,11 +180,11 @@ function NamkeenCard({ product, index }) {
       </div>
 
       {/* BODY */}
-      <div className="px-5 pt-4 pb-5 flex flex-col flex-1">
+      <div className="px-5 pt-5 pb-5 sm:px-8 sm:py-8 flex flex-col flex-1 sm:justify-center sm:w-1/2">
         {/* Tag */}
         {product.tag && (
           <div
-            className="text-xs font-bold tracking-widest uppercase mb-1"
+            className="text-xs font-bold tracking-widest uppercase mb-1.5"
             style={{
               color:
                 '#e07000',
@@ -195,13 +195,13 @@ function NamkeenCard({ product, index }) {
         )}
 
         {/* Name */}
-        <h3 className="font-serif font-black text-brown-dark text-xl leading-tight mb-1">
+        <h3 className="font-serif font-black text-brown-dark text-2xl sm:text-3xl leading-tight mb-1.5">
           {product.name}
         </h3>
 
         {/* Intro */}
         {product.intro && (
-          <p className="text-xs text-brown-mid/60 mb-3 leading-relaxed line-clamp-2">
+          <p className="text-sm text-brown-mid/60 mb-3 leading-relaxed sm:line-clamp-3">
             {
               product.intro
             }
@@ -474,8 +474,8 @@ export default function NamkeenSection() {
 
         {/* Grid */}
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[1, 2, 3, 4].map(
+          <div className="grid grid-cols-1 gap-8 max-w-4xl mx-auto">
+            {[1, 2].map(
               (i) => (
                 <div
                   key={
@@ -487,7 +487,7 @@ export default function NamkeenSection() {
                     className="skeleton w-full"
                     style={{
                       aspectRatio:
-                        '4/3',
+                        '1/1',
                     }}
                   />
                 </div>
@@ -510,7 +510,7 @@ export default function NamkeenSection() {
               </div>
             </motion.div>
           ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 gap-8 max-w-4xl mx-auto">
             {products.map(
               (
                 product,
