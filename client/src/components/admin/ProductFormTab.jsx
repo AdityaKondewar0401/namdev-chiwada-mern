@@ -115,12 +115,25 @@ export default function ProductFormTab({ editProduct, onSave, onCancel }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Number('') is 0, not NaN — a blank price field would otherwise
+    // silently save as a free (₹0) product with no error shown anywhere.
+    const priceNum = Number(form.price);
+    if (!form.price || !Number.isFinite(priceNum) || priceNum <= 0) {
+      toast.error('Enter a valid base price greater than ₹0');
+      return;
+    }
+
     setLoading(true);
     try {
-      const sizes = form.sizes.split(',').map((s) => {
-        const [weight, price] = s.trim().split(':');
+      const rawSizes = form.sizes.split(',').map((s) => s.trim()).filter(Boolean);
+      const sizes = rawSizes.map((s) => {
+        const [weight, price] = s.split(':');
         return { weight: weight?.trim(), price: Number(price) };
-      }).filter((s) => s.weight && s.price);
+      }).filter((s) => s.weight && Number.isFinite(s.price) && s.price > 0);
+      if (rawSizes.length > 0 && sizes.length < rawSizes.length) {
+        toast.error(`${rawSizes.length - sizes.length} size(s) couldn't be read and were dropped — check the "weight:price" format`);
+      }
 
       const images = form.images
         ? form.images.split(',').map((i) => i.trim()).filter(Boolean)
@@ -130,16 +143,18 @@ export default function ProductFormTab({ editProduct, onSave, onCancel }) {
         ? form.ingredients.split(',').map((i) => i.trim()).filter(Boolean)
         : [];
 
-      const nutrition = form.nutrition
-        ? form.nutrition.split(',').map((pair) => {
-            const [label, value] = pair.split(':');
-            return [label?.trim(), value?.trim()];
-          }).filter(([label, value]) => label && value)
-        : [];
+      const rawNutrition = form.nutrition ? form.nutrition.split(',').map((s) => s.trim()).filter(Boolean) : [];
+      const nutrition = rawNutrition.map((pair) => {
+        const [label, value] = pair.split(':');
+        return [label?.trim(), value?.trim()];
+      }).filter(([label, value]) => label && value);
+      if (rawNutrition.length > 0 && nutrition.length < rawNutrition.length) {
+        toast.error(`${rawNutrition.length - nutrition.length} nutrition entr${rawNutrition.length - nutrition.length === 1 ? 'y' : 'ies'} couldn't be read and were dropped — check the "label:value" format`);
+      }
 
       const data = {
         ...form, sizes, images, ingredients, nutrition,
-        price: Number(form.price),
+        price: priceNum,
         originalPrice: Number(form.originalPrice) || undefined,
         rating: Number(form.rating),
         reviews: Number(form.reviews),

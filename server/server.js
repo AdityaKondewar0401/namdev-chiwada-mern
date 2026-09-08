@@ -62,11 +62,16 @@ const allowedOrigins = [
   process.env.CLIENT_URL,
 ].filter(Boolean);
 
-// Allow all Vercel preview deployments
+// Allow this project's Vercel preview deployments only. Bare `.vercel.app`
+// is a public TLD anyone can deploy to — trusting all of it (with
+// credentials: true below) let any other Vercel project's origin pass CORS.
+// Scoping to this account's team slug still covers every preview URL Vercel
+// generates for this project, without trusting unrelated projects.
+const VERCEL_PREVIEW_SUFFIX = '-adityakondewar0401s-projects.vercel.app';
 const isAllowedOrigin = (origin) => {
   if (!origin) return true;
   if (allowedOrigins.includes(origin)) return true;
-  if (origin.endsWith('.vercel.app')) return true; // ← allows ALL vercel URLs
+  if (origin.endsWith(VERCEL_PREVIEW_SUFFIX)) return true;
   return false;
 };
 

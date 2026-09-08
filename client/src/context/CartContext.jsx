@@ -26,10 +26,15 @@ const loadLocal = () => {
 };
 
 const saveLocal = (items) => {
-  localStorage.setItem(
-    LOCAL_KEY,
-    JSON.stringify(items)
-  );
+  try {
+    localStorage.setItem(
+      LOCAL_KEY,
+      JSON.stringify(items)
+    );
+  } catch {
+    // Private-mode/quota-exceeded — the in-memory cart still works for
+    // this session, it just won't survive a refresh. Not worth surfacing.
+  }
 };
 
 const normalizeItems = (items = []) =>
@@ -72,13 +77,21 @@ export const CartProvider = ({
   // already logged in would re-add the same lines and double quantities.
   const prevUserRef = useRef(undefined);
 
+  // `persist` must be false whenever the items being synced came from the
+  // SERVER for a logged-in user. Writing a logged-in user's cart into the
+  // guest `LOCAL_KEY` slot means that if they log out and back in later,
+  // that stale snapshot gets treated as an unmerged guest cart and
+  // re-POSTed to the server cart, doubling every quantity (cartController
+  // adds qty on top of the existing line rather than replacing it).
+  // Only the true guest-cart code paths (below, gated on `!user`) should
+  // ever write to LOCAL_KEY.
   const syncItems = useCallback(
-    (rawItems) => {
+    (rawItems, { persist = true } = {}) => {
       const normalized =
         normalizeItems(rawItems);
 
       setItems(normalized);
-      saveLocal(normalized);
+      if (persist) saveLocal(normalized);
     },
     []
   );
@@ -117,6 +130,11 @@ export const CartProvider = ({
               // Best-effort — one bad guest line shouldn't block the rest.
             }
           }
+          // The guest cart is now merged into the server cart — clear the
+          // local snapshot so a later logout starts empty instead of
+          // resurrecting these same lines to be merged (and doubled) again
+          // on the next login.
+          saveLocal([]);
         }
 
         const res =
@@ -125,11 +143,12 @@ export const CartProvider = ({
         if (cancelled) return;
 
         syncItems(
-          res.data.cart?.items || []
+          res.data.cart?.items || [],
+          { persist: false }
         );
       } catch {
         if (!cancelled) {
-          syncItems(loadLocal());
+          syncItems(loadLocal(), { persist: false });
         }
       } finally {
         if (!cancelled)
@@ -198,7 +217,7 @@ export const CartProvider = ({
       }
 
       setItems(updated);
-      saveLocal(updated);
+      if (!user) saveLocal(updated);
 
       if (user) {
         try {
@@ -220,10 +239,11 @@ export const CartProvider = ({
           // nothing, and the item would silently reappear on next sync.
           syncItems(
             res.data.cart?.items ||
-              []
+              [],
+            { persist: false }
           );
         } catch {
-          syncItems(snapshot);
+          syncItems(snapshot, { persist: false });
           toast.error(
             'Failed to add item'
           );
@@ -279,9 +299,10 @@ export const CartProvider = ({
 
         // instant update
         setItems(updated);
-        saveLocal(updated);
-
-        if (!user) return;
+        if (!user) {
+          saveLocal(updated);
+          return;
+        }
 
         // clear previous timer
         if (
@@ -309,7 +330,8 @@ export const CartProvider = ({
               );
             } catch {
               syncItems(
-                snapshot
+                snapshot,
+                { persist: false }
               );
               toast.error(
                 'Failed to update quantity'
@@ -349,14 +371,15 @@ export const CartProvider = ({
           );
 
         setItems(updated);
-        saveLocal(updated);
+        if (!user) saveLocal(updated);
 
         if (user) {
           cartAPI
             .remove(id)
             .catch(() => {
               syncItems(
-                snapshot
+                snapshot,
+                { persist: false }
               );
               toast.error(
                 'Failed to remove item'
@@ -388,7 +411,8 @@ export const CartProvider = ({
             await cartAPI.clear();
           } catch {
             syncItems(
-              snapshot
+              snapshot,
+              { persist: false }
             );
           }
         }

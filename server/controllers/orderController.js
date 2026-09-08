@@ -179,11 +179,34 @@ exports.placeOrder = async (req, res, next) => {
       }
     }
 
+    // Atomically claim the cart, the same way the payment is claimed
+    // above for ONLINE orders. COD has no VerifiedPayment record to guard
+    // it, so without this, two concurrent placeOrder calls (double-click,
+    // a client retry after a slow response) both pass every check above
+    // against the same still-full cart and both create a separate Order —
+    // silently duplicating it. Only the request that flips the cart from
+    // "has items" to empty wins this match; the other gets null back and
+    // is rejected before it can create a duplicate order.
+    const claimedCart = await Cart.findOneAndUpdate(
+      { _id: cart._id, 'items.0': { $exists: true } },
+      { items: [] },
+      { new: false }
+    );
+    if (!claimedCart) {
+      if (verifiedPayment) {
+        await VerifiedPayment.updateOne({ _id: verifiedPayment._id }, { consumedAt: null });
+      }
+      return res.status(400).json({
+        success: false,
+        message: 'This order has already been placed.',
+      });
+    }
+
     // Cart items store the size label under `size`; order items store it
     // under `size` too (see orderItemSchema) — map explicitly rather than
     // spreading cart.items, since Mongoose's strict schema would silently
     // drop any field name it doesn't already declare.
-    const orderItems = cart.items.map((item) => ({
+    const orderItems = claimedCart.items.map((item) => ({
       product: item.product,
       name: item.name,
       img: item.img,
@@ -234,11 +257,14 @@ exports.placeOrder = async (req, res, next) => {
         notes,
       });
     } catch (createErr) {
-      // Order was never created — release the payment claim so the
-      // customer isn't locked out of retrying with the same payment.
+      // Order was never created — release the payment claim and restore
+      // the cart items claimed above, so the customer isn't locked out of
+      // retrying (with the same payment, and without having to re-add
+      // everything to a cart that looks empty for no reason).
       if (verifiedPayment) {
         await VerifiedPayment.updateOne({ _id: verifiedPayment._id }, { consumedAt: null });
       }
+      await Cart.updateOne({ _id: cart._id }, { items: claimedCart.items });
       throw createErr;
     }
 
@@ -249,10 +275,6 @@ exports.placeOrder = async (req, res, next) => {
         $inc: { uses: 1 },
       });
     }
-
-    // Clear cart after successful order creation
-    cart.items = [];
-    await cart.save();
 
     // Sync marketing consent captured at checkout onto the user's profile.
     // Only touches the field when the frontend explicitly sent a boolean,

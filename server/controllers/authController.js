@@ -177,13 +177,26 @@ exports.googleLogin = async (req, res, next) => {
       audience: process.env.GOOGLE_CLIENT_ID,
     });
 
-    const { sub, name, picture } = ticket.getPayload();
+    const { sub, name, picture, email_verified } = ticket.getPayload();
     // Google's claim is basically always already lowercase, but normalize
     // the same way register()/login() do — this must match byte-for-byte
     // with what's stored, or the $or below silently fails to find the
     // existing account and creates a duplicate User document instead of
     // linking to it.
     const email = (ticket.getPayload().email || '').trim().toLowerCase();
+
+    // SECURITY: without this, a Google account whose email isn't actually
+    // verified (email_verified: false — possible for some Workspace/G Suite
+    // accounts) could be used to silently link to, and log in as, an
+    // existing account with a matching email — full account takeover with
+    // no password. Only an email Google itself vouches for may be used to
+    // find/link an account.
+    if (!email_verified) {
+      return res.status(401).json({
+        success: false,
+        message: 'Your Google account email is not verified. Please verify it with Google first.',
+      });
+    }
 
     let user = await User.findOne({
       $or: [{ googleId: sub }, { email }],

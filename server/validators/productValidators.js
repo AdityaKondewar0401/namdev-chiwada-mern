@@ -29,7 +29,7 @@ const sizeEntryValidators = [
     .bail()
     .isLength({ min: 1, max: 20 }).withMessage('Each size.weight must be at most 20 characters'),
   body('sizes.*.price')
-    .isFloat({ min: 0, max: 100000 }).withMessage('Each size.price must be a non-negative number')
+    .isFloat({ min: 0.01, max: 100000 }).withMessage('Each size.price must be greater than 0')
     .toFloat(),
 ];
 
@@ -95,7 +95,7 @@ const createProduct = [
   body('badgeColor').optional({ values: 'falsy' }).isString().matches(HEX_COLOR_RE).withMessage('badgeColor must be a hex color like #e07000'),
   sizesArray(body('sizes')),
   ...sizeEntryValidators.map((v) => v.optional()),
-  body('price').exists().withMessage('price is required').bail().isFloat({ min: 0, max: 100000 }).withMessage('price must be a non-negative number').toFloat(),
+  body('price').exists().withMessage('price is required').bail().isFloat({ min: 0.01, max: 100000 }).withMessage('price must be greater than 0').toFloat(),
   body('originalPrice').optional().isFloat({ min: 0, max: 100000 }).withMessage('originalPrice must be a non-negative number').toFloat(),
   body('weight').optional({ values: 'falsy' }).isString().isLength({ max: 20 }).withMessage('weight must be at most 20 characters'),
   imagesArray(body('images')),
@@ -127,7 +127,7 @@ const updateProduct = [
   body('badgeColor').optional({ values: 'falsy' }).isString().matches(HEX_COLOR_RE).withMessage('badgeColor must be a hex color like #e07000'),
   sizesArray(body('sizes')),
   ...sizeEntryValidators.map((v) => v.optional()),
-  body('price').optional().isFloat({ min: 0, max: 100000 }).withMessage('price must be a non-negative number').toFloat(),
+  body('price').optional().isFloat({ min: 0.01, max: 100000 }).withMessage('price must be greater than 0').toFloat(),
   body('originalPrice').optional().isFloat({ min: 0, max: 100000 }).withMessage('originalPrice must be a non-negative number').toFloat(),
   body('weight').optional({ values: 'falsy' }).isString().isLength({ max: 20 }).withMessage('weight must be at most 20 characters'),
   imagesArray(body('images')),
