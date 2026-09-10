@@ -17,7 +17,7 @@ import { cldUrl } from '../utils/cloudinary';
 // ─────────────────────────────────────────────
 
 const PACK =
-  'https://res.cloudinary.com/dz7ykg6qr/image/upload/v1789056399/ChatGPT_Image_Sep_10_2026_09_35_51_PM_dzttx4.png';
+  'https://res.cloudinary.com/dz7ykg6qr/image/upload/v1789065799/ChatGPT_Image_Sep_11_2026_12_13_02_AM_yry4na.png';
 
 const LINES = ['Roasted Fresh.', 'Loved for 150 Years.'];
 
@@ -73,15 +73,9 @@ export default function HeroExperience() {
             className="mb-6 inline-flex items-center gap-2 rounded-full px-3.5 py-1.5"
             style={{ background: 'rgba(224,112,0,0.16)', border: '1px solid rgba(240,204,90,0.3)' }}
           >
-            <span className="relative flex h-2 w-2">
-              <span
-                className="absolute inline-flex h-full w-full rounded-full"
-                style={{ background: '#4ade80', animation: 'pulseDot 1.8s ease-in-out infinite' }}
-              />
-              <span className="relative inline-flex h-2 w-2 rounded-full" style={{ background: '#4ade80' }} />
-            </span>
-            <span style={{ color: '#f0cc5a', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.1em' }}>
-              FRESHLY ROASTED TODAY
+            <span aria-hidden="true" style={{ color: '#f0cc5a', fontSize: '0.7rem', lineHeight: 1 }}>✦</span>
+            <span style={{ color: '#f0cc5a', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.16em' }}>
+              SINCE 1873
             </span>
           </motion.div>
 
@@ -138,7 +132,7 @@ export default function HeroExperience() {
           initial={{ opacity: 0, scale: 0.92 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          className="relative order-1 flex items-center justify-center md:order-2"
+          className="relative order-1 flex items-center justify-center py-2 md:order-2 md:py-0"
         >
           {/* breathing warm spotlight */}
           <motion.div
@@ -167,46 +161,28 @@ export default function HeroExperience() {
             animate={{ rotate: 360 }}
             transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
           />
-          {/* diffuse cast shadow — elliptical, so it can never read as a
-              rectangle (the pack PNG isn't transparent, so a CSS drop-shadow
-              filter on the <img> would trace its rectangular edge). */}
+          {/* soft grounding shadow under the pack */}
           <div
             className="absolute"
             style={{
-              width: 'min(82vw, 470px)',
-              height: 'min(42vw, 240px)',
-              top: '50%',
+              bottom: '14%',
+              width: 'min(58vw, 340px)',
+              height: 26,
               borderRadius: '50%',
-              background: 'radial-gradient(ellipse at 50% 55%, rgba(0,0,0,0.4), transparent 70%)',
-              filter: 'blur(26px)',
-            }}
-          />
-          {/* tight contact shadow at the base */}
-          <div
-            className="absolute"
-            style={{
-              bottom: '15%',
-              width: 'min(52vw, 320px)',
-              height: 20,
-              borderRadius: '50%',
-              background: 'radial-gradient(ellipse, rgba(0,0,0,0.5), transparent 72%)',
-              filter: 'blur(7px)',
+              background: 'radial-gradient(ellipse, rgba(0,0,0,0.45), transparent 72%)',
+              filter: 'blur(10px)',
             }}
           />
           <motion.img
             src={cldUrl(PACK, 'f_auto,q_auto,w_1000')}
             alt="Namdev Chiwda and Bakarwadi packs"
             width={1000}
-            height={667}
+            height={1000}
             loading="eager"
             fetchpriority="high"
             decoding="async"
-            className="relative block w-[min(86vw,420px)] md:w-[clamp(340px,42vw,480px)]"
-            style={{
-              WebkitMaskImage:
-                'radial-gradient(ellipse 120% 82% at 50% 46%, #000 72%, transparent 95%)',
-              maskImage: 'radial-gradient(ellipse 120% 82% at 50% 46%, #000 72%, transparent 95%)',
-            }}
+            className="relative block w-[min(80vw,380px)] md:w-[clamp(320px,40vw,460px)]"
+            style={{ filter: 'drop-shadow(0 26px 34px rgba(0,0,0,0.42)) drop-shadow(0 6px 10px rgba(0,0,0,0.28))' }}
             animate={{ rotate: [-0.9, 0.9, -0.9], y: [0, -9, 0] }}
             transition={{ duration: 6.5, repeat: Infinity, ease: 'easeInOut' }}
           />

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { productAPI } from '../services/api';
 import { useWishlist } from '../context/WishlistContext';
@@ -7,551 +7,274 @@ import QuantityStepper from './QuantityStepper';
 import WishlistIcon from './WishlistIcon';
 import { SITE_NAME } from '../config/seo.config';
 
-// motion(Link) so each featured product card is a real crawlable <a href>
-// (search engines and screen readers don't follow onClick handlers on a
-// div) while keeping the existing Framer Motion entrance/hover animation —
-// same pattern already used in ProductCard.jsx.
+// motion(Link) keeps each featured card a real crawlable <a href> while
+// still animating — same pattern as ProductCard.
 const MotionLink = motion(Link);
 
-// ── Individual Product Card ────────────────────────────
+const IMG_BG =
+  'radial-gradient(circle at 50% 35%, rgba(212,175,55,0.14), transparent 65%), linear-gradient(180deg,#fbf6ec,#f2e9d8)';
+
+// ── Individual featured card ─────────────────────────────
+// Compact vertical card — a 2-up grid on mobile so the four featured
+// products read as a "collection" instead of filling three screens.
 function NamkeenCard({ product, index }) {
-  const [activeImg, setActiveImg] = useState(0);
   const [selectedSizeIdx, setSelectedSizeIdx] = useState(0);
   const { toggle, isWishlisted } = useWishlist();
   const wishlisted = isWishlisted(product._id);
 
-  // FIXED: Use front hero image first
-  const images = [
-    product.img,
-    ...(product.images || []).filter(
-      (img) => img !== product.img
-    ),
-  ].filter(Boolean);
-
   const sizes =
     product.sizes?.length > 0
       ? product.sizes
-      : [
-          {
-            weight:
-              product.weight,
-            price:
-              product.price,
-          },
-        ];
+      : [{ weight: product.weight, price: product.price }];
+  const currentSize = sizes[selectedSizeIdx];
 
-  const currentSize =
-    sizes[selectedSizeIdx];
+  // These controls sit inside a <Link>; preventDefault stops the card's
+  // own navigation, stopPropagation keeps the click from bubbling.
+  const stop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
 
   return (
     <MotionLink
       to={`/products/${product.slug || product._id}`}
-      initial={{
-        opacity: 0,
-        y: 40,
-      }}
-      whileInView={{
-        opacity: 1,
-        y: 0,
-      }}
-      viewport={{
-        once: true,
-      }}
-      transition={{
-        duration: 0.6,
-        delay:
-          index * 0.1,
-      }}
-      whileHover={{
-        y: -8,
-        boxShadow:
-          '0 20px 60px rgba(224,112,0,0.18)',
-      }}
-      className="bg-white rounded-3xl overflow-hidden flex flex-col cursor-pointer group"
-      style={{
-        boxShadow:
-          '0 4px 24px rgba(45,26,0,0.08)',
-      }}
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5, delay: index * 0.07 }}
+      whileHover={{ y: -4, boxShadow: '0 16px 40px rgba(224,112,0,0.15)' }}
+      className="group relative flex cursor-pointer flex-col overflow-hidden rounded-2xl bg-white sm:rounded-3xl"
+      style={{ boxShadow: '0 4px 18px rgba(45,26,0,0.07)', border: '1px solid rgba(212,175,55,0.14)' }}
     >
-      {/* IMAGE */}
-      <div
-        className="relative overflow-hidden"
-        style={{
-          aspectRatio:
-            '1/1',
-        }}
-      >
-        {/* Out of stock */}
+      {/* Image */}
+      <div className="relative aspect-square overflow-hidden" style={{ background: IMG_BG }}>
         {!product.inStock && (
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-10">
-            <span className="px-4 py-1.5 rounded-full text-sm font-bold text-white bg-gray-700">
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40">
+            <span className="rounded-full bg-gray-700 px-2.5 py-1 text-[10px] font-bold text-white">
               Out of Stock
             </span>
           </div>
         )}
 
-        {/* Badge */}
-        {product.badge &&
-          product.inStock && (
-            <div className="absolute top-4 left-4 sm:top-3 sm:left-3 z-10">
-              <span
-                className="px-3.5 py-1.5 sm:px-3 sm:py-1 rounded-full text-xs font-bold text-white sm:shadow-none shadow-md"
-                style={{
-                  background:
-                    product.badgeColor ||
-                    '#e07000',
-                }}
-              >
-                {
-                  product.badge
-                }
-              </span>
-            </div>
-          )}
+        {product.badge && product.inStock && (
+          <span
+            className="absolute left-2 top-2 z-10 max-w-[calc(100%-2.75rem)] truncate rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white shadow-sm sm:left-3 sm:top-3 sm:px-2.5 sm:py-1 sm:text-[10px]"
+            style={{ background: product.badgeColor || '#e07000' }}
+          >
+            {product.badge}
+          </span>
+        )}
 
-        {/* Wishlist */}
         <button
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggle(product._id, product); }}
+          onClick={(e) => {
+            stop(e);
+            toggle(product._id, product);
+          }}
           aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
-          className={`absolute top-4 right-4 sm:top-3 sm:right-3 z-10 w-10 h-10 sm:w-9 sm:h-9 rounded-full flex items-center justify-center shadow-md backdrop-blur-sm transition-all duration-200 hover:scale-110 ${
-            wishlisted ? 'bg-red-50 text-red-500' : 'bg-white/90 text-brown-dark'
+          className={`absolute right-2 top-2 z-10 flex h-7 w-7 items-center justify-center rounded-full shadow-md backdrop-blur-sm transition-transform duration-200 hover:scale-110 sm:right-3 sm:top-3 sm:h-9 sm:w-9 ${
+            wishlisted ? 'bg-red-50 text-red-500' : 'bg-white/85 text-brown-dark'
           }`}
         >
-          <WishlistIcon size={16} filled={wishlisted} />
+          <WishlistIcon size={13} filled={wishlisted} />
         </button>
 
-        {/* Main Image */}
-        <AnimatePresence mode="wait">
-          <motion.img
-            key={
-              activeImg
-            }
-            src={
-              images[
-                activeImg
-              ]
-            }
-            alt={
-              product.name
-            }
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-            initial={{
-              opacity: 0,
-              scale: 1.04,
-            }}
-            animate={{
-              opacity: 1,
-              scale: 1,
-            }}
-            exit={{
-              opacity: 0,
-            }}
-            transition={{
-              duration: 0.3,
-            }}
-          />
-        </AnimatePresence>
+        <img
+          src={product.img}
+          alt={`${product.name} – authentic Solapuri snack by ${SITE_NAME}`}
+          loading="lazy"
+          width={400}
+          height={400}
+          className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+        />
 
-        {/* Marathi name */}
         {product.namMarathi && (
           <div
-            className="absolute bottom-0 left-0 right-0 px-4 py-3"
-            style={{
-              background:
-                'linear-gradient(to top,rgba(45,26,0,0.65),transparent)',
-            }}
+            className="absolute inset-x-0 bottom-0 px-2.5 py-1.5 sm:px-3 sm:py-2"
+            style={{ background: 'linear-gradient(to top,rgba(45,26,0,0.6),transparent)' }}
           >
             <span
               style={{
-                fontFamily:
-                  "'Gotu',sans-serif",
-                color:
-                  'rgba(255,255,255,0.9)',
-                fontSize:
-                  '0.85rem',
+                fontFamily: "'Gotu',sans-serif",
+                color: 'rgba(255,255,255,0.92)',
+                fontSize: '0.72rem',
               }}
             >
-              {
-                product.namMarathi
-              }
+              {product.namMarathi}
             </span>
           </div>
         )}
       </div>
 
-      {/* BODY */}
-      <div className="px-5 pt-5 sm:pt-4 pb-5 flex flex-col flex-1">
-        {/* Tag */}
+      {/* Body */}
+      <div className="flex flex-1 flex-col gap-1 p-2.5 sm:p-3.5">
         {product.tag && (
-          <div
-            className="text-xs font-bold tracking-widest uppercase mb-1.5 sm:mb-1"
-            style={{
-              color:
-                '#e07000',
-            }}
-          >
+          <span className="text-[9px] font-bold uppercase tracking-widest text-saffron sm:text-[10px]">
             {product.tag}
-          </div>
+          </span>
         )}
 
-        {/* Name */}
-        <h3 className="font-serif font-black text-brown-dark text-2xl sm:text-xl leading-tight mb-1.5 sm:mb-1">
+        <h3 className="font-serif text-[0.9rem] font-black leading-tight text-brown-dark line-clamp-1 sm:text-lg">
           {product.name}
         </h3>
 
-        {/* Intro */}
-        {product.intro && (
-          <p className="text-sm text-brown-mid/60 mb-3 leading-relaxed sm:text-xs sm:line-clamp-2">
-            {
-              product.intro
-            }
-          </p>
+        <div className="flex items-center gap-1 text-[10px] sm:text-[11px]">
+          <span className="tracking-tight text-amber-400">
+            {'★'.repeat(Math.round(product.rating || 0))}
+            <span className="text-brown-dark/15">
+              {'★'.repeat(5 - Math.round(product.rating || 0))}
+            </span>
+          </span>
+          <span className="text-brown-mid/45">({product.reviews || 0})</span>
+        </div>
+
+        {sizes.length > 1 && (
+          <div className="mt-0.5 flex flex-wrap gap-1" onClick={stop}>
+            {sizes.map((s, i) => (
+              <button
+                key={i}
+                onClick={(e) => {
+                  stop(e);
+                  setSelectedSizeIdx(i);
+                }}
+                className="rounded-full border px-1.5 py-0.5 text-[9px] font-bold transition-all duration-200 sm:px-2 sm:text-[10px]"
+                style={{
+                  background:
+                    selectedSizeIdx === i ? 'linear-gradient(135deg,#e07000,#ff9010)' : 'transparent',
+                  borderColor: selectedSizeIdx === i ? '#e07000' : 'rgba(224,112,0,0.3)',
+                  color: selectedSizeIdx === i ? '#fff' : '#e07000',
+                }}
+              >
+                {s.weight}
+              </button>
+            ))}
+          </div>
         )}
 
-        {/* Rating */}
-        <div className="flex items-center gap-2 mb-3">
-          <div className="flex gap-0.5">
-            {[...Array(5)].map(
-              (
-                _,
-                i
-              ) => (
-                <span
-                  key={
-                    i
-                  }
-                  className="text-sm"
-                  style={{
-                    color:
-                      i <
-                      Math.floor(
-                        product.rating ||
-                          0
-                      )
-                        ? '#f59e0b'
-                        : '#d1d5db',
-                  }}
-                >
-                  ★
-                </span>
-              )
+        <div className="mt-auto flex flex-col gap-1.5 pt-1.5" onClick={stop}>
+          <span className="text-sm font-black sm:text-base" style={{ color: '#e07000' }}>
+            ₹{currentSize.price}
+            {sizes.length === 1 && currentSize.weight && (
+              <span className="ml-1 text-[10px] font-semibold text-brown-mid/45">
+                {currentSize.weight}
+              </span>
             )}
-          </div>
-
-          <span className="text-xs text-brown-mid/60">
-            (
-            {
-              product.reviews
-            }
-            )
           </span>
-        </div>
 
-        {/* Size Selector */}
-        <div
-          className="mb-4"
-          onClick={(
-            e
-          ) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
-        >
-          <div className="text-xs font-bold uppercase tracking-wider text-brown-dark mb-2">
-            Net Weight
-          </div>
-
-          <div className="flex gap-2 flex-wrap">
-            {sizes.map(
-              (
-                size,
-                i
-              ) => (
-                <button
-                  key={
-                    i
-                  }
-                  onClick={(
-                    e
-                  ) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setSelectedSizeIdx(
-                      i
-                    );
-                  }}
-                  className="px-3 py-1.5 rounded-full text-xs font-bold border-2 transition-all duration-200"
-                  style={{
-                    background:
-                      selectedSizeIdx ===
-                      i
-                        ? '#e07000'
-                        : 'transparent',
-                    borderColor:
-                      selectedSizeIdx ===
-                      i
-                        ? '#e07000'
-                        : 'rgba(224,112,0,0.3)',
-                    color:
-                      selectedSizeIdx ===
-                      i
-                        ? '#fff'
-                        : '#e07000',
-                  }}
-                >
-                  {
-                    size.weight
-                  }
-                </button>
-              )
-            )}
-          </div>
-        </div>
-
-        {/* Price + Quantity */}
-        <div
-          className="flex items-center gap-3 mt-auto"
-          onClick={(
-            e
-          ) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
-        >
-          <div className="flex-shrink-0">
-            <div
-              className="text-2xl font-black"
-              style={{
-                color:
-                  '#e07000',
-              }}
-            >
-              ₹
-              {
-                currentSize.price
-              }
-            </div>
-
-            <div className="text-xs text-brown-mid/50">
-              MRP incl. of
-              all taxes
-            </div>
-          </div>
-
-          <div className="flex-1">
-            <QuantityStepper
-              product={
-                product
-              }
-              size={
-                currentSize.weight
-              }
-              price={
-                currentSize.price
-              }
-              disabled={
-                !product.inStock
-              }
-            />
-          </div>
+          <QuantityStepper
+            product={product}
+            size={currentSize.weight}
+            price={currentSize.price}
+            disabled={!product.inStock}
+            compact
+          />
         </div>
       </div>
-
-      {/* Bottom Accent */}
-      <div
-        className="h-1 w-full"
-        style={{
-          background: `linear-gradient(90deg,${
-            product.badgeColor ||
-            '#e07000'
-          },transparent)`,
-        }}
-      />
     </MotionLink>
   );
 }
 
-// ── SECTION ────────────────────────────
+// ── Section ─────────────────────────────────────────────
 export default function NamkeenSection() {
-  const [products, setProducts] =
-    useState([]);
-
-  const [loading, setLoading] =
-    useState(true);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     productAPI
-      .getAll({
-        featured:
-          'true',
-        limit: 4,
-        sort: 'popular',
-      })
-      .then((res) =>
-        setProducts(
-          res.data
-            .products ||
-            []
-        )
-      )
+      .getAll({ featured: 'true', limit: 4, sort: 'popular' })
+      .then((res) => setProducts(res.data.products || []))
       .catch(() => {})
-      .finally(() =>
-        setLoading(
-          false
-        )
-      );
+      .finally(() => setLoading(false));
   }, []);
 
+  const gridClass = 'grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4 lg:gap-6';
+
   return (
-    <section
-      className="relative py-20 overflow-hidden"
-      style={{
-        background:
-          '#fffdf7',
-      }}
-    >
-      {/* Top line */}
+    <section className="relative overflow-hidden py-14 md:py-20" style={{ background: '#fffdf7' }}>
       <div
-        className="absolute top-0 left-0 right-0 h-px"
-        style={{
-          background:
-            'linear-gradient(90deg,transparent,#d4af37,transparent)',
-        }}
+        className="absolute inset-x-0 top-0 h-px"
+        style={{ background: 'linear-gradient(90deg,transparent,#d4af37,transparent)' }}
+      />
+      <div
+        className="absolute inset-x-0 bottom-0 h-px"
+        style={{ background: 'linear-gradient(90deg,transparent,#d4af37,transparent)' }}
       />
 
-      {/* Bottom line */}
-      <div
-        className="absolute bottom-0 left-0 right-0 h-px"
-        style={{
-          background:
-            'linear-gradient(90deg,transparent,#d4af37,transparent)',
-        }}
-      />
-
-      <div className="max-w-7xl mx-auto px-6">
+      <div className="mx-auto max-w-7xl px-5 sm:px-6">
         {/* Header */}
-        <div className="text-center mb-14">
-          {/* Decorative divider */}
-          <div className="flex items-center justify-center gap-4 mb-5">
+        <div className="mb-9 text-center md:mb-14">
+          <div className="mb-4 flex items-center justify-center gap-4">
             <div
-              className="h-px w-16 sm:w-24"
-              style={{
-                background:
-                  'linear-gradient(to right,transparent,#d4af37)',
-              }}
+              className="h-px w-12 sm:w-24"
+              style={{ background: 'linear-gradient(to right,transparent,#d4af37)' }}
             />
-            <span className="text-xl">🌾</span>
+            <span className="text-lg">🌾</span>
             <div
-              className="h-px w-16 sm:w-24"
-              style={{
-                background:
-                  'linear-gradient(to left,transparent,#d4af37)',
-              }}
+              className="h-px w-12 sm:w-24"
+              style={{ background: 'linear-gradient(to left,transparent,#d4af37)' }}
             />
           </div>
 
           <div
-            className="text-xs font-bold tracking-widest uppercase mb-3"
-            style={{
-              color:
-                '#e07000',
-            }}
+            className="mb-2.5 text-xs font-bold uppercase tracking-widest"
+            style={{ color: '#e07000' }}
           >
             Our Collection
           </div>
 
-          <h2 className="font-serif font-black text-brown-dark mb-3 text-4xl">
-            Our Namkeen
-            Collection
+          <h2 className="mb-2.5 font-serif text-3xl font-black text-brown-dark md:text-4xl">
+            Our Namkeen Collection
           </h2>
 
-          <p className="text-brown-mid/60 text-sm italic">
-            Crafted by
-            {' '}{SITE_NAME}
-            {' '}with tradition,
-            served with
-            love since
-            1873
+          <p className="text-sm italic text-brown-mid/60">
+            Crafted by {SITE_NAME} with tradition, served with love since 1873
           </p>
         </div>
 
         {/* Grid */}
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-6 max-w-4xl sm:max-w-none mx-auto">
-            {[1, 2, 3, 4].map(
-              (i) => (
-                <div
-                  key={
-                    i
-                  }
-                  className="rounded-3xl overflow-hidden"
-                >
-                  <div
-                    className="skeleton w-full"
-                    style={{
-                      aspectRatio:
-                        '1/1',
-                    }}
-                  />
-                </div>
-              )
-            )}
+          <div className={gridClass}>
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="overflow-hidden rounded-2xl sm:rounded-3xl" style={{ border: '1px solid rgba(212,175,55,0.14)' }}>
+                <div className="skeleton aspect-square w-full" />
+                <div className="skeleton m-2.5 h-14 rounded-lg" />
+              </div>
+            ))}
           </div>
+        ) : products.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="py-16 text-center"
+          >
+            <div className="mb-4 text-5xl">🌾</div>
+            <div className="mb-2 font-serif text-xl font-bold text-brown-dark">
+              New Products Coming Soon
+            </div>
+            <div className="mx-auto max-w-md text-sm text-brown-mid/60">
+              We're refreshing our collection — check back shortly, or reach out to us directly for
+              the latest.
+            </div>
+          </motion.div>
         ) : (
-          products.length === 0 ? (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-center py-16"
-            >
-              <div className="text-5xl mb-4">🌾</div>
-              <div className="font-serif font-bold text-brown-dark text-xl mb-2">
-                New Products Coming Soon
-              </div>
-              <div className="text-brown-mid/60 text-sm max-w-md mx-auto">
-                We're refreshing our collection — check back shortly, or reach out to us directly for the latest.
-              </div>
-            </motion.div>
-          ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-6 max-w-4xl sm:max-w-none mx-auto">
-            {products.map(
-              (
-                product,
-                i
-              ) => (
-                <NamkeenCard
-                  key={
-                    product._id
-                  }
-                  product={
-                    product
-                  }
-                  index={
-                    i
-                  }
-                />
-              )
-            )}
+          <div className={gridClass}>
+            {products.map((product, i) => (
+              <NamkeenCard key={product._id} product={product} index={i} />
+            ))}
           </div>
-          )
         )}
 
-        {/* View All Products — single centered CTA, naturally responsive across mobile and desktop */}
+        {/* View All Products */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.3 }}
-          className="flex justify-center mt-10 sm:mt-14"
+          className="mt-9 flex justify-center sm:mt-14"
         >
           <Link
             to="/products"
-            className="group inline-flex items-center gap-2 px-8 py-3.5 rounded-full font-bold text-sm sm:text-base transition-all duration-300"
-            style={{
-              color: '#e07000',
-              border: '2px solid #e07000',
-              background: 'transparent',
-            }}
+            className="group inline-flex items-center gap-2 rounded-full px-8 py-3.5 text-sm font-bold transition-all duration-300 sm:text-base"
+            style={{ color: '#e07000', border: '2px solid #e07000', background: 'transparent' }}
             onMouseEnter={(e) => {
               e.currentTarget.style.background = '#e07000';
               e.currentTarget.style.color = '#fff';
