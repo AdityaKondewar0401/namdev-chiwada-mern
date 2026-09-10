@@ -53,8 +53,8 @@ const MOBILE_TRUST = [
 ];
 
 const PRODUCTS = [
-  { img: 'https://res.cloudinary.com/dz7ykg6qr/image/upload/v1776256647/special1_sy4zxa.png', alt: 'Namdev Special Chiwda packet' },
-  { img: 'https://res.cloudinary.com/dz7ykg6qr/image/upload/v1778141952/bakarwadii-Photoroom_wqk7o0.png', alt: 'Namdev Bakarwadi packet' },
+  { img: 'https://res.cloudinary.com/dz7ykg6qr/image/upload/v1789011831/fiii_kt0hua.png', alt: 'Namdev Special Chiwda packet' },
+  { img: 'https://res.cloudinary.com/dz7ykg6qr/image/upload/v1789011831/biii_pkspir.png', alt: 'Namdev Bakarwadi packet' },
 ];
 
 const TAGLINES = [
