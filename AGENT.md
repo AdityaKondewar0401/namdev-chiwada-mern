@@ -73,6 +73,8 @@ mern-app/
     tailwind.config.js
     vercel.json
     vite.config.js
+    scripts/
+      generate-seo-files.mjs   ← build-time sitemap.xml + robots.txt generator ("prebuild" script)
     public/
       images/
         logo.png
@@ -106,6 +108,9 @@ mern-app/
         TestimonialsCarousel.jsx
         DistributorshipBand.jsx
         StickyShopBar.jsx
+        SEO.jsx                  ← per-page <head> manager (title/meta/canonical/OG/Twitter/JSON-LD)
+        Breadcrumbs.jsx          ← shared visible breadcrumb nav; feeds buildBreadcrumbSchema()
+        WishlistIcon.jsx
         admin/
           AdminNav.jsx
           DashboardTab.jsx
@@ -122,6 +127,8 @@ mern-app/
           WishlistTab.jsx
           AddressTab.jsx
           accountConstants.js
+      config/
+        seo.config.js           ← canonical domain + brand SEO defaults (SITE_URL, SITE_NAME, ...)
       context/
         AuthContext.jsx
         CartContext.jsx
@@ -142,11 +149,16 @@ mern-app/
         AdminPage.jsx
         AboutPage.jsx
         ContactPage.jsx
+        ChiwadaPage.jsx            ← SEO landing page — "chiwada"
+        SolapuriChiwadaPage.jsx    ← SEO landing page — "solapuri chiwada"
+        MaharashtrianSnacksPage.jsx← SEO landing page — "maharashtrian snacks"
+        OurHistoryPage.jsx         ← SEO landing page — brand history / "since 1873"
       services/
         api.js
       utils/
         animations.js
         cloudinary.js
+        structuredData.js       ← pure JSON-LD builders (Organization/WebSite/Product/Breadcrumb/FAQ)
   server/
     package.json
     package-lock.json
@@ -159,6 +171,8 @@ mern-app/
       seedData.js
       cloudinary.js
       email.js
+      rateLimits.js            ← single source of truth for every rate-limit threshold (env-driven)
+      shadowfax.js
     controllers/
       authController.js
       productController.js
@@ -167,15 +181,21 @@ mern-app/
       paymentController.js
       uploadController.js
       wishlistController.js
+      shippingController.js
     middleware/
       auth.js
       errorHandler.js
+      rateLimiter.js           ← per-IP tiered limiters (express-rate-limit)
+      accountRateLimiter.js    ← per-ACCOUNT exponential backoff (Mongo-backed)
+      validate.js              ← express-validator choke point — 400 on any failed chain
     models/
       User.js
       Product.js
       Cart.js
       Order.js
       Promo.js
+      RateLimitAttempt.js      ← backs accountRateLimiter; TTL-indexed
+      VerifiedPayment.js
     routes/
       auth.js
       products.js
@@ -184,10 +204,23 @@ mern-app/
       payment.js
       upload.js
       wishlist.js
+      shipping.js
     services/
       emailService.js
+      shadowfaxService.js
     utils/
       pricing.js
+      weight.js
+    validators/               ← one express-validator chain file per domain
+      common.js                 (shared field helpers: mongoIdParam, indianPhone, ...)
+      authValidators.js
+      productValidators.js
+      cartValidators.js
+      orderValidators.js
+      paymentValidators.js
+      wishlistValidators.js
+      uploadValidators.js
+      shippingValidators.js
 ```
 
 The root `{client/` directory is a stray legacy artifact made of nested empty directories. Do not add source code there. The real frontend is `client/`.
@@ -209,10 +242,14 @@ The root `{client/` directory is a stray legacy artifact made of nested empty di
 
 Important frontend config:
 
-- `client/index.html` loads Google Fonts and Google Identity Services.
+- `client/index.html` loads Google Fonts and Google Identity Services, and carries the static fallback `<head>` metadata (title, description, Open Graph, Twitter card, LCP hero preload) that non-JS crawlers see. Per-page SEO is layered on top at runtime by `components/SEO.jsx`.
 - `client/tailwind.config.js` defines `saffron`, `cream`, `brown-dark`, `brown-mid`, `gold`, `leaf`, animation tokens, shadows, and custom radii.
 - `client/vercel.json` rewrites all paths to `/index.html` for SPA routing.
 - `client/vite.config.js` proxies relative `/api` requests to `https://namdev-backend.onrender.com` during Vite development.
+- `client/scripts/generate-seo-files.mjs` runs as the client package's `prebuild` (so `npm run build` always runs it first) and writes `public/sitemap.xml` + `public/robots.txt`. See §29.
+- `client/src/config/seo.config.js` is the single source of truth for the production domain (`SITE_URL`, from `VITE_SITE_URL`, default `https://www.namdevchiwda.com`) and brand SEO defaults.
+
+See §29 for the full SEO architecture.
 
 ## 5. Backend Technologies
 
@@ -227,6 +264,8 @@ Important frontend config:
 | Payment | `razorpay`, Node `crypto` | Creates Razorpay orders and verifies HMAC signatures. |
 | Uploads | Cloudinary, Multer, `multer-storage-cloudinary` | Admin-only product image uploads. |
 | Email | Resend HTTPS API via native `fetch` | SMTP is intentionally not used. |
+| Rate limiting | `express-rate-limit` (per-IP, in-memory) + a Mongo-backed per-account backoff | Tiered. See §30. |
+| Input validation | `express-validator` chains in `server/validators/*` + `middleware/validate.js` | Reject-only, never sanitize-and-continue. See §30. |
 | Logging/dev | Morgan, Nodemon | Morgan only in development. |
 
 Install or change dependencies in the owning subpackage (`client/` or `server/`) unless the change is truly root-level orchestration.
@@ -267,7 +306,7 @@ Routes are declared in `client/src/App.jsx`.
 | --- | --- | --- | --- |
 | `/` | Public | `HomePage` | Hero, marquee, features, API-backed featured products, story, testimonials, B2B band. |
 | `/products` | Public | `ProductsPage` | Product catalog from API with search/sort mirrored to URL query params. |
-| `/products/:id` | Public | `ProductDetailPage` | Canonical product detail by Mongo `_id` or slug, with gallery, size, cart, wishlist, related products. |
+| `/products/:slug` | Public | `ProductDetailPage` | Product detail. Param accepts a slug OR a raw Mongo `_id` (`GET /api/products/:id` resolves either). Canonical URLs are slug-based; the page client-side-redirects an id URL to the slug URL once the product resolves (a `<Navigate replace>`, not a true HTTP 301 — see §24). Gallery, size, cart, wishlist, related products. |
 | `/cart` | Public | `CartPage` | Cart review, quantity changes, promo preview, featured suggestions. |
 | `/checkout` | Auth | `CheckoutPage` | Address, promo revalidation, COD or Razorpay payment, order placement. |
 | `/orders` | Auth | `OrdersPage` | Current user's order list. |
@@ -279,8 +318,16 @@ Routes are declared in `client/src/App.jsx`.
 | `/register` | Public | `RegisterPage` | Signup with optional phone and marketing consent. |
 | `/about` | Public | `AboutPage` | Brand story and legacy presentation. |
 | `/contact` | Public | `ContactPage` | Contact info, map, mailto/WhatsApp form. No backend contact API. |
-| `/namkeen/:id` | Public legacy | `NamkeenDetailPage` | Broken legacy static product detail. Do not extend. |
-| `*` | Public | inline 404 | Branded not-found page inside `Layout`. |
+| `/our-history` | Public | `OurHistoryPage` | SEO landing page — brand history, "since 1873". |
+| `/chiwada` | Public | `ChiwadaPage` | SEO landing page targeting the keyword "chiwada". |
+| `/solapuri-chiwada` | Public | `SolapuriChiwadaPage` | SEO landing page targeting "solapuri chiwada". Includes visible FAQ + `FAQPage` JSON-LD. |
+| `/maharashtrian-snacks` | Public | `MaharashtrianSnacksPage` | SEO landing page targeting "maharashtrian snacks". |
+| `/namkeen/:id` | Public legacy | `NamkeenRedirect` (in `App.jsx`) | Redirects to `/products/:id` via `<Navigate replace>`. `NamkeenDetailPage.jsx` is now unreferenced dead code. Do not extend. |
+| `*` | Public | inline 404 | Branded not-found page inside `Layout`, with `<SEO robots="noindex,nofollow">`. |
+
+The four SEO landing pages are genuine long-form content pages (what-it-is, how-it's-made, heritage tie-in, product links, FAQs), not thin doorway pages. All heritage facts reuse the same true information already on `AboutPage`/`OurHistoryPage`.
+
+Authenticated-only pages (`CheckoutPage`, `OrdersPage`, `AccountPage`, `WishlistPage`, `AdminPage`) are `React.lazy`-loaded / code-split; public + crawled pages load eagerly.
 
 `ProtectedRoute` performs client-only gating. It redirects unauthenticated users to `/login` with `location.state.from`, and redirects non-admin users away from `adminOnly` routes. Server middleware is the real security boundary.
 
@@ -302,15 +349,20 @@ Routes are declared in `client/src/App.jsx`.
 | `TestimonialsCarousel.jsx` | Testimonials. | Mobile swipe carousel, desktop grid. |
 | `DistributorshipBand.jsx` | B2B WhatsApp/phone/email CTA. | Hard-coded brand contact constants. |
 | `StickyShopBar.jsx` | Mobile floating "Shop Now" CTA. | Appears after hero and hides when footer intersects. |
+| `SEO.jsx` | Per-page `<head>`: title, description, canonical, robots, OG, Twitter, JSON-LD. Manages `document.head` directly via `useEffect` (react-helmet-async does not commit under this Vite/Rolldown build). | Render one `<SEO>` near the top of every page — public pages with real metadata, private pages with `robots="noindex,nofollow"`. `canonical` is required. See §29. |
+| `Breadcrumbs.jsx` | Shared visible breadcrumb nav (`items` = `[{label, path}]`). | Hand the SAME `items` array to `buildBreadcrumbSchema()` so visible crumbs and JSON-LD always agree. |
 | `hooks/useReveal.js` | One-shot IntersectionObserver. | Attach returned ref to elements with `.reveal`. |
 | `utils/animations.js` | Framer Motion variants. | Prefer these before adding duplicate variants. |
 | `utils/cloudinary.js` | Adds Cloudinary transformations and responsive srcset. | Use for Cloudinary display URLs where possible. |
+| `utils/structuredData.js` | Pure JSON-LD builders: `buildOrganizationSchema`, `buildWebsiteSchema`, `buildProductSchema`, `buildBreadcrumbSchema`, `buildFAQSchema`. | Never invents facts — every field comes from a real Product doc or a static true brand fact. No `LocalBusiness` schema on purpose (business asked not to surface the shop address). |
+| `config/seo.config.js` | `SITE_URL`, `SITE_NAME`, `DEFAULT_OG_IMAGE`, `DEFAULT_DESCRIPTION`, `SOCIAL_PROFILES`, `isProductionHost()`. | Change the production domain here (or via `VITE_SITE_URL`) — one place. |
 
 ## 9. Page Responsibilities
 
 - `HomePage.jsx`: page composition only. Imports hero/story/testimonials/distributorship/sticky-shop components and `NamkeenSection`.
 - `ProductsPage.jsx`: fetches `productAPI.getAll({ sort, search })`, tracks loading/error/total, and syncs `sort`/`search` to URL params.
-- `ProductDetailPage.jsx`: fetches one product, fetches related products, manages gallery, selected size, quantity, wishlist, share, and mobile sticky add-to-cart bar.
+- `ProductDetailPage.jsx`: fetches one product, fetches related products, manages gallery, selected size, quantity, wishlist, share, mobile sticky add-to-cart bar, breadcrumbs + `Product`/`BreadcrumbList` JSON-LD, and the id→slug canonical redirect.
+- `ChiwadaPage.jsx` / `SolapuriChiwadaPage.jsx` / `MaharashtrianSnacksPage.jsx` / `OurHistoryPage.jsx`: static SEO landing pages — long-form content, breadcrumbs, a visible FAQ block, and `<SEO>` with `FAQPage` + `BreadcrumbList` JSON-LD. No backend calls. See §29.
 - `CartPage.jsx`: reads `CartContext`, allows quantity/removal/clear, validates promo with `orderAPI.validatePromo`, passes promo state to checkout navigation.
 - `CheckoutPage.jsx`: validates address, revalidates incoming promo from cart, uses `api.post('/api/payment/create-order')`, opens Razorpay, verifies payment, then calls `orderAPI.place`.
 - `OrdersPage.jsx`: supports both list and detail route modes from the same component based on optional `id` param.
@@ -320,7 +372,7 @@ Routes are declared in `client/src/App.jsx`.
 - `AuthPages.jsx`: contains login/register pages plus Google login button. Google login uses raw `fetch` to `${import.meta.env.VITE_API_URL}/api/auth/google`.
 - `ContactPage.jsx`: opens `mailto:` or WhatsApp with pre-filled content; there is no server-side contact submission.
 - `AboutPage.jsx`: presentation-heavy page with local helpers, animation hooks, story data, and no backend calls.
-- `NamkeenDetailPage.jsx`: legacy broken page that references undefined `PRODUCTS`. Do not build new functionality on it.
+- `NamkeenDetailPage.jsx`: legacy broken page (references undefined `PRODUCTS`). Now unreferenced dead code — the `/namkeen/:id` route redirects to `/products/:id` instead (`NamkeenRedirect` in `App.jsx`). Do not build on it.
 
 ## 10. Client State Management
 
@@ -504,11 +556,18 @@ For multipart upload through Axios, `ProductFormTab` calls `api.post('/api/uploa
 9. Adds global `errorHandler`.
 10. Connects MongoDB before listening.
 
+`server.js` also sets `app.set('trust proxy', TRUST_PROXY_HOPS || 1)` (required for correct per-IP rate-limit keying behind Railway's proxy) and registers `process.on('uncaughtException'/'unhandledRejection')` handlers that log and exit for a clean restart.
+
 Middleware:
 
 - `protect`: reads Bearer token, verifies JWT with `JWT_SECRET`, loads current user with `select('-password')`, attaches `req.user`, returns 401 on missing/invalid/expired token.
 - `admin`: requires `req.user.role === "admin"`, returns 403 otherwise.
 - `errorHandler`: normalizes Mongoose cast errors, duplicate keys, and validation errors into `{ success: false, message }`.
+- Rate limiters (`middleware/rateLimiter.js`): `authLimiter`, `publicLimiter`, `userActionLimiter`, `webhookLimiter` — per-IP, tiered. See §30.
+- `accountLimiter(purpose)` (`middleware/accountRateLimiter.js`): per-account exponential backoff, stacked on top of `authLimiter` for login/register. See §30.
+- `validate` (`middleware/validate.js`): runs after a route's `express-validator` chain array; returns `400 { success, message: "Validation failed", errors: [{ field, message }] }` if any rule failed. Reject-only — never sanitizes and continues.
+
+Standard route middleware order: `[ipLimiter] → [validatorChain, validate] → [protect] → [admin] → [userActionLimiter] → controller`. Auth routes specifically: `authLimiter → validatorChain → validate → accountLimiter(...) → controller` (cheap per-IP reject first, schema check before any DB query, per-account DB lookup last). See the header comment in `routes/auth.js`.
 
 Backend route modules should stay thin: import controllers, apply middleware in explicit order, and export the router.
 
@@ -525,6 +584,11 @@ Errors generally use:
 ```json
 { "success": false, "message": "..." }
 ```
+
+Two cross-cutting concerns apply to nearly every route below (added in a later security pass — see §30):
+
+- **Rate limiting.** Every route carries exactly one per-IP tier: `authLimiter` (auth routes), `publicLimiter` (public reads), `userActionLimiter` (authenticated actions + admin), or `webhookLimiter` (the Shadowfax callback). `POST /api/auth/register` and `POST /api/auth/login` additionally run `accountLimiter(...)` (per-account backoff). A throttled request gets `429 { success: false, message }` (the account limiter also sets `Retry-After` and adds `retryAfterSeconds`).
+- **Input validation.** Most routes run an `express-validator` chain array from `server/validators/*` followed by `validate`. A schema mismatch is rejected with `400 { success: false, message: "Validation failed", errors: [{ field, message }] }` before the controller runs. This is a stricter, field-level envelope than the generic error envelope above — new clients should read `errors[]` when present.
 
 ### System
 
@@ -897,7 +961,7 @@ ingredients input: "Besan Sev, Peanuts, Curry Leaves"
 Destructive admin actions:
 
 - Product deletion asks with `window.confirm`.
-- Product seeding is public and destructive; avoid using it unless explicitly requested.
+- Product seeding (`POST /api/products/seed`) is admin-only now but still destructive (wipes the whole catalog); avoid using it unless explicitly requested.
 - Promo deletion blocks `NAMDEV10`, `SOLAPUR`, and `FLAT50` by code name.
 
 ## 18. Account Architecture
@@ -995,7 +1059,10 @@ Expected client environment variables:
 VITE_API_URL=https://your-api-origin
 VITE_GOOGLE_CLIENT_ID=your-google-web-client-id
 VITE_RAZORPAY_KEY_ID=your-razorpay-public-key
+VITE_SITE_URL=https://www.namdevchiwda.com   # optional — canonical/OG/sitemap domain; defaults to this value if unset
 ```
+
+`VITE_SITE_URL` is also read (via `process.env`) by `client/scripts/generate-seo-files.mjs` at build time for the sitemap, and Vercel's own `VERCEL_ENV` drives that script's preview-vs-production `robots.txt` branch.
 
 Expected server environment variables:
 
@@ -1018,6 +1085,28 @@ RAZORPAY_KEY_SECRET=...
 
 EMAIL_USER=verified-resend-sender@example.com
 RESEND_API_KEY=...
+
+# Rate limiting — all optional, sane fallbacks live in server/config/rateLimits.js.
+# Retuning any of these needs no code change or logic redeploy.
+TRUST_PROXY_HOPS=1                     # reverse-proxy hops to trust for the real client IP (Railway = 1)
+RATE_LIMIT_IP_AUTH_WINDOW_MS=900000    # Tier 1 (auth): window + max per IP
+RATE_LIMIT_IP_AUTH_MAX=20
+RATE_LIMIT_IP_PUBLIC_WINDOW_MS=60000   # Tier 2 (public reads)
+RATE_LIMIT_IP_PUBLIC_MAX=100
+RATE_LIMIT_IP_USER_WINDOW_MS=60000     # Tier 3 (authenticated actions, keyed by user id)
+RATE_LIMIT_IP_USER_MAX=180
+RATE_LIMIT_IP_WEBHOOK_WINDOW_MS=60000  # Shadowfax webhook (server-to-server)
+RATE_LIMIT_IP_WEBHOOK_MAX=120
+RATE_LIMIT_LOGIN_FREE_ATTEMPTS=5       # per-account backoff — login
+RATE_LIMIT_LOGIN_BASE_DELAY_MS=2000
+RATE_LIMIT_LOGIN_MAX_DELAY_MS=900000
+RATE_LIMIT_REGISTER_FREE_ATTEMPTS=5    # per-account backoff — register
+RATE_LIMIT_REGISTER_BASE_DELAY_MS=5000
+RATE_LIMIT_REGISTER_MAX_DELAY_MS=1800000
+RATE_LIMIT_PW_RESET_FREE_ATTEMPTS=3    # config ready; no password-reset route wired yet
+RATE_LIMIT_PW_RESET_BASE_DELAY_MS=5000
+RATE_LIMIT_PW_RESET_MAX_DELAY_MS=1800000
+RATE_LIMIT_RECORD_TTL_SECONDS=86400    # Mongo TTL for quiet RateLimitAttempt docs (see §30 trap)
 ```
 
 Notes:
@@ -1101,6 +1190,8 @@ Server:
 - `cloudinary`
 - `multer`
 - `multer-storage-cloudinary`
+- `express-rate-limit` — per-IP limiters (`middleware/rateLimiter.js`). Uses its `ipKeyGenerator` helper for IPv6-safe keys.
+- `express-validator` — request schema chains (`server/validators/*`, `middleware/validate.js`).
 - `nodemailer` is installed but current email sending uses Resend HTTPS API, not SMTP.
 
 ## 23. Known Design Decisions
@@ -1113,7 +1204,10 @@ Server:
 - Cloudinary upload transforms cap image dimensions at 800x800, use automatic quality, and use automatic fetch format.
 - Admin dashboard analytics are computed client-side from fetched orders/products instead of adding analytics endpoints.
 - Contact form opens user email/WhatsApp instead of pretending to submit to a nonexistent API.
-- The app has both public `/products/:id` and broken legacy `/namkeen/:id`; use `/products/:id` for maintained product work.
+- The app has public `/products/:slug` and a legacy `/namkeen/:id` that now just redirects; use `/products/:slug` for maintained product work.
+- SEO metadata is managed client-side (`SEO.jsx` writes `document.head`) rather than SSR/prerender, because the app is a pure Vite SPA. `index.html` carries static fallback tags for non-JS crawlers. Accepted tradeoff — see §29.
+- Per-IP rate limiting is deliberately in-memory (per-process), not Redis-backed. Only the per-*account* backoff needs to survive restarts, so only that is in Mongo (`RateLimitAttempt`). See §30.
+- `express-validator` chains only *check* (never `.escape()`/`.trim()` to rewrite input). A non-conforming request is rejected, not silently cleaned and passed through.
 
 ## 24. Known Constraints and Traps
 
@@ -1132,10 +1226,18 @@ Server:
 13. `DELETE /api/upload/:publicId` is awkward for Cloudinary public IDs containing `/`.
 14. `ProductFormTab` removes uploaded image URLs from form state only; it does not call Cloudinary delete.
 15. `updateProduct` does not auto-regenerate slug on rename.
-16. `CheckoutPage.jsx` uses `Lora` but `index.html` does not load it.
+16. ~~`CheckoutPage.jsx` uses `Lora` but `index.html` does not load it.~~ `Lora` is now in the `index.html` Google Fonts link.
 17. `Skeletons.jsx` contains dynamic Tailwind width classes (`w-${w}`) that Tailwind may not generate.
 18. Development proxy helps relative `/api` calls, but production Vercel rewrite does not proxy API traffic.
 19. No automated test suite exists. Validate changed flows manually or with targeted build checks.
+20. **SEO metadata is JS-rendered.** `SEO.jsx` writes `document.head` in a `useEffect`, so crawlers that don't execute JS (most social-preview scrapers — WhatsApp/Facebook/LinkedIn) only ever see the static fallback tags in `client/index.html`, not per-page titles/OG/JSON-LD. Googlebot renders JS and sees the real tags. If richer non-JS previews are needed, that requires SSR/prerendering, which this SPA does not have.
+21. **The old-id → canonical-slug product redirect is client-side.** `ProductDetailPage` does `<Navigate replace>` after the product resolves, not an HTTP 301. Search engines treat it as a soft signal only. A true 301 would need an edge/redirect rule on Vercel or the API.
+22. `index.html`'s SEO fallback comment still says metadata is rendered "by `<SEO>` via react-helmet-async" — stale; `SEO.jsx` was rewritten to manage `document.head` directly (react-helmet-async never committed under this Vite 8 / Rolldown build). Comment only, no behavioral impact.
+23. **Changing `RATE_LIMIT_RECORD_TTL_SECONDS` does not retroactively apply.** MongoDB bakes `expireAfterSeconds` into the TTL index at creation time (`RateLimitAttempt.js`). A new value needs the index dropped and recreated.
+24. The account rate limiter **fails open** — a DB error in `accountLimiter`/`recordFailure`/`recordSuccess` is logged and the request proceeds (so a limiter bug can never lock every user out of login). The per-IP `authLimiter` is still the backstop.
+25. `RATE_LIMIT_PW_RESET_*` config and `accountRateLimiter`'s `passwordReset` purpose exist but are **not wired to any route** — there is no password-reset endpoint in this codebase yet. Wiring one up later is a one-line route addition, not a redesign.
+26. The sitemap generator (`generate-seo-files.mjs`) fetches product slugs from the **live API at build time**. If the backend is asleep/down during a Vercel build, the sitemap is still written but with static pages only (logged as a warning, build does not fail).
+27. `generate-seo-files.mjs` and `seo.config.js` each hardcode the same production-domain fallback (`https://www.namdevchiwda.com`) and the same API fallback. Keep them in sync when either changes (both files call this out in comments).
 
 ## 25. Coding Conventions
 
@@ -1191,6 +1293,8 @@ When adding or changing a feature:
 - Do not read, print, or commit `.env` secrets.
 - Add reusable JSON endpoint methods to `client/src/services/api.js`.
 - For protected backend mutations, verify route middleware and controller validation.
+- For any new API route, wire the right rate-limit tier + an `express-validator` chain + `validate` (see §30).
+- For any new/changed page, keep exactly one `<SEO>` with a correct `canonical`; add public indexable routes to `STATIC_PAGES` in `generate-seo-files.mjs`; private pages pass `robots="noindex,nofollow"` (see §29).
 - For product/cart/order changes, inspect all three schemas plus UI/email renderers.
 - For promo/payment changes, inspect `server/utils/pricing.js`, `orderController.js`, `paymentController.js`, `CartPage.jsx`, and `CheckoutPage.jsx`.
 - For deployment-sensitive changes, account for Vercel SPA fallback, API origin env vars, CORS, MongoDB, Cloudinary, Razorpay, Google, and Resend env vars.
@@ -1260,3 +1364,158 @@ Traps:
 - `client_order_id` sent to Shadowfax is always this app's Mongo
   `Order._id` — the webhook's `order_id` field is looked up against that,
   not a separate order-number scheme.
+
+## 29. SEO Architecture
+
+The app is a pure Vite SPA (no SSR / no prerender), so SEO is a layered
+client-side + build-time system rather than server-rendered `<head>`s.
+
+### Pieces
+
+| File | Role |
+| --- | --- |
+| `client/src/config/seo.config.js` | Single source of truth: `SITE_URL` (from `VITE_SITE_URL`, default `https://www.namdevchiwda.com`, trailing slash stripped), `SITE_NAME`, `SITE_NAME_MARATHI`, `DEFAULT_OG_IMAGE`, `DEFAULT_DESCRIPTION`, `TWITTER_HANDLE` (currently `null`), `SOCIAL_PROFILES`, and `isProductionHost()`. |
+| `client/src/components/SEO.jsx` | Renders nothing; a `useEffect` writes `document.title`, `meta[name=description/keywords/robots]`, `link[rel=canonical]`, Open Graph, Twitter card, and `script[type=application/ld+json]` directly into `document.head`. Every element it owns carries `data-seo="true"` (or `data-seo-jsonld="true"`) so the next page's effect updates/replaces exactly those and never the static `index.html` fallbacks. |
+| `client/src/utils/structuredData.js` | Pure JSON-LD builders: `buildOrganizationSchema()`, `buildWebsiteSchema()` (both homepage-only), `buildProductSchema(product)`, `buildBreadcrumbSchema(items)`, `buildFAQSchema(faqs)`. |
+| `client/src/components/Breadcrumbs.jsx` | Visible breadcrumb nav. Takes `items = [{ label, path }]` — the SAME array is passed to `buildBreadcrumbSchema()` so on-page crumbs and JSON-LD always match. |
+| `client/index.html` | Static fallback `<head>` (title, description, OG, Twitter, hero LCP preload) for non-JS crawlers. |
+| `client/scripts/generate-seo-files.mjs` | `prebuild` script → writes `client/public/sitemap.xml` and `client/public/robots.txt` into the Vite build output. |
+
+### Rules / conventions
+
+- **Every page renders exactly one `<SEO>`** near the top of its JSX.
+  Public pages pass real `title` + `description` + `canonical` (+ `jsonLd`
+  where relevant). Authenticated/private pages (`AccountPage`, `WishlistPage`,
+  `OrdersPage`, `CheckoutPage`, `AdminPage`, `AuthPages`, `CartPage`) and the
+  404 route pass `robots="noindex,nofollow"`. `canonical` is **required** —
+  it accepts an absolute URL or a site-relative path (`/solapuri-chiwada`),
+  resolved against `SITE_URL`.
+- `SEO.jsx` does not auto-append a site-name suffix — callers pass the exact
+  final title string.
+- **Preview-deployment safety (two halves).**
+  1. Build-time: `generate-seo-files.mjs` checks `process.env.VERCEL_ENV`; when
+     it is `"preview"` it writes a blanket `Disallow: /` `robots.txt` with no
+     sitemap line.
+  2. Runtime: `isProductionHost()` in `seo.config.js` compares
+     `window.location.hostname` to `SITE_URL`'s host; `SEO.jsx` forces
+     `robots` to `noindex,nofollow` for any non-production host regardless of
+     what the page passed. So a `*.vercel.app` preview can never be indexed as
+     a duplicate of production.
+- **Sitemap contents.** `STATIC_PAGES` in the script: `/`, `/products`,
+  `/chiwada`, `/solapuri-chiwada`, `/maharashtrian-snacks`, `/our-history`,
+  `/about`, `/contact`. Product URLs (`/products/<slug>`) are fetched live from
+  `GET /api/products?limit=100` at build time. Every authenticated route,
+  `/admin`, `/login`, `/register`, and `/namkeen/:id` are deliberately
+  excluded. `robots.txt` (production) `Disallow`s `/admin`, `/account`,
+  `/wishlist`, `/cart`, `/checkout`, `/orders`, `/login`, `/register`.
+- **JSON-LD honesty rule.** `structuredData.js` never fabricates ratings,
+  reviews, or business facts. `buildProductSchema` only emits
+  `aggregateRating` when `product.reviews > 0`, using the same numbers shown
+  on the visible page. There is intentionally **no `LocalBusiness` schema**
+  (the business asked not to make the physical shop address more
+  discoverable).
+- **Product URL canonicalization.** URLs are slug-based
+  (`/products/namdev-chiwada`). `GET /api/products/:id` resolves a 24-char
+  ObjectId *or* a slug, so no backend change was needed.
+  `ProductDetailPage` redirects an id-form URL to the canonical slug URL
+  client-side (`<Navigate replace>` — not a true 301; see §24 trap 21).
+- The four SEO landing pages (`ChiwadaPage`, `SolapuriChiwadaPage`,
+  `MaharashtrianSnacksPage`, `OurHistoryPage`) are full content pages reusing
+  true heritage facts from `AboutPage`/`OurHistoryPage`. All four carry a
+  visible FAQ block plus matching `FAQPage` JSON-LD and a `BreadcrumbList`.
+
+### When adding or changing a page
+
+1. Add/keep one `<SEO>` with a correct `canonical`.
+2. If it's a new public indexable route, add it to `STATIC_PAGES` in
+   `generate-seo-files.mjs`.
+3. If it has breadcrumbs, build the `items` array once and pass it to both
+   `<Breadcrumbs>` and `buildBreadcrumbSchema()`.
+4. If it has a visible FAQ, mark it up with `buildFAQSchema()` using the
+   exact visible Q&A text.
+5. Private/authenticated pages must pass `robots="noindex,nofollow"`.
+
+## 30. Rate Limiting and Input Validation
+
+Both were added in a later security pass and now apply across the API.
+
+### Rate limiting
+
+Config: `server/config/rateLimits.js` — every threshold is read from `.env`
+with a fallback (see §20 for the full var list), so ops can retune without a
+code change. `server.js` sets `app.set('trust proxy', TRUST_PROXY_HOPS || 1)`
+so per-IP keys use the real client IP behind Railway's proxy.
+
+**Per-IP tiers** (`server/middleware/rateLimiter.js`, `express-rate-limit`,
+in-memory per process):
+
+| Limiter | Default | Applied to |
+| --- | --- | --- |
+| `authLimiter` | 20 / 15 min / IP | `POST /api/auth/register`, `/login`, `/google` |
+| `publicLimiter` | 100 / min / IP | public reads: `GET /api/products*`, `GET /api/shipping/check-pincode` |
+| `userActionLimiter` | 180 / min / **user** | every authenticated route (cart, orders, wishlist, payment, upload, admin, `/api/auth/me` + `/profile` + `/change-password`, admin shipping actions). Keyed by `req.user._id`, falling back to `ipKeyGenerator(req.ip)` (IPv6-safe) — so one user on a shared/NAT IP can't exhaust another's quota. `protect` must run before it. |
+| `webhookLimiter` | 120 / min / IP | `POST /api/shipping/webhook/shadowfax` only (server-to-server, kept separate from browser abuse) |
+
+Throttled response: `429 { success: false, message }` with `RateLimit-*`
+standard headers.
+
+**Per-account exponential backoff** (`server/middleware/accountRateLimiter.js`,
+backed by the `RateLimitAttempt` Mongo model). Stacks *on top of*
+`authLimiter` for `/register` and `/login`. Stops a distributed / IP-rotating
+attacker from brute-forcing one specific account when no single IP trips the
+IP limit.
+
+- Keyed by `${purpose}:${normalizedEmail}` (email lowercased/trimmed).
+- First `freeAttempts` failures (default 5) run at normal speed — a real user
+  mistyping their password never notices.
+- Each failure after that: wait `baseDelayMs * 2^(attempts - freeAttempts)`,
+  capped at `maxDelayMs`. Blocked requests get
+  `429 { success, message, retryAfterSeconds }` + a `Retry-After` header.
+- One **success** deletes the record (`recordSuccess`).
+- No permanent lockout, no admin unlock — the delay always expires.
+- **Fails open**: any DB error in the check or in `recordFailure`/
+  `recordSuccess` is logged and the request proceeds (per-IP limiter is the
+  backstop).
+- Wiring: route does
+  `authLimiter, <validators>, validate, accountLimiter('login'), login`;
+  the controller calls `await recordFailure(req)` on every failure path and
+  `await recordSuccess(req)` on success (`authController.js`).
+- `google` login gets only the per-IP limiter — no per-account backoff (you
+  already need a valid Google token, so per-account brute force isn't
+  meaningful).
+- `RateLimitAttempt` has a TTL index on `lastAttemptAt`
+  (`expireAfterSeconds: recordTtlSeconds`, default 24h) to reap quiet records.
+  Changing that env value needs the index rebuilt (§24 trap 23).
+
+The `passwordReset` purpose is configured but unwired — no reset route exists
+yet (§24 trap 25).
+
+### Input validation
+
+- One file per domain in `server/validators/` (`authValidators.js`,
+  `productValidators.js`, `cartValidators.js`, `orderValidators.js`,
+  `paymentValidators.js`, `wishlistValidators.js`, `uploadValidators.js`,
+  `shippingValidators.js`), plus `common.js` for shared field helpers
+  (`mongoIdParam`, `indianPhone`, pincode, etc.).
+- Each export is an **array of `express-validator` chains** that only *check*
+  (`isEmail`, `isInt`, `isLength`, `matches`, `isIn`, `isMongoId`, …). They do
+  **not** call `.escape()`/`.trim()` to rewrite bad input into something
+  acceptable.
+- `server/middleware/validate.js` runs after the chain array: if any rule
+  failed it returns
+  `400 { success: false, message: "Validation failed", errors: [{ field, message }] }`
+  (first error per field) and the controller never runs.
+- Route pattern: `router.post('/thing', someValidatorArray, validate, controller.thing)`.
+- Rejecting malformed `:id` params here (via `isMongoId`) means Mongoose never
+  sees a `CastError` for the common bad-input case.
+
+### When adding a route
+
+1. Pick the right per-IP tier (`publicLimiter` for public reads,
+   `userActionLimiter` for anything behind `protect`, `authLimiter` for
+   credential-taking routes).
+2. Add a validator chain array to the matching `validators/*` file (reuse
+   `common.js` helpers) and put `<chain>, validate` before the controller.
+3. For a new credential/account route, also add an `accountLimiter(purpose)`
+   and a `rateLimitConfig.account.<purpose>` block, and call
+   `recordFailure`/`recordSuccess` in the controller.

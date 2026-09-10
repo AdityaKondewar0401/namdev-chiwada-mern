@@ -10,6 +10,7 @@ import { SITE_NAME } from '../config/seo.config';
 
 // ── New / redesigned homepage sections ──
 import HeroExperience from '../components/HeroExperience';
+import HeritagePatch from '../components/HeritagePatch';
 import HeritageTimeline from '../components/HeritageTimeline';
 import TestimonialsCarousel from '../components/TestimonialsCarousel';
 import DistributorshipBand from '../components/DistributorshipBand';
@@ -876,6 +877,8 @@ export default function HomePage() {
       <FeaturesSection />
 
       <ShippingPartnerTape />
+
+      <HeritagePatch />
 
       <NamkeenSection />
 

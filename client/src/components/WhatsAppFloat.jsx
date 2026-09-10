@@ -74,8 +74,8 @@ export default function WhatsAppFloat({ phone = '919130160491', message = "Namas
       onClick={handleClick}
       title="Chat on WhatsApp"
       aria-label="Chat on WhatsApp"
-      className="fixed bottom-24 right-5 z-40 w-14 h-14 rounded-full flex items-center justify-center text-white transition-transform duration-200 hover:scale-110 animate-pulse2"
-      style={{ background: '#25D366', boxShadow: '0 4px 20px rgba(37,211,102,0.4)' }}
+      className="fixed bottom-5 right-5 z-40 w-14 h-14 rounded-full flex items-center justify-center text-white transition-transform duration-200 hover:scale-110 animate-pulse2"
+      style={{ background: '#25D366', boxShadow: '0 4px 20px rgba(37,211,102,0.4)', bottom: 'calc(1.25rem + env(safe-area-inset-bottom, 0px))' }}
     >
       {/* Same Simple Icons WhatsApp glyph the footer's social row uses
           (cdn.simpleicons.org/whatsapp/<hex>), just recolored white since

@@ -5,12 +5,53 @@ import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 
 const NAV_LINKS = [
-  { label: 'Home', to: '/', icon: '🏠' },
-  { label: 'Products', to: '/products', icon: '🍛' },
-  { label: 'About', to: '/about', icon: '📜' },
-  { label: 'Store Locator', to: '/contact', icon: '📍' },
-  { label: 'Track Order', to: '/orders', icon: '📦' },
+  { label: 'Home', to: '/' },
+  { label: 'Products', to: '/products' },
+  { label: 'About', to: '/about' },
+  { label: 'Contact Us', to: '/contact' },
 ];
+
+// Mobile drawer bento — Home is rendered separately as the tall tile.
+const DRAWER_NAV = [
+  { label: 'Products', to: '/products', icon: 'bag' },
+  { label: 'Contact Us', to: '/contact', icon: 'mail' },
+  { label: 'About', to: '/about', icon: 'doc' },
+];
+
+// Revealed under the drawer's "Profile" disclosure. Cart is intentionally
+// absent — it lives in the mobile top bar, not here.
+const PROFILE_LINKS = [
+  { label: 'My Account', to: '/account', icon: 'user' },
+  { label: 'Wishlist', to: '/wishlist', icon: 'heart' },
+  { label: 'My Orders', to: '/orders', icon: 'receipt' },
+];
+
+// Monoline icon set for the mobile drawer (bento tiles + account grid).
+// Each string is one or more sub-paths joined on "M"; DrawerIcon splits
+// them back out so a single stroke style covers the whole glyph.
+const DRAWER_ICON_PATHS = {
+  home: 'M3 10.6 12 3l9 7.6M5 9.4V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.4',
+  bag: 'M6 8h12l1 12H5zM9 8V6.5a3 3 0 0 1 6 0V8',
+  mail: 'M3.5 6.5h17v11h-17zM3.8 7l8.2 6.2L20.2 7',
+  doc: 'M7 3h7l4 4v14H7zM14 3v4h4M9.5 12h5M9.5 15.5h5',
+  user: 'M12 12a3.6 3.6 0 1 0 0-7.2A3.6 3.6 0 0 0 12 12zM5.5 20c1.3-3.3 3.7-4.8 6.5-4.8s5.2 1.5 6.5 4.8',
+  heart: 'M12 20S4.8 15.6 4.8 10.2A3.9 3.9 0 0 1 12 8a3.9 3.9 0 0 1 7.2 2.2C19.2 15.6 12 20 12 20z',
+  receipt: 'M6.5 3h11v18l-2.75-1.8L12 21l-2.75-1.8L6.5 21zM9.5 8.5h5M9.5 12h5',
+  logout: 'M14.5 5H6a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8.5M12.5 12h9M18 8.2l3.8 3.8L18 15.8',
+  x: 'M6 6l12 12M18 6L6 18',
+};
+
+function DrawerIcon({ name, size = 20, sw = 1.6, className }) {
+  const d = DRAWER_ICON_PATHS[name];
+  if (!d) return null;
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
+      {d.split('M').filter(Boolean).map((seg, i) => (
+        <path key={i} d={'M' + seg} stroke="currentColor" strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" />
+      ))}
+    </svg>
+  );
+}
 
 const SOCIAL_LINKS = [
   {
@@ -464,136 +505,218 @@ export default function Navbar() {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
-              className="fixed top-0 right-0 bottom-0 z-[60] md:hidden flex flex-col"
+              className="fixed top-0 right-0 bottom-0 z-[60] md:hidden flex flex-col overflow-hidden"
               style={{
-                width: 'min(300px, 82vw)',
-                background: 'linear-gradient(160deg, #2d1a00 0%, #3d1c00 55%, #4a2200 100%)',
+                width: 'min(332px, 86vw)',
+                background: 'linear-gradient(165deg,#fdf6e8,#f3e4c2)',
                 boxShadow: '-12px 0 48px rgba(0,0,0,0.45)',
+                borderTopLeftRadius: 96,
+                borderBottomLeftRadius: 48,
               }}
             >
-              <div className="flex items-center justify-between px-5 py-4 flex-shrink-0"
-                style={{ borderBottom: '1px solid rgba(212,175,55,0.16)' }}>
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-black text-sm flex-shrink-0"
-                    style={{ background: 'linear-gradient(135deg,#e07000,#ff9010)', boxShadow: '0 0 0 2px rgba(212,175,55,0.35)' }}>
-                    N
-                  </div>
-                  <span className="text-white font-serif font-bold">Namdev Chiwda</span>
-                </div>
+              {/* Header — centred logo, SOLAPUR kicker, quiet close */}
+              <div
+                className="relative flex flex-col items-center flex-shrink-0"
+                style={{ paddingTop: 30, paddingBottom: 16 }}
+              >
                 <button
                   onClick={() => setMenuOpen(false)}
                   aria-label="Close menu"
-                  className="w-8 h-8 flex items-center justify-center rounded-full text-white/70 hover:text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f0cc5a]"
-                  style={{ background: 'rgba(255,255,255,0.08)' }}>
-                  ✕
+                  className="absolute grid place-items-center rounded-full transition-colors hover:bg-brown-dark/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-saffron"
+                  style={{ right: 16, top: 20, width: 32, height: 32, background: 'rgba(45,26,0,0.08)', color: '#7a3300' }}
+                >
+                  <DrawerIcon name="x" size={14} />
                 </button>
+                <img
+                  src="/images/logo.png"
+                  alt="Namdev Chiwda"
+                  style={{ height: 60, width: 'auto', display: 'block', filter: 'drop-shadow(0 6px 16px rgba(45,26,0,0.2))' }}
+                />
+                <div style={{ marginTop: 9, color: '#b98b2e', fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.32em' }}>
+                  SOLAPUR
+                </div>
               </div>
+              <div
+                className="mx-auto flex-shrink-0"
+                style={{ width: 40, height: 2, borderRadius: 2, background: 'rgba(198,152,47,0.5)', marginBottom: 12 }}
+              />
 
-              <div className="flex-1 overflow-y-auto px-3 py-3">
-
-                <div className="flex flex-col gap-0.5 mb-2">
-                  {NAV_LINKS.map((l, i) => (
-                    <motion.div
-                      key={l.to}
-                      initial={{ opacity: 0, x: 24 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.04 + 0.05 }}
+              {/* Scrollable body — varied bento nav + account grid */}
+              <div className="flex-1 overflow-y-auto pb-4">
+                <div className="px-4">
+                  <div className="grid grid-cols-2 gap-2.5" style={{ gridAutoRows: '1fr' }}>
+                    <Link
+                      to="/"
+                      onClick={() => setMenuOpen(false)}
+                      className="row-span-2 flex flex-col justify-between p-4"
+                      style={{
+                        borderRadius: 24,
+                        background: 'linear-gradient(150deg,#e07000,#ff9d3c)',
+                        color: '#fff',
+                        minHeight: 174,
+                        boxShadow: '0 12px 24px -14px rgba(224,112,0,0.7)',
+                      }}
                     >
+                      <DrawerIcon name="home" size={24} />
+                      <div>
+                        {isActive('/') && (
+                          <div style={{ fontSize: '0.58rem', letterSpacing: '0.14em', opacity: 0.85, fontWeight: 700 }}>
+                            YOU ARE ON
+                          </div>
+                        )}
+                        <div style={{ fontWeight: 800, fontSize: '1.2rem' }}>Home</div>
+                      </div>
+                    </Link>
+
+                    {DRAWER_NAV.slice(0, 2).map((n) => {
+                      const on = isActive(n.to);
+                      return (
+                        <Link
+                          key={n.to}
+                          to={n.to}
+                          onClick={() => setMenuOpen(false)}
+                          className="flex flex-col justify-between p-3.5"
+                          style={{
+                            borderRadius: 18,
+                            background: on ? 'rgba(224,112,0,0.1)' : '#fffdf6',
+                            border: `1px solid ${on ? '#e07000' : 'rgba(198,152,47,0.3)'}`,
+                            minHeight: 82,
+                            color: on ? '#e07000' : '#7a3300',
+                          }}
+                        >
+                          <DrawerIcon name={n.icon} size={19} />
+                          <span style={{ color: on ? '#e07000' : '#2d1a00', fontWeight: 600, fontSize: '0.84rem' }}>
+                            {n.label}
+                          </span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+
+                  {DRAWER_NAV.slice(2).map((n) => {
+                    const on = isActive(n.to);
+                    return (
                       <Link
-                        to={l.to}
-                        className="flex items-center gap-3 px-4 py-3.5 rounded-xl font-semibold text-base transition-all"
+                        key={n.to}
+                        to={n.to}
+                        onClick={() => setMenuOpen(false)}
+                        className="mt-2.5 flex items-center gap-2.5 px-3.5"
                         style={{
-                          color: isActive(l.to) ? '#ffb347' : '#ffffff',
-                          background: isActive(l.to) ? 'rgba(224,112,0,0.2)' : 'transparent',
-                          borderLeft: `3px solid ${isActive(l.to) ? '#e07000' : 'transparent'}`,
+                          height: 56,
+                          borderRadius: 18,
+                          background: on ? 'rgba(224,112,0,0.1)' : '#fffdf6',
+                          border: `1px solid ${on ? '#e07000' : 'rgba(198,152,47,0.3)'}`,
+                          color: on ? '#e07000' : '#7a3300',
                         }}
                       >
-                        <span className="text-lg flex-shrink-0" aria-hidden="true">{l.icon}</span>
-                        {l.label}
+                        <DrawerIcon name={n.icon} size={18} />
+                        <span style={{ color: on ? '#e07000' : '#2d1a00', fontWeight: 600, fontSize: '0.84rem' }}>
+                          {n.label}
+                        </span>
                       </Link>
-                    </motion.div>
-                  ))}
+                    );
+                  })}
                 </div>
 
-                <div className="h-px mx-2 my-3" style={{ background: 'rgba(212,175,55,0.16)' }} />
-
-                {user ? (
-                  <div className="flex flex-col gap-0.5">
-                    <div className="flex items-center gap-3 px-4 py-3 mb-2 rounded-xl"
-                      style={{ background: 'rgba(224,112,0,0.15)', border: '1px solid rgba(224,112,0,0.25)' }}>
-                      <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-base flex-shrink-0"
-                        style={{ background: 'linear-gradient(135deg,#e07000,#ff9010)', boxShadow: '0 0 0 2px rgba(212,175,55,0.35)' }}>
-                        {user.name?.charAt(0).toUpperCase()}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="font-bold text-sm truncate text-white">{user.name}</div>
-                        <div className="text-xs truncate" style={{ color: 'rgba(255,255,255,0.45)' }}>{user.email}</div>
-                      </div>
-                    </div>
-
-                    {user?.role === 'admin' && (
-                      <Link to="/admin"
-                        className="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm transition-all"
-                        style={{ color: '#ffb347' }}>
-                        ⚙️ Admin Panel
-                      </Link>
-                    )}
-                    <Link to="/account"
-                      className="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm transition-all"
-                      style={{ color: 'rgba(255,255,255,0.9)' }}>
-                      👤 My Account
-                    </Link>
-                    <Link to="/wishlist"
-                      className="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm transition-all"
-                      style={{ color: 'rgba(255,255,255,0.9)' }}>
-                      ❤️ Wishlist
-                    </Link>
-                    <Link to="/orders"
-                      className="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm transition-all"
-                      style={{ color: 'rgba(255,255,255,0.9)' }}>
-                      📦 My Orders
-                    </Link>
-                    <Link to="/cart"
-                      className="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm transition-all"
-                      style={{ color: 'rgba(255,255,255,0.9)' }}>
-                      🛒 My Cart
-                      {totalItems > 0 && (
-                        <span className="ml-auto w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center flex-shrink-0">
-                          {totalItems}
+                <div className="mt-3 px-4">
+                  {user ? (
+                    <>
+                      {/* Profile — identity card with account / wishlist /
+                          orders always listed beneath it. */}
+                      <div
+                        className="flex w-full items-center gap-3 p-3"
+                        style={{ borderRadius: 18, background: '#fffdf6', border: '1px solid rgba(198,152,47,0.3)' }}
+                      >
+                        <span
+                          className="grid h-9 w-9 place-items-center rounded-full font-serif font-bold text-white flex-shrink-0"
+                          style={{ background: 'linear-gradient(135deg,#e07000,#d4af37)' }}
+                        >
+                          {user.name?.charAt(0).toUpperCase()}
                         </span>
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate font-semibold" style={{ color: '#2d1a00', fontSize: '0.82rem' }}>
+                            {user.name}
+                          </div>
+                          <div className="truncate" style={{ color: 'rgba(45,26,0,0.5)', fontSize: '0.7rem' }}>
+                            Profile
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-1.5 flex flex-col gap-0.5 pl-1.5">
+                        {PROFILE_LINKS.map((n) => (
+                          <Link
+                            key={n.to}
+                            to={n.to}
+                            onClick={() => setMenuOpen(false)}
+                            className="flex items-center gap-3 px-3 py-2.5"
+                            style={{ borderRadius: 12, color: '#2d1a00' }}
+                          >
+                            <span style={{ color: '#7a3300' }}><DrawerIcon name={n.icon} size={17} /></span>
+                            <span style={{ fontSize: '0.84rem', fontWeight: 500 }}>{n.label}</span>
+                          </Link>
+                        ))}
+                      </div>
+
+                      {user?.role === 'admin' && (
+                        <Link
+                          to="/admin"
+                          onClick={() => setMenuOpen(false)}
+                          className="mt-2.5 flex items-center justify-center gap-2 py-2.5"
+                          style={{
+                            borderRadius: 16,
+                            background: 'rgba(224,112,0,0.1)',
+                            border: '1px solid rgba(224,112,0,0.3)',
+                            color: '#b45309',
+                            fontSize: '0.82rem',
+                            fontWeight: 600,
+                          }}
+                        >
+                          Admin Panel
+                        </Link>
                       )}
-                    </Link>
 
-                    <div className="h-px mx-2 my-2" style={{ background: 'rgba(255,255,255,0.08)' }} />
+                      <button
+                        onClick={logout}
+                        className="mt-2.5 flex w-full items-center justify-center gap-2 py-2.5"
+                        style={{
+                          borderRadius: 16,
+                          background: 'rgba(178,59,46,0.08)',
+                          border: '1px solid rgba(178,59,46,0.2)',
+                          color: '#b23b2e',
+                          fontSize: '0.85rem',
+                          fontWeight: 600,
+                        }}
+                      >
+                        <DrawerIcon name="logout" size={16} />
+                        Logout
+                      </button>
+                    </>
+                  ) : (
+                    <div className="flex flex-col gap-2.5">
+                      <Link
+                        to="/login"
+                        onClick={() => setMenuOpen(false)}
+                        className="py-3 rounded-2xl font-bold text-center text-sm"
+                        style={{ background: '#fffdf6', color: '#2d1a00', border: '1px solid rgba(198,152,47,0.4)' }}
+                      >
+                        Sign In
+                      </Link>
+                      <Link
+                        to="/register"
+                        onClick={() => setMenuOpen(false)}
+                        className="py-3 rounded-2xl font-bold text-center text-sm text-white"
+                        style={{ background: 'linear-gradient(135deg,#e07000,#ff9010)', boxShadow: '0 4px 14px rgba(224,112,0,0.35)' }}
+                      >
+                        Create Account
+                      </Link>
+                    </div>
+                  )}
+                </div>
 
-                    <button
-                      onClick={logout}
-                      className="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm text-left w-full transition-all"
-                      style={{ color: '#fca5a5' }}>
-                      🚪 Logout
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-3 px-1 pt-1">
-                    <Link to="/login"
-                      className="py-3.5 rounded-xl font-bold text-center text-sm"
-                      style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid rgba(255,255,255,0.15)' }}>
-                      Sign In
-                    </Link>
-                    <Link to="/register"
-                      className="py-3.5 rounded-xl font-bold text-center text-sm"
-                      style={{ background: 'linear-gradient(135deg,#e07000,#ff9010)', color: '#fff', boxShadow: '0 4px 14px rgba(224,112,0,0.35)' }}>
-                      Create Account
-                    </Link>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex-shrink-0 px-5 py-4"
-                style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                <p className="text-center text-xs" style={{ color: 'rgba(255,255,255,0.22)' }}>
+                <div className="px-5 pb-2 pt-4 text-center" style={{ color: 'rgba(45,26,0,0.32)', fontSize: '0.66rem' }}>
                   © Namdev Chiwda · Since 1873
-                </p>
+                </div>
               </div>
             </motion.div>
           </>

@@ -1,122 +1,83 @@
-// ─────────────────────────────────────────────
-// DistributorshipBand  (NEW COMPONENT)
-//
-// A compact B2B section inviting retailers/distributors to reach
-// out. Placed on the homepage after the heritage story + product
-// sections, right before the footer (see HomePage.jsx).
-//
-// Design choice: a deeper brown/gold "trade" band — visually
-// distinct from the saffron/cream consumer sections and from the
-// existing green "Corporate Gifting" WhatsApp CTA — so it reads as
-// a separate, B2B-facing ask rather than another add-to-cart prompt.
-//
-// Contact-method choice: direct click-to-contact (WhatsApp primary,
-// phone + email secondary), not a form and not routed through
-// ContactPage — keeps this a single self-contained homepage section
-// per the brief's "your call" note. No dedicated distributorship
-// phone line was provided, so this reuses the existing brand contact
-// details (from Footer.jsx / ContactPage pattern). Swap the
-// constants below if/when a dedicated trade line exists.
-// ─────────────────────────────────────────────
+import { motion } from 'framer-motion';
 
+// Compact B2B band — retailers / distributors. Kept deliberately short:
+// one line of copy, one primary action, contact details as quiet text.
+// Dark brown band so it reads as a separate, trade-facing ask.
+
+const WHATSAPP = '919130160491';
 const PHONE_DISPLAY = '+91 91301 60491';
 const PHONE_TEL = '+919130160491';
-const WHATSAPP_NUMBER = '919130160491';
 const EMAIL = 'care@namdevchiwda.com';
+const WA_URL = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(
+  "Hi, I'm interested in a Namdev Chiwda distributorship / retail partnership."
+)}`;
 
 export default function DistributorshipBand() {
   return (
     <section
       id="distributorship"
-      className="py-14 md:py-20 relative overflow-hidden"
-      style={{ background: 'linear-gradient(135deg, #23140a 0%, #3d1c00 60%, #4a2200 100%)' }}
+      className="relative overflow-hidden py-14 md:py-16"
+      style={{ background: 'linear-gradient(135deg,#23140a,#3d1c00 65%,#42210b)' }}
     >
-      {/* Gold hairline top border, echoes the framing already used around NamkeenSection */}
       <div
-        className="absolute top-0 left-0 right-0 h-px"
-        style={{ background: 'linear-gradient(90deg,transparent,#d4af37,transparent)' }}
+        className="absolute inset-x-0 top-0 h-px"
+        style={{ background: 'linear-gradient(90deg,transparent,rgba(212,175,55,0.5),transparent)' }}
       />
 
-      <div className="max-w-4xl mx-auto px-5 sm:px-6 text-center">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5 }}
+        className="relative mx-auto max-w-xl px-6 text-center"
+      >
         <div
-          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border font-semibold uppercase mb-5"
-          style={{
-            borderColor: 'rgba(212,175,55,0.35)',
-            background: 'rgba(212,175,55,0.08)',
-            color: '#e7bf63',
-            fontSize: '0.68rem',
-            letterSpacing: '0.14em',
-          }}
+          className="text-[0.66rem] font-semibold uppercase"
+          style={{ letterSpacing: '0.22em', color: '#c8902a' }}
         >
-          ● For Retailers &amp; Distributors
+          For Retailers &amp; Distributors
         </div>
 
         <h2
-          className="font-serif font-black text-white leading-tight mb-3"
-          style={{ fontSize: 'clamp(1.55rem,4.2vw,2.4rem)' }}
+          className="mt-4 font-serif font-black text-white"
+          style={{ fontSize: 'clamp(1.5rem,4vw,2.05rem)', lineHeight: 1.2 }}
         >
-          Bring Namdev Chiwda <span style={{ color: '#d4a843' }}>to Your Shelves</span>
+          Bring Namdev Chiwda to your shelves
         </h2>
 
         <p
-          className="mx-auto mb-8"
-          style={{
-            color: 'rgba(255,255,255,0.55)',
-            fontSize: 'clamp(0.85rem,1.8vw,1rem)',
-            maxWidth: 480,
-            lineHeight: 1.7,
-          }}
+          className="mx-auto mt-3 max-w-sm text-sm"
+          style={{ color: 'rgba(255,255,255,0.5)', lineHeight: 1.6 }}
         >
-          Stock 150 years of Solapur's favourite namkeen in your store — we're onboarding
-          retail and distribution partners across Pune, Solapur, and Maharashtra.
+          We're onboarding retail &amp; distribution partners across Maharashtra.
         </p>
 
-        {/* Contact CTAs — both meet the ≥48×48px tap-target requirement with ≥8px gap */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
-          <a
-            href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
-              "Hi, I'm interested in a Namdev Chiwda distributorship / retail partnership."
-            )}`}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center justify-center gap-2 rounded-full font-bold text-white w-full sm:w-auto transition-transform duration-200 hover:-translate-y-0.5"
-            style={{
-              background: '#25D366',
-              height: 56,
-              minWidth: 48,
-              padding: '0 28px',
-              fontSize: '0.95rem',
-              boxShadow: '0 10px 28px rgba(37,211,102,0.3)',
-            }}
-          >
-            💬 WhatsApp for Distributorship
-          </a>
+        <a
+          href={WA_URL}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-7 inline-flex items-center gap-2 rounded-full px-7 font-semibold transition-transform duration-200 hover:-translate-y-0.5"
+          style={{
+            minHeight: 48,
+            color: '#2d1a00',
+            background: 'linear-gradient(135deg,#e7c877,#d4af37)',
+            fontSize: '0.92rem',
+          }}
+        >
+          Enquire on WhatsApp
+          <span aria-hidden="true">→</span>
+        </a>
 
-          <a
-            href={`tel:${PHONE_TEL}`}
-            className="inline-flex items-center justify-center gap-2 rounded-full font-bold w-full sm:w-auto transition-all duration-200"
-            style={{
-              height: 56,
-              minWidth: 48,
-              padding: '0 24px',
-              fontSize: '0.9rem',
-              color: '#f0cc5a',
-              border: '1.5px solid rgba(212,175,55,0.45)',
-              background: 'rgba(255,255,255,0.03)',
-            }}
-          >
-            📞 {PHONE_DISPLAY}
+        <div className="mt-5 text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          <a href={`tel:${PHONE_TEL}`} className="transition-colors hover:text-white/70">
+            {PHONE_DISPLAY}
+          </a>
+          <span className="mx-2 text-white/25">·</span>
+          <a href={`mailto:${EMAIL}`} className="transition-colors hover:text-white/70">
+            {EMAIL}
           </a>
         </div>
-
-        <a
-          href={`mailto:${EMAIL}?subject=${encodeURIComponent('Distributorship Inquiry')}`}
-          className="inline-flex items-center justify-center mt-2 underline underline-offset-4 decoration-white/20 hover:decoration-white/50 transition-colors"
-          style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.82rem', minHeight: 48, padding: '8px 12px' }}
-        >
-          ✉️ {EMAIL}
-        </a>
-      </div>
+      </motion.div>
     </section>
   );
 }
