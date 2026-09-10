@@ -67,8 +67,8 @@ const TAGLINES = [
 // Approximate intrinsic aspect ratio for the packet renders (portrait, ~4:5).
 // Swap these for the real source dimensions if they differ — the point is
 // just to reserve the right box before the image loads (zero layout shift).
-const IMG_W = 800;
-const IMG_H = 1000;
+const IMG_W = 1200;
+const IMG_H = 1500;
 
 const SRCSET_WIDTHS = [400, 600, 800, 1000, 1400];
 
