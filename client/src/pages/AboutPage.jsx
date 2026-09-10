@@ -861,7 +861,7 @@ export default function AboutPage() {
     <PageWrapper>
       <SEO
         title={`Our Story | ${SITE_NAME} – Serving Solapur Since 1873`}
-        description={`The story of ${SITE_NAME} — founded in Solapur in 1873, carried forward through six generations of the same family recipe, using pure ghee and hand-ground masala.`}
+        description={`The story of ${SITE_NAME} — founded in Solapur in 1873, carried forward through six generations of the same family recipe, using groundnut oil and hand-ground masala.`}
         canonical="/about"
         jsonLd={buildBreadcrumbSchema(ABOUT_BREADCRUMB_ITEMS)}
       />

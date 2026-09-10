@@ -164,8 +164,8 @@ export default function OurHistoryPage() {
             <h2 className="section-title mb-4">The Same Recipe, Six Generations On</h2>
             <p className="text-brown-mid/80 leading-relaxed mb-4">
               What makes Namdev Chiwda's history unusual isn't just its length — it's how little
-              the core recipe has changed. The same hand-ground masala, the same ghee-based
-              roasting method Bappa used in 1873, has been carried forward by each generation of
+              the core recipe has changed. The same hand-ground masala, the same slow-roasting
+              method Bappa used in 1873, has been carried forward by each generation of
               the family since. Today, that same Namdev Chiwda recipe is available online, shipped
               from Solapur across Maharashtra.
             </p>

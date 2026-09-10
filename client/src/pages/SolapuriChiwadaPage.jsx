@@ -23,7 +23,7 @@ const FAQS = [
   {
     question: 'What is Solapuri Chiwada?',
     answer:
-      'Solapuri Chiwada is a style of Chiwada associated with Solapur, Maharashtra, known for its hand-ground masala, use of pure ghee, and a distinct balance of mild heat, curry-leaf aroma, and light sweetness. It is typically roasted rather than deep-fried, giving it a lighter, longer-lasting crunch.',
+      'Solapuri Chiwada is a style of Chiwada associated with Solapur, Maharashtra, known for its hand-ground masala, use of groundnut oil, and a distinct balance of mild heat, curry-leaf aroma, and light sweetness. It is typically roasted rather than deep-fried, giving it a lighter, longer-lasting crunch.',
   },
   {
     question: 'How is Solapuri Chiwada different from other regional Chiwadas?',
@@ -33,7 +33,7 @@ const FAQS = [
   {
     question: 'What are the main ingredients in Solapuri Chiwada?',
     answer:
-      'A traditional Solapuri Chiwada base includes flattened rice (poha), peanuts, curry leaves, mustard seeds, green chilli, turmeric, rock salt, a touch of sugar, and pure ghee, finished with a hand-ground masala blend.',
+      'A traditional Solapuri Chiwada base includes flattened rice (poha), peanuts, curry leaves, mustard seeds, green chilli, turmeric, rock salt, a touch of sugar, and groundnut oil, finished with a hand-ground masala blend.',
   },
   {
     question: 'Which Namdev Chiwda product is less spicy?',
@@ -67,7 +67,7 @@ export default function SolapuriChiwadaPage() {
     <PageWrapper>
       <SEO
         title={`Solapuri Chiwada | Authentic Solapur-Style Chiwada — ${SITE_NAME}`}
-        description={`Discover Solapuri Chiwada — the hand-ground, ghee-roasted style of Chiwada from Solapur, Maharashtra. Learn what makes it different and shop ${SITE_NAME}'s authentic recipe, made since 1873.`}
+        description={`Discover Solapuri Chiwada — the hand-ground, slow-roasted style of Chiwada from Solapur, Maharashtra. Learn what makes it different and shop ${SITE_NAME}'s authentic recipe, made since 1873.`}
         canonical="/solapuri-chiwada"
         jsonLd={[buildBreadcrumbSchema(BREADCRUMB_ITEMS), buildFAQSchema(FAQS)]}
       />
@@ -90,7 +90,7 @@ export default function SolapuriChiwadaPage() {
               Solapuri Chiwada — A Taste of Solapur
             </h1>
             <p className="text-white/70 max-w-xl mx-auto">
-              Ghee-roasted, hand-ground, and made the same way for six generations.
+              Slow-roasted, hand-ground, and made the same way for six generations.
             </p>
           </div>
         </div>
@@ -105,8 +105,9 @@ export default function SolapuriChiwadaPage() {
               and well-known snack-making tradition in southern Maharashtra. It shares the same
               basic idea as Chiwada made elsewhere in the state — roasted flattened rice or corn,
               peanuts, curry leaves, and spices — but is defined by a specific approach: fresh,
-              hand-ground masala rather than a generic spice mix, real ghee instead of refined oil,
-              and a roasting technique built to keep every ingredient distinct and crisp.
+              hand-ground masala rather than a generic spice mix, groundnut oil rather than a
+              cheap refined blend, and a roasting technique built to keep every ingredient
+              distinct and crisp.
             </p>
           </section>
 
@@ -118,12 +119,12 @@ export default function SolapuriChiwadaPage() {
               The difference comes down to method, not shortcuts. Solapuri Chiwada makers
               traditionally grind their own masala rather than buying a ready spice powder, which
               gives the final snack a fresher, more layered flavour than mass-produced versions.
-              Pure ghee is used instead of cheaper refined oil, and the roasting is done in small
-              batches so the texture stays consistent — crisp, not soggy or overly oily.
+              Groundnut oil is used rather than a cheap refined blend, and the roasting is done in
+              small batches so the texture stays consistent — crisp, not soggy or overly oily.
             </p>
             <p className="text-brown-mid/80 leading-relaxed">
               At Namdev Chiwda, this is exactly the process we've followed since 1873: the same
-              hand-ground masala, the same ghee-based roasting, the same attention to batch size
+              hand-ground masala, the same slow roasting, the same attention to batch size
               over speed.
             </p>
           </section>
@@ -135,7 +136,7 @@ export default function SolapuriChiwadaPage() {
             <p className="text-brown-mid/80 leading-relaxed mb-4">
               A traditional Solapuri Chiwada starts with thick, flattened rice (poha), which is
               roasted until crisp rather than fried. It's then combined with roasted peanuts,
-              cashews, mustard seeds tempered in ghee, fresh curry leaves, green chilli, turmeric,
+              cashews, mustard seeds tempered in oil, fresh curry leaves, green chilli, turmeric,
               rock salt, and a touch of sugar for balance — finished with the hand-ground masala
               that gives Solapuri Chiwada its signature aroma.
             </p>
@@ -186,7 +187,7 @@ export default function SolapuriChiwadaPage() {
                   Namdev Chiwda
                 </div>
                 <p className="text-brown-mid/70 text-sm leading-relaxed">
-                  Our house-signature blend — slow-roasted poha with pure ghee and hand-ground
+                  Our house-signature blend — slow-roasted poha with groundnut oil and hand-ground
                   Solapur masala. Mild heat, six generations of recipe.
                 </p>
               </Link>

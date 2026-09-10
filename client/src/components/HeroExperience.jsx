@@ -98,7 +98,7 @@ export default function HeroExperience() {
             className="mx-auto mt-6 max-w-md md:mx-0"
             style={{ fontSize: 'clamp(0.95rem,2vw,1.1rem)', color: 'rgba(255,255,255,0.66)', lineHeight: 1.6 }}
           >
-            Authentic Solapuri chiwda &amp; bakarwadi — hand-ground masala, pure ghee,
+            Authentic Solapuri chiwda &amp; bakarwadi — hand-ground masala, groundnut oil,
             delivered fresh across Maharashtra.
           </motion.p>
 

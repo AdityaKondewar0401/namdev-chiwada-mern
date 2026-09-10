@@ -114,7 +114,7 @@ export default function MaharashtrianSnacksPage() {
               <Link to="/chiwada" className="card p-5 block hover:-translate-y-1">
                 <div className="font-serif font-bold text-brown-dark text-lg mb-1">Chiwada</div>
                 <p className="text-brown-mid/70 text-sm leading-relaxed">
-                  Our signature Namdev Chiwda — slow-roasted poha with pure ghee and hand-ground
+                  Our signature Namdev Chiwda — slow-roasted poha with groundnut oil and hand-ground
                   Solapur masala.
                 </p>
               </Link>
@@ -136,7 +136,7 @@ export default function MaharashtrianSnacksPage() {
               Namdev Chiwda has been part of Solapur's snack-making tradition since 1873, when our
               founder Bappa began selling fresh chiwda from a wooden box. Six generations later, we
               still make our full namkeen range — Chiwada and Bakarwadi — using the same
-              recipes, real ghee, and hand-ground spices, with no artificial colours.
+              recipes, groundnut oil, and hand-ground spices, with no artificial colours.
             </p>
             <Link
               to="/our-history"

@@ -34,7 +34,7 @@ const FAQS = [
   {
     question: 'What is Namdev Chiwda made from?',
     answer:
-      'Namdev Chiwda is our signature poha-based blend — flattened rice slow-roasted with pure ghee, curry leaves, and hand-ground Solapur masala, giving it a light, crisp texture in every bite.',
+      'Namdev Chiwda is our signature poha-based blend — flattened rice slow-roasted with groundnut oil, curry leaves, and hand-ground Solapur masala, giving it a light, crisp texture in every bite.',
   },
   {
     question: 'How long does Chiwada stay fresh?',
@@ -135,7 +135,7 @@ export default function ChiwadaPage() {
                   Namdev Chiwda (Poha-Based)
                 </div>
                 <p className="text-brown-mid/70 text-sm leading-relaxed">
-                  Our signature blend — slow-roasted flattened rice with pure ghee, curry leaves,
+                  Our signature blend — slow-roasted flattened rice with groundnut oil, curry leaves,
                   and hand-ground Solapur masala. The recipe we've made since 1873.
                 </p>
               </Link>
