@@ -31,18 +31,14 @@ function FrayThreads({ side }) {
   );
 }
 
-export default function HeritagePatch() {
-  return (
-    <div
-      className="w-full px-5 py-11 md:py-14"
-      style={{ background: 'linear-gradient(180deg,#fdf1da,#fffdf7)' }}
-    >
+export default function HeritagePatch({ embedded = false }) {
+  const label = (
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-        className="relative mx-auto"
+        className="relative mx-auto flex-shrink-0"
         style={{ width: 'clamp(258px, 66vw, 336px)', transform: 'rotate(-1.4deg)' }}
       >
         <FrayThreads side="left" />
@@ -120,6 +116,16 @@ export default function HeritagePatch() {
           </div>
         </div>
       </motion.div>
+  );
+
+  if (embedded) return label;
+
+  return (
+    <div
+      className="w-full px-5 py-11 md:py-14"
+      style={{ background: 'linear-gradient(180deg,#fdf1da,#fffdf7)' }}
+    >
+      {label}
     </div>
   );
 }
