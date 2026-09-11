@@ -7,6 +7,12 @@ export default function QuantityStepper({
   price,
   disabled = false,
   compact = false,
+  // `fab` (floating action button) — a small circular "+" / circular
+  // mini-stepper meant to float half-overlapping a product image corner,
+  // used by ProductCard's mobile layout instead of the full-width
+  // pill/stepper below. Independent of `compact`; the two are never both
+  // true at once in practice.
+  fab = false,
 }) {
   const {
     addToCart,
@@ -77,6 +83,18 @@ export default function QuantityStepper({
   };
 
   if (disabled) {
+    if (fab) {
+      return (
+        <span
+          title="Out of Stock"
+          aria-label="Out of stock"
+          className="grid h-8 w-8 place-items-center rounded-full text-white cursor-not-allowed"
+          style={{ background: '#9ca3af', opacity: 0.7 }}
+        >
+          <span className="text-sm leading-none">✕</span>
+        </span>
+      );
+    }
     return (
       <button
         disabled
@@ -93,6 +111,44 @@ export default function QuantityStepper({
       >
         Out of Stock
       </button>
+    );
+  }
+
+  if (fab) {
+    return (
+      <AnimatePresence mode="wait">
+        {qty === 0 ? (
+          <motion.button
+            key="add-fab"
+            onClick={handleAdd}
+            aria-label="Add to cart"
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.5 }}
+            whileTap={{ scale: 0.9 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 22 }}
+            className="grid h-8 w-8 place-items-center rounded-full text-white"
+            style={{ background: 'linear-gradient(135deg,#e07000,#ff9010)', boxShadow: '0 4px 10px rgba(224,112,0,0.45)' }}
+          >
+            <span className="text-base font-black leading-none">+</span>
+          </motion.button>
+        ) : (
+          <motion.div
+            key="stepper-fab"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.15 }}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+            className="flex h-8 items-center gap-0.5 rounded-full px-1 text-white"
+            style={{ background: 'linear-gradient(135deg,#e07000,#ff9010)', boxShadow: '0 4px 10px rgba(224,112,0,0.45)' }}
+          >
+            <button onClick={handleDecrease} className="grid h-6 w-6 place-items-center text-white font-black text-sm">−</button>
+            <span className="w-3 text-center text-[11px] font-black">{qty}</span>
+            <button onClick={handleIncrease} className="grid h-6 w-6 place-items-center text-white font-black text-sm">+</button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     );
   }
 
