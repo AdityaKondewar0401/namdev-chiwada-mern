@@ -5,7 +5,7 @@ import { Heart, Plus, Send, ShoppingCart, Check } from 'lucide-react';
 import { productAPI } from '../services/api';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
-import ProductCard from '../components/ProductCard';
+import RelatedProductCard from '../components/RelatedProductCard';
 import { DetailSkeleton } from '../components/Skeletons';
 import PageWrapper from '../components/PageWrapper';
 import SEO from '../components/SEO';
@@ -564,8 +564,11 @@ export default function ProductDetailPage() {
                 <div className="section-eyebrow">You May Also Like</div>
                 <h3 className="font-serif font-bold text-brown-dark text-xl">Related Products</h3>
               </div>
-              <div className="grid grid-cols-3 gap-5">
-                {related.map((p, i) => <ProductCard key={p._id} product={p} index={i} />)}
+              {/* 4 columns, not 3 — these cards carry far less (no size
+                  selector, no stepper), so they read as sparse/oversized
+                  at the old 3-up width. */}
+              <div className="grid grid-cols-4 gap-4">
+                {related.map((p, i) => <RelatedProductCard key={p._id} product={p} index={i} />)}
               </div>
             </div>
           )}
@@ -580,7 +583,7 @@ export default function ProductDetailPage() {
               <h3 className="font-serif font-bold text-brown-dark text-lg">Related Products</h3>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              {related.map((p, i) => <ProductCard key={p._id} product={p} index={i} />)}
+              {related.map((p, i) => <RelatedProductCard key={p._id} product={p} index={i} />)}
             </div>
           </div>
         )}
