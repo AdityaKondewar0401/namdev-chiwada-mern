@@ -97,24 +97,6 @@ export default function ProductCard({ product, index = 0 }) {
           height={400}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
-
-        {/* Mobile-only floating add/stepper — half-overlapping the image's
-            bottom edge. Desktop keeps its own compact stepper down in the
-            price row instead (see below); the two are never both rendered
-            at once. */}
-        {product.inStock && (
-          <div
-            className="sm:hidden absolute -bottom-3 right-2 z-10"
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-          >
-            <QuantityStepper
-              product={product}
-              size={currentSize.weight}
-              price={currentSize.price}
-              fab
-            />
-          </div>
-        )}
       </div>
 
       {/* ── Body ─────────────────────────────────────── */}
@@ -165,7 +147,7 @@ export default function ProductCard({ product, index = 0 }) {
           </div>
         )}
 
-        {/* Price + (desktop-only) Stepper */}
+        {/* Price + Add/stepper control */}
         <div className="flex flex-row items-center justify-between gap-2 mt-auto pt-0.5 sm:pt-1" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
           <div className="flex-shrink-0 flex items-baseline gap-1 sm:gap-1.5">
             <span className="font-black text-[0.95rem] sm:text-xl" style={{ color: MAROON }}>
@@ -178,21 +160,20 @@ export default function ProductCard({ product, index = 0 }) {
             )}
           </div>
 
-          {/* Mobile has its own floating stepper on the image instead (see
-              above) — rendering this one only for isDesktop, rather than
-              hiding it in a wrapper div, is deliberate: QuantityStepper's
-              `w-full` needs to size against this flex row directly, and an
-              extra `hidden sm:block` wrapper div breaks that (no width of
-              its own to be 100% of). */}
-          {isDesktop && (
-            <QuantityStepper
-              product={product}
-              size={currentSize.weight}
-              price={currentSize.price}
-              disabled={!product.inStock}
-              compact
-            />
-          )}
+          {/* Desktop gets the full compact Add/stepper pill; mobile gets the
+              small circular fab variant right after the price instead —
+              picking the variant in JS (rather than a `hidden sm:block` /
+              `sm:hidden` pair) is deliberate: the desktop stepper's `w-full`
+              needs to size against this flex row directly, and an extra
+              wrapper div has no width of its own to be 100% of. */}
+          <QuantityStepper
+            product={product}
+            size={currentSize.weight}
+            price={currentSize.price}
+            disabled={!product.inStock}
+            compact={isDesktop}
+            fab={!isDesktop}
+          />
         </div>
       </div>
     </MotionLink>

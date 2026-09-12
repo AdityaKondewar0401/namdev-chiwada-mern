@@ -7,11 +7,10 @@ export default function QuantityStepper({
   price,
   disabled = false,
   compact = false,
-  // `fab` (floating action button) — a small circular "+" / circular
-  // mini-stepper meant to float half-overlapping a product image corner,
-  // used by ProductCard's mobile layout instead of the full-width
-  // pill/stepper below. Independent of `compact`; the two are never both
-  // true at once in practice.
+  // `fab` — a small "Add" pill / compact mini-stepper sized to sit inline
+  // next to the price on ProductCard's mobile layout, instead of the
+  // full-width pill/stepper below. Independent of `compact`; the two are
+  // never both true at once in practice.
   fab = false,
 }) {
   const {
@@ -127,10 +126,10 @@ export default function QuantityStepper({
             exit={{ opacity: 0, scale: 0.5 }}
             whileTap={{ scale: 0.9 }}
             transition={{ type: 'spring', stiffness: 500, damping: 22 }}
-            className="grid h-8 w-8 place-items-center rounded-full text-white"
+            className="grid h-8 place-items-center rounded-full px-3.5 text-[11px] font-bold tracking-wide text-white"
             style={{ background: 'linear-gradient(135deg,#e07000,#ff9010)', boxShadow: '0 4px 10px rgba(224,112,0,0.45)' }}
           >
-            <span className="text-base font-black leading-none">+</span>
+            Add
           </motion.button>
         ) : (
           <motion.div
