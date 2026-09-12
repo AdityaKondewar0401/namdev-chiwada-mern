@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Calendar, Package, MapPin, Wallet, Truck, AlertTriangle, X, ChevronDown, ChevronUp,
+  Phone, Tag, Key, RefreshCw, Inbox, Banknote,
+} from 'lucide-react';
 import api from '../../services/api';
 import { shippingAPI } from '../../services/api';
 import toast from 'react-hot-toast';
@@ -36,6 +40,7 @@ function OrderCard({ order, onUpdateStatus, onOrderUpdated }) {
 
   const payMethod = order.paymentMethod || order.payment?.method || 'COD';
   const payStatus = order.paymentStatus || (payMethod === 'COD' ? 'Pay on delivery' : 'Paid');
+  const PayIcon = PAYMENT_ICONS[payMethod] || Banknote;
 
   return (
     <div style={{
@@ -62,7 +67,7 @@ function OrderCard({ order, onUpdateStatus, onOrderUpdated }) {
                 textTransform: 'capitalize',
               }}>
                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: cfg.dot, display: 'inline-block' }} />
-                {cfg.icon} {status}
+                <cfg.icon size={11} /> {status}
               </span>
               <span style={{
                 display: 'inline-flex', alignItems: 'center', gap: 4,
@@ -72,7 +77,7 @@ function OrderCard({ order, onUpdateStatus, onOrderUpdated }) {
                 fontSize: 10, fontWeight: 700,
                 border: `1px solid ${payMethod.toUpperCase() === 'ONLINE' ? '#bfdbfe' : '#bbf7d0'}`,
               }}>
-                {PAYMENT_ICONS[payMethod] || '💵'} {payMethod.toUpperCase()}
+                <PayIcon size={11} /> {payMethod.toUpperCase()}
               </span>
             </div>
 
@@ -92,18 +97,18 @@ function OrderCard({ order, onUpdateStatus, onOrderUpdated }) {
             </div>
 
             <div style={{ display: 'flex', gap: 16, marginTop: 8, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: 11, color: '#9a7c5a' }}>📅 {dateStr} · {timeStr}</span>
-              <span style={{ fontSize: 11, color: '#9a7c5a' }}>📦 {order.items?.length || 0} item{(order.items?.length || 0) !== 1 ? 's' : ''}</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#9a7c5a' }}><Calendar size={12} /> {dateStr} · {timeStr}</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#9a7c5a' }}><Package size={12} /> {order.items?.length || 0} item{(order.items?.length || 0) !== 1 ? 's' : ''}</span>
               {order.shippingAddress?.city && (
-                <span style={{ fontSize: 11, color: '#9a7c5a' }}>📍 {order.shippingAddress.city}, {order.shippingAddress.state}</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#9a7c5a' }}><MapPin size={12} /> {order.shippingAddress.city}, {order.shippingAddress.state}</span>
               )}
-              <span style={{ fontSize: 11, color: payMethod.toUpperCase() === 'ONLINE' ? '#15803d' : '#9a7c5a' }}>💰 {payStatus}</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, color: payMethod.toUpperCase() === 'ONLINE' ? '#15803d' : '#9a7c5a' }}><Wallet size={12} /> {payStatus}</span>
               {order.courier?.awbNumber ? (
-                <span style={{ fontSize: 11, color: '#1d4ed8', fontFamily: 'monospace', fontWeight: 700 }}>
-                  🚚 AWB {order.courier.awbNumber} {order.courier.statusDisplay ? `· ${order.courier.statusDisplay}` : ''}
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#1d4ed8', fontFamily: 'monospace', fontWeight: 700 }}>
+                  <Truck size={12} /> AWB {order.courier.awbNumber} {order.courier.statusDisplay ? `· ${order.courier.statusDisplay}` : ''}
                 </span>
               ) : order.courier?.error ? (
-                <span style={{ fontSize: 11, color: '#dc2626', fontWeight: 700 }}>⚠️ Shipment not created</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#dc2626', fontWeight: 700 }}><AlertTriangle size={12} /> Shipment not created</span>
               ) : null}
             </div>
           </div>
@@ -133,7 +138,7 @@ function OrderCard({ order, onUpdateStatus, onOrderUpdated }) {
             >
               {STATUS_OPTIONS.map((s) => (
                 <option key={s} value={s} style={{ background: 'white', color: '#3d2800', textTransform: 'capitalize' }}>
-                  {STATUS_CONFIG[s]?.icon} {s.charAt(0).toUpperCase() + s.slice(1)}
+                  {s.charAt(0).toUpperCase() + s.slice(1)}
                 </option>
               ))}
             </select>
@@ -148,12 +153,13 @@ function OrderCard({ order, onUpdateStatus, onOrderUpdated }) {
                   disabled={courierBusy}
                   onClick={() => runCourierAction(() => shippingAPI.createShipment(order._id), 'Shipment created — AWB assigned')}
                   style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
                     fontSize: 11, fontWeight: 700, color: '#15803d',
                     background: '#f0fdf4', border: '1px solid #bbf7d0',
                     borderRadius: 8, padding: '8px 12px', minHeight: 40, cursor: 'pointer',
                     opacity: courierBusy ? 0.6 : 1,
                   }}
-                >📦 Create Shipment</button>
+                ><Package size={13} /> Create Shipment</button>
               )}
               {status !== 'cancelled' && status !== 'delivered' && (
                 <button
@@ -164,24 +170,26 @@ function OrderCard({ order, onUpdateStatus, onOrderUpdated }) {
                     }
                   }}
                   style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
                     fontSize: 11, fontWeight: 700, color: '#dc2626',
                     background: '#fef2f2', border: '1px solid #fecaca',
                     borderRadius: 8, padding: '8px 12px', minHeight: 40, cursor: 'pointer',
                     opacity: courierBusy ? 0.6 : 1,
                   }}
-                >✕ Cancel Order</button>
+                ><X size={13} /> Cancel Order</button>
               )}
             </div>
 
             <button
               onClick={() => setExpanded((v) => !v)}
               style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
                 fontSize: 11, fontWeight: 700, color: '#e07000',
                 background: '#fff4e6', border: '1px solid rgba(224,112,0,0.2)',
                 borderRadius: 8, padding: '8px 12px', minHeight: 40, cursor: 'pointer',
               }}
             >
-              {expanded ? '▲ Hide details' : '▼ View details'}
+              {expanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />} {expanded ? 'Hide details' : 'View details'}
             </button>
           </div>
         </div>
@@ -229,7 +237,7 @@ function OrderCard({ order, onUpdateStatus, onOrderUpdated }) {
                     <div style={{ color: '#7a5c3a' }}>{order.shippingAddress.line1}</div>
                     {order.shippingAddress.line2 && <div style={{ color: '#7a5c3a' }}>{order.shippingAddress.line2}</div>}
                     <div style={{ color: '#7a5c3a' }}>{order.shippingAddress.city}, {order.shippingAddress.state} — {order.shippingAddress.pincode}</div>
-                    {order.shippingAddress.phone && <div style={{ marginTop: 4, color: '#e07000', fontWeight: 600 }}>📞 {order.shippingAddress.phone}</div>}
+                    {order.shippingAddress.phone && <div style={{ marginTop: 4, color: '#e07000', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}><Phone size={12} /> {order.shippingAddress.phone}</div>}
                   </div>
                 </div>
               )}
@@ -239,7 +247,7 @@ function OrderCard({ order, onUpdateStatus, onOrderUpdated }) {
                 <div style={{ background: 'white', borderRadius: 10, padding: '12px 14px', border: '1px solid rgba(224,160,80,0.1)' }}>
                   {[
                     { label: 'Subtotal', value: `₹${(order.subtotal || order.total || 0).toLocaleString()}` },
-                    { label: 'Shipping', value: order.shipping === 0 ? '🚚 FREE' : `₹${order.shipping || 0}` },
+                    { label: 'Shipping', value: order.shipping === 0 ? 'FREE' : `₹${order.shipping || 0}` },
                     order.discount > 0 && { label: 'Discount', value: `-₹${order.discount}`, green: true },
                     { label: 'Total Paid', value: `₹${(order.total || 0).toLocaleString()}`, bold: true },
                   ].filter(Boolean).map((row, i) => (
@@ -255,13 +263,13 @@ function OrderCard({ order, onUpdateStatus, onOrderUpdated }) {
                   ))}
                 </div>
                 {order.promoCode && (
-                  <div style={{ marginTop: 8, padding: '6px 12px', borderRadius: 8, background: '#dcfce7', border: '1px solid #bbf7d0', fontSize: 11, fontWeight: 700, color: '#15803d' }}>
-                    🎟️ Promo: <span style={{ letterSpacing: '0.05em' }}>{order.promoCode}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8, padding: '6px 12px', borderRadius: 8, background: '#dcfce7', border: '1px solid #bbf7d0', fontSize: 11, fontWeight: 700, color: '#15803d' }}>
+                    <Tag size={12} /> Promo: <span style={{ letterSpacing: '0.05em' }}>{order.promoCode}</span>
                   </div>
                 )}
                 {order.razorpayPaymentId && (
-                  <div style={{ marginTop: 6, padding: '6px 12px', borderRadius: 8, background: '#dbeafe', border: '1px solid #bfdbfe', fontSize: 10, fontWeight: 600, color: '#1d4ed8', wordBreak: 'break-all' }}>
-                    🔑 {order.razorpayPaymentId}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6, padding: '6px 12px', borderRadius: 8, background: '#dbeafe', border: '1px solid #bfdbfe', fontSize: 10, fontWeight: 600, color: '#1d4ed8', wordBreak: 'break-all' }}>
+                    <Key size={11} /> {order.razorpayPaymentId}
                   </div>
                 )}
               </div>
@@ -283,24 +291,24 @@ function OrderCard({ order, onUpdateStatus, onOrderUpdated }) {
                         <button
                           disabled={courierBusy}
                           onClick={() => runCourierAction(() => shippingAPI.resyncTracking(order._id), 'Tracking synced')}
-                          style={{ fontSize: 11, fontWeight: 700, color: '#1d4ed8', background: '#dbeafe', border: '1px solid #bfdbfe', borderRadius: 8, padding: '6px 12px', minHeight: 40, cursor: 'pointer' }}
-                        >🔄 Resync</button>
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 700, color: '#1d4ed8', background: '#dbeafe', border: '1px solid #bfdbfe', borderRadius: 8, padding: '6px 12px', minHeight: 40, cursor: 'pointer' }}
+                        ><RefreshCw size={12} /> Resync</button>
                         <button
                           disabled={courierBusy || status === 'cancelled'}
                           onClick={() => runCourierAction(() => shippingAPI.cancelShipment(order._id, 'Cancelled by admin'), 'Shipment cancelled')}
-                          style={{ fontSize: 11, fontWeight: 700, color: '#dc2626', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: '6px 12px', minHeight: 40, cursor: 'pointer' }}
-                        >✕ Cancel shipment</button>
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 700, color: '#dc2626', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: '6px 12px', minHeight: 40, cursor: 'pointer' }}
+                        ><X size={12} /> Cancel shipment</button>
                       </div>
                     </>
                   ) : (
                     <>
                       {order.courier?.error && (
-                        <div style={{ color: '#dc2626', fontWeight: 600, marginBottom: 4 }}>⚠️ {order.courier.error}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#dc2626', fontWeight: 600, marginBottom: 4 }}><AlertTriangle size={12} /> {order.courier.error}</div>
                       )}
                       <div style={{ color: '#9a7c5a' }}>
                         {status === 'cancelled'
                           ? 'Order was cancelled before a shipment was created.'
-                          : 'No shipment yet — use "📦 Create Shipment" above.'}
+                          : 'No shipment yet — use "Create Shipment" above.'}
                       </div>
                     </>
                   )}
@@ -375,8 +383,8 @@ export default function OrdersTab() {
           <h2 className="font-serif font-black text-brown-dark text-2xl" style={{ marginBottom: 2 }}>
             All Customer Orders <span style={{ fontSize: 16, fontWeight: 400, color: '#9a7c5a', marginLeft: 8 }}>({orders.length})</span>
           </h2>
-          <p style={{ fontSize: 12, color: '#9a7c5a' }}>
-            💰 Delivered revenue: <strong style={{ color: '#15803d' }}>₹{totalRevenue.toLocaleString()}</strong>
+          <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#9a7c5a' }}>
+            <Wallet size={13} /> Delivered revenue: <strong style={{ color: '#15803d' }}>₹{totalRevenue.toLocaleString()}</strong>
           </p>
         </div>
         <input
@@ -395,20 +403,21 @@ export default function OrdersTab() {
         }}>All ({orders.length})</button>
         {stats.filter((s) => s.count > 0).map(({ status, count, cfg }) => (
           <button key={status} onClick={() => setFilter(status)} style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
             padding: '8px 14px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer', minHeight: 36,
             border: `1.5px solid ${filter === status ? cfg.dot : cfg.border}`,
             background: filter === status ? cfg.bg : 'white',
             color: filter === status ? cfg.color : '#9a7c5a',
             transition: 'all 0.15s', textTransform: 'capitalize',
           }}>
-            {cfg.icon} {status} ({count})
+            <cfg.icon size={13} /> {status} ({count})
           </button>
         ))}
       </div>
 
       {filtered.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '48px 0', color: '#9a7c5a' }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>📭</div>
+          <Inbox size={36} style={{ marginBottom: 12 }} />
           <div style={{ fontWeight: 700 }}>No orders found</div>
         </div>
       ) : (

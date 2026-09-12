@@ -1,6 +1,11 @@
 import { useMemo } from 'react';
+import { Wallet, Package, BarChart3, Clock, ShoppingBag, Star, AlertTriangle, LayoutGrid, CheckCircle2 } from 'lucide-react';
 import { CATEGORIES, CATEGORY_COLORS, STATUS_OPTIONS, STATUS_CONFIG } from './adminConstants';
 import { MiniBarChart, SegmentedBar } from './charts';
+// KpiCard/PanelCard used to be declared locally in this file; they're now
+// the shared `StatTile`/`Panel` primitives in AdminUI.jsx (identical
+// props), aliased here so nothing below this line needs to change.
+import { StatTile as KpiCard, Panel as PanelCard } from './AdminUI';
 
 // ─────────────────────────────────────────────
 // DashboardTab — REDESIGNED
@@ -96,33 +101,6 @@ function useDashboardAnalytics(products, orders) {
   }, [products, orders]);
 }
 
-function KpiCard({ icon, label, value, color, sub }) {
-  return (
-    <div className="bg-white rounded-2xl p-4 sm:p-5"
-      style={{ boxShadow: '0 4px 20px rgba(45,26,0,0.06)', border: '1px solid rgba(224,112,0,0.08)' }}>
-      <div className="flex items-center justify-between mb-2">
-        <div className="text-xl sm:text-2xl">{icon}</div>
-        {sub && <div className="text-[9px] sm:text-[10px] font-bold text-right" style={{ color }}>{sub}</div>}
-      </div>
-      <div className="font-black text-lg sm:text-2xl mb-0.5" style={{ color }}>{value}</div>
-      <div className="text-[10px] sm:text-xs text-brown-mid/60 font-medium">{label}</div>
-    </div>
-  );
-}
-
-function PanelCard({ title, action, children }) {
-  return (
-    <div className="bg-white rounded-2xl p-4 sm:p-5"
-      style={{ boxShadow: '0 4px 20px rgba(45,26,0,0.06)', border: '1px solid rgba(224,112,0,0.08)' }}>
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-bold text-brown-dark text-xs sm:text-sm uppercase tracking-wider">{title}</h3>
-        {action}
-      </div>
-      {children}
-    </div>
-  );
-}
-
 export default function DashboardTab({ products, orders }) {
   const a = useDashboardAnalytics(products, orders);
 
@@ -137,11 +115,11 @@ export default function DashboardTab({ products, orders }) {
       <div>
         <div className="text-[10px] font-bold uppercase tracking-widest text-brown-mid/40 mb-2">Orders &amp; Revenue</div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          <KpiCard icon="💰" label="Delivered Revenue" value={`₹${a.deliveredRevenue.toLocaleString()}`} color="#2d5a1b" />
-          <KpiCard icon="📦" label="Total Orders" value={orders.length} color="#d4af37" />
-          <KpiCard icon="🧾" label="Avg Order Value" value={`₹${a.avgOrderValue.toLocaleString()}`} color="#7c3aed" />
+          <KpiCard icon={<Wallet size={19} />} label="Delivered Revenue" value={`₹${a.deliveredRevenue.toLocaleString()}`} color="#2d5a1b" />
+          <KpiCard icon={<Package size={19} />} label="Total Orders" value={orders.length} color="#d4af37" />
+          <KpiCard icon={<BarChart3 size={19} />} label="Avg Order Value" value={`₹${a.avgOrderValue.toLocaleString()}`} color="#7c3aed" />
           <KpiCard
-            icon="🕐" label="Pending Orders" value={a.pendingCount}
+            icon={<Clock size={19} />} label="Pending Orders" value={a.pendingCount}
             color={a.pendingCount > 0 ? '#dc2626' : '#e07000'}
             sub={a.pendingCount > 0 ? 'Needs attention' : undefined}
           />
@@ -152,14 +130,14 @@ export default function DashboardTab({ products, orders }) {
       <div>
         <div className="text-[10px] font-bold uppercase tracking-widest text-brown-mid/40 mb-2">Catalog</div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          <KpiCard icon="🍛" label="Total Products" value={products.length} color="#e07000" />
-          <KpiCard icon="⭐" label="Featured" value={products.filter((p) => p.featured).length} color="#d4af37" />
+          <KpiCard icon={<ShoppingBag size={19} />} label="Total Products" value={products.length} color="#e07000" />
+          <KpiCard icon={<Star size={19} />} label="Featured" value={products.filter((p) => p.featured).length} color="#d4af37" />
           <KpiCard
-            icon="🚫" label="Out of Stock" value={a.outOfStock.length}
+            icon={<AlertTriangle size={19} />} label="Out of Stock" value={a.outOfStock.length}
             color={a.outOfStock.length > 0 ? '#dc2626' : '#2d5a1b'}
             sub={a.outOfStock.length > 0 ? 'Review now' : 'All good'}
           />
-          <KpiCard icon="🗂️" label="Categories" value={CATEGORIES.length} color="#7a5a38" />
+          <KpiCard icon={<LayoutGrid size={19} />} label="Categories" value={CATEGORIES.length} color="#7a5a38" />
         </div>
       </div>
 
@@ -209,7 +187,10 @@ export default function DashboardTab({ products, orders }) {
           )}
         >
           {a.outOfStock.length === 0 ? (
-            <div className="text-center py-6 text-green-700 text-sm">✅ Everything is in stock</div>
+            <div className="flex flex-col items-center gap-2 py-6 text-green-700 text-sm">
+              <CheckCircle2 size={22} />
+              Everything is in stock
+            </div>
           ) : (
             <div className="space-y-2 max-h-[180px] overflow-y-auto">
               {a.outOfStock.map((p) => (
@@ -242,8 +223,8 @@ export default function DashboardTab({ products, orders }) {
                       <div className="text-sm font-semibold text-brown-dark truncate">{o.user?.name || 'Guest'}</div>
                       <div className="text-[11px] text-brown-mid/50">₹{(o.total || 0).toLocaleString()}</div>
                     </div>
-                    <span className="text-[10px] font-bold px-2 py-1 rounded-full flex-shrink-0" style={{ background: cfg.bg, color: cfg.color }}>
-                      {cfg.icon} {o.status}
+                    <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full flex-shrink-0" style={{ background: cfg.bg, color: cfg.color }}>
+                      <cfg.icon size={11} /> {o.status}
                     </span>
                   </div>
                 );

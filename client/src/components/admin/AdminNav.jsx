@@ -21,6 +21,7 @@ const storeTabs = TABS.filter((t) => t.group === 'store');
 
 function TabButton({ tab, activeTab, onTabChange, productsCount, variant }) {
   const isActive = activeTab === tab.id;
+  const Icon = tab.icon;
 
   if (variant === 'pill') {
     return (
@@ -34,7 +35,7 @@ function TabButton({ tab, activeTab, onTabChange, productsCount, variant }) {
             : { background: '#fff', color: '#2d1a00', border: '1px solid rgba(224,112,0,0.15)' }),
         }}
       >
-        <span>{tab.icon}</span>
+        <Icon size={16} strokeWidth={2} />
         {tab.label}
         {tab.id === 'products' && (
           <span
@@ -54,7 +55,7 @@ function TabButton({ tab, activeTab, onTabChange, productsCount, variant }) {
       className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all mb-1 ${isActive ? 'text-white' : 'text-brown-dark hover:bg-saffron/6 hover:text-saffron'}`}
       style={isActive ? { background: 'linear-gradient(135deg,#e07000,#ff9010)' } : {}}
     >
-      <span>{tab.icon}</span>
+      <Icon size={17} strokeWidth={1.85} />
       {tab.label}
       {tab.id === 'products' && (
         <span

@@ -12,6 +12,7 @@ import ProductsTab from '../components/admin/ProductsTab';
 import ProductFormTab from '../components/admin/ProductFormTab';
 import OrdersTab from '../components/admin/OrdersTab';
 import PromoCodesTab from '../components/admin/PromoCodesTab';
+import UsersTab from '../components/admin/UsersTab';
 import SEO from '../components/SEO';
 import { SITE_NAME } from '../config/seo.config';
 
@@ -117,6 +118,7 @@ export default function AdminPage() {
               {activeTab === 'add' && <ProductFormTab editProduct={editProduct} onSave={handleSave} onCancel={() => { setEditProduct(null); setActiveTab('products'); }} />}
               {activeTab === 'orders' && <OrdersTab />}
               {activeTab === 'promos' && <PromoCodesTab />}
+              {activeTab === 'users' && <UsersTab />}
             </motion.div>
           </div>
         </div>

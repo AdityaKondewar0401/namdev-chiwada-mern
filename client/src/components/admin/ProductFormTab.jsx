@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Pencil, Plus, CheckCircle2, ImagePlus, Images, X } from 'lucide-react';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 import { CATEGORIES } from './adminConstants';
@@ -58,7 +59,7 @@ export default function ProductFormTab({ editProduct, onSave, onCancel }) {
       });
       if (res.data.success) {
         f('img', res.data.url);
-        toast.success('Main image uploaded! ✅');
+        toast.success('Main image uploaded!');
         // Best-effort cleanup of the image being replaced — a failure here
         // shouldn't block the admin from continuing to edit the form.
         const oldPublicId = publicIdFromUrl(previousImg);
@@ -89,7 +90,7 @@ export default function ProductFormTab({ editProduct, onSave, onCancel }) {
         const allUrls = [...uploadedImages, ...urls];
         setUploadedImages(allUrls);
         f('images', allUrls.join(','));
-        toast.success(`${urls.length} images uploaded! ✅`);
+        toast.success(`${urls.length} images uploaded!`);
       } else {
         toast.error(res.data.message || 'Upload failed');
       }
@@ -167,8 +168,9 @@ export default function ProductFormTab({ editProduct, onSave, onCancel }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="font-serif font-black text-brown-dark text-2xl">
-          {editProduct ? '✏️ Edit Product' : '➕ Add New Product'}
+        <h2 className="flex items-center gap-2.5 font-serif font-black text-brown-dark text-2xl">
+          {editProduct ? <Pencil size={22} /> : <Plus size={22} />}
+          {editProduct ? 'Edit Product' : 'Add New Product'}
         </h2>
         {editProduct && (
           <button onClick={onCancel} className="text-sm text-brown-mid/60 hover:text-brown-dark transition-colors">
@@ -195,7 +197,7 @@ export default function ProductFormTab({ editProduct, onSave, onCancel }) {
 
         <div className="bg-white rounded-2xl p-6" style={{ boxShadow: '0 4px 20px rgba(45,26,0,0.06)', border: '1px solid rgba(224,112,0,0.08)' }}>
           <h3 className="font-bold text-brown-dark mb-4 text-sm uppercase tracking-wider">Pricing & Category</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Field label="Base Price ₹ *" fieldKey="price" type="number" placeholder="180" form={form} onChange={f} />
             <Field label="Original Price ₹" fieldKey="originalPrice" type="number" placeholder="210" form={form} onChange={f} />
             <Field label="Default Weight" fieldKey="weight" placeholder="250g" form={form} onChange={f} />
@@ -221,7 +223,7 @@ export default function ProductFormTab({ editProduct, onSave, onCancel }) {
 
         <div className="bg-white rounded-2xl p-6" style={{ boxShadow: '0 4px 20px rgba(45,26,0,0.06)', border: '1px solid rgba(224,112,0,0.08)' }}>
           <h3 className="font-bold text-brown-dark mb-4 text-sm uppercase tracking-wider">Badge & Tags</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Field label="Badge Text" fieldKey="badge" placeholder="Bestseller" form={form} onChange={f} />
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-brown-mid/70 mb-1.5">Badge Color</label>
@@ -257,7 +259,7 @@ export default function ProductFormTab({ editProduct, onSave, onCancel }) {
                   </div>
                 ) : (
                   <div className="flex flex-col items-center gap-2 text-brown-mid/50">
-                    <span className="text-4xl">📸</span>
+                    <ImagePlus size={34} strokeWidth={1.5} />
                     <span className="text-sm font-medium">Click to upload main image</span>
                     <span className="text-xs">JPG, PNG, WebP · Max 5MB</span>
                   </div>
@@ -286,7 +288,7 @@ export default function ProductFormTab({ editProduct, onSave, onCancel }) {
                   </div>
                 ) : (
                   <div className="flex flex-col items-center gap-2 text-brown-mid/50">
-                    <span className="text-3xl">🖼️</span>
+                    <Images size={30} strokeWidth={1.5} />
                     <span className="text-sm font-medium">Click to upload multiple images</span>
                     <span className="text-xs">Select up to 4 images at once</span>
                   </div>
@@ -299,8 +301,8 @@ export default function ProductFormTab({ editProduct, onSave, onCancel }) {
                       <img src={url} alt={`gallery-${i}`} className="w-20 h-20 rounded-xl object-cover"
                         style={{ border: '2px solid rgba(224,112,0,0.3)' }} />
                       <button type="button" onClick={() => removeUploadedImage(i)}
-                        className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600">
-                        ✕
+                        className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600">
+                        <X size={12} strokeWidth={2.5} />
                       </button>
                     </div>
                   ))}
@@ -355,9 +357,9 @@ export default function ProductFormTab({ editProduct, onSave, onCancel }) {
 
         <div className="flex gap-3">
           <button type="submit" disabled={loading}
-            className="px-8 py-4 rounded-full font-bold text-white text-base transition-all hover:-translate-y-0.5 disabled:opacity-60"
+            className="flex items-center justify-center gap-2 px-8 py-4 rounded-full font-bold text-white text-base transition-all hover:-translate-y-0.5 disabled:opacity-60"
             style={{ background: 'linear-gradient(135deg,#e07000,#ff9010)', boxShadow: '0 4px 16px rgba(224,112,0,0.3)' }}>
-            {loading ? 'Saving...' : editProduct ? '✅ Update Product' : '➕ Add Product'}
+            {loading ? 'Saving...' : editProduct ? <><CheckCircle2 size={18} /> Update Product</> : <><Plus size={18} /> Add Product</>}
           </button>
           {editProduct && (
             <button type="button" onClick={onCancel}

@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Tag, CheckCircle2, Repeat, Plus } from 'lucide-react';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
+import { StatTile } from './AdminUI';
 
 // ─────────────────────────────────────────────
 // PromoCodesTab — unchanged logic from the original, moved into its
@@ -51,8 +53,11 @@ export default function PromoCodesTab() {
     try {
       const res = await api.put(`/api/orders/admin/promos/${code}/toggle`);
       setPromos((prev) => prev.map((p) => (p.code === code ? res.data.promo : p)));
-    } catch {
-      toast.error('Failed to update promo');
+    } catch (err) {
+      // Surface the real server message (rate limit, "not found", etc.)
+      // instead of a generic string that hides what actually went wrong —
+      // matches handleAdd's error handling above.
+      toast.error(err.response?.data?.message || 'Failed to update promo');
     }
   };
 
@@ -65,8 +70,8 @@ export default function PromoCodesTab() {
       await api.delete(`/api/orders/admin/promos/${code}`);
       setPromos((prev) => prev.filter((p) => p.code !== code));
       toast.success('Promo deleted');
-    } catch {
-      toast.error('Failed to delete promo');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete promo');
     }
   };
 
@@ -78,10 +83,18 @@ export default function PromoCodesTab() {
     <div>
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <h2 className="font-serif font-black text-brown-dark text-2xl">Promo Codes</h2>
-        <button onClick={() => setAdding(!adding)} className="px-5 py-2.5 rounded-full font-bold text-white text-sm"
+        <button onClick={() => setAdding(!adding)} className="flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-white text-sm"
           style={{ background: 'linear-gradient(135deg,#e07000,#ff9010)', minHeight: 44 }}>
-          {adding ? 'Cancel' : '+ Add Code'}
+          {adding ? 'Cancel' : <><Plus size={16} /> Add Code</>}
         </button>
+      </div>
+
+      {/* At-a-glance analytics — how many codes exist, how many are live,
+          and how many times any code has ever been redeemed. */}
+      <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-6">
+        <StatTile icon={<Tag size={19} />} label="Total Codes" value={promos.length} color="#e07000" />
+        <StatTile icon={<CheckCircle2 size={19} />} label="Active" value={promos.filter((p) => p.active).length} color="#15803d" />
+        <StatTile icon={<Repeat size={19} />} label="Total Redemptions" value={promos.reduce((sum, p) => sum + (p.uses || 0), 0)} color="#7c3aed" />
       </div>
 
       <AnimatePresence>
@@ -117,7 +130,7 @@ export default function PromoCodesTab() {
             </div>
             <button onClick={handleAdd} disabled={saving} className="px-6 py-2.5 rounded-full font-bold text-white text-sm disabled:opacity-60"
               style={{ background: 'linear-gradient(135deg,#e07000,#ff9010)', minHeight: 44 }}>
-              {saving ? 'Saving...' : '✅ Add Promo Code'}
+              {saving ? 'Saving...' : 'Add Promo Code'}
             </button>
           </motion.div>
         )}
@@ -140,7 +153,8 @@ export default function PromoCodesTab() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <span className={`text-xs font-bold px-3 py-1 rounded-full ${promo.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+              <span className="flex items-center gap-1.5 text-xs font-bold" style={{ color: promo.active ? '#15803d' : '#9ca3af' }}>
+                <span className="w-1.5 h-1.5 rounded-full" style={{ background: promo.active ? '#15803d' : '#9ca3af' }} />
                 {promo.active ? 'Active' : 'Inactive'}
               </span>
               <button onClick={() => togglePromo(promo.code)} className="text-xs font-bold px-3 py-1.5 rounded-xl border transition-all"

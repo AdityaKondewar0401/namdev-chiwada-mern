@@ -146,6 +146,17 @@ export const shippingAPI = {
 };
 
 /* ===============================
+   Users (admin)
+================================= */
+export const userAPI = {
+  getAll: (params) =>
+    api.get('/api/users/admin', { params }),
+
+  getOne: (id) =>
+    api.get(`/api/users/admin/${id}`),
+};
+
+/* ===============================
    Wishlist
 ================================= */
 export const wishlistAPI = {
