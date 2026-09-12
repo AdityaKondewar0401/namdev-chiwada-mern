@@ -540,14 +540,19 @@ function OrdersList() {
               </div>
 
               {/* Item thumbnails */}
-              <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
+              {/* pt-2/pr-2 (with mt/gap trimmed to match) give the qty badge
+                  room to sit above/beside the thumbnail — without it,
+                  overflow-x-auto here also forces overflow-y to clip
+                  (a mismatched-axis quirk in the overflow spec), chopping
+                  off the top of the badge. */}
+              <div className="flex gap-2 mt-1 pt-2 pr-2 overflow-x-auto pb-1">
                 {order.items.slice(0, 5).map((item, j) => (
                   <div key={j} className="relative flex-shrink-0">
                     <img src={item.img} alt={item.name}
                       className="w-12 h-14 rounded-xl object-cover"
                       style={{ border: '1px solid rgba(224,112,0,0.15)' }} />
                     {item.qty > 1 && (
-                      <span className="absolute -top-1 -right-1 w-4 h-4 bg-saffron text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                      <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-saffron text-white text-[9px] font-bold rounded-full flex items-center justify-center ring-2 ring-white">
                         {item.qty}
                       </span>
                     )}
