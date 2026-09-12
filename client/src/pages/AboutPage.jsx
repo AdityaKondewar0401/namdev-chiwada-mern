@@ -1,19 +1,10 @@
-import { useRef, useState, useEffect, useLayoutEffect, useMemo } from 'react';
+import { useRef, useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useInView, useScroll, useTransform } from 'framer-motion';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import PageWrapper from '../components/PageWrapper';
 import SEO from '../components/SEO';
 import { buildBreadcrumbSchema } from '../utils/structuredData';
 import { SITE_NAME } from '../config/seo.config';
-
-gsap.registerPlugin(ScrollTrigger);
-
-// The timeline's rail + node dots share this one gutter width — never
-// compute their horizontal position from two different calculations
-// (that's exactly what let them drift apart from each other before).
-const TIMELINE_RAIL = 44;
 
 const ABOUT_BREADCRUMB_ITEMS = [
   { label: 'Home', path: '/' },
@@ -54,34 +45,34 @@ const ABOUT_BREADCRUMB_ITEMS = [
 // ── Timeline Data — trimmed to one clear sentence per chapter ──
 const TIMELINE = [
   {
-    num: '०१', eyebrow: 'The Beginning', marathi: 'शून्यातून सुरुवात',
+    num: '01', eyebrow: 'The Beginning', marathi: 'शून्यातून सुरुवात',
     title: 'A Village Left Behind',
     text: "Bappa left Rani Savargaon with no capital and no contacts — only the resolve to build something of his own.",
-    color: '#e07000',
+    icon: '🚶', side: 'left', color: '#e07000',
   },
   {
-    num: '०२', eyebrow: 'The Spark', marathi: 'शेंगदाणा चुरमुरा',
+    num: '02', eyebrow: 'The Spark', marathi: 'शेंगदाणा चुरमुरा',
     title: 'An Idea Near Madla Maruti',
     text: 'Holding roasted peanuts and puffed rice, one question changed everything: what if this became chiwda?',
-    color: '#d4af37',
+    icon: '💡', side: 'right', color: '#d4af37',
   },
   {
-    num: '०३', eyebrow: 'First Steps', marathi: 'डोक्यावर पेटी',
+    num: '03', eyebrow: 'First Steps', marathi: 'डोक्यावर पेटी',
     title: 'A Box, A City, A Following',
     text: "Carrying fresh chiwda through Solapur's lanes in a wooden box, Bappa built a following one customer at a time.",
-    color: '#e07000',
+    icon: '📦', side: 'left', color: '#e07000',
   },
   {
-    num: '०४', eyebrow: 'Taking Root', year: '1873', marathi: 'दत्तात्रय निवास',
+    num: '04', eyebrow: 'Taking Root', year: '1873', marathi: 'दत्तात्रय निवास',
     title: 'A Home in Navipeth',
     text: 'Three years in, Bappa built a two-storey home — proof the risk had paid off.',
-    color: '#d4af37',
+    icon: '🏛️', side: 'right', color: '#d4af37',
   },
   {
-    num: '०५', eyebrow: 'The Legacy', marathi: 'पिढ्यानपिढ्यांची चव',
+    num: '05', eyebrow: 'The Legacy', marathi: 'पिढ्यानपिढ्यांची चव',
     title: 'Six Generations, One Recipe',
     text: 'The same masala, the same method — carried forward, batch after batch, since 1873.',
-    color: '#2d5a1b',
+    icon: '🌱', side: 'left', color: '#2d5a1b',
   },
 ];
 
@@ -284,68 +275,141 @@ function FadeIn({ children, delay = 0, direction = 'up', className = '' }) {
   );
 }
 
-// ── Timeline node — a camera-iris ring that draws on with GSAP, its
-// center numeral doubling as the chapter's Devanagari sequence marker ──
-function TimelineIris({ item, className = '' }) {
-  return (
-    <svg className={className} width="34" height="34" viewBox="0 0 30 30" fill="none">
-      <circle cx="15" cy="15" r="13" stroke={item.color} strokeWidth="2" strokeDasharray="100" strokeLinecap="round" transform="rotate(-90 15 15)" />
-      <circle cx="15" cy="15" r="7" fill="#160603" stroke="#f0cc5a" strokeWidth="1" />
-      <text x="15" y="15.5" textAnchor="middle" dominantBaseline="central"
-        fontFamily="'Noto Serif Devanagari', serif" fontSize="6.5" fontWeight="700" fill="#f0cc5a">
-        {item.num}
-      </text>
-    </svg>
-  );
-}
+// ── Timeline Item — redesigned as a numbered "chapter" ─────
+function TimelineItem({ item }) {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: '-60px' });
 
-// ── Timeline copy block — eyebrow, Marathi caption, title, one sentence ──
-function TimelineCopy({ item, align = 'left' }) {
   return (
-    <div style={{ textAlign: align }}>
-      <div className="text-[0.62rem] font-bold uppercase tracking-[0.2em]" style={{ color: '#f0cc5a' }}>
-        {item.eyebrow}{item.year ? ` · ${item.year}` : ''}
+    <div ref={ref} className="relative flex gap-0 mb-9 md:mb-14 last:mb-0">
+
+      {/* ── MOBILE: icon medallion + numeral badge + compact card ── */}
+      <div className="flex md:hidden items-start gap-4 w-full">
+        <div className="flex flex-col items-center flex-shrink-0 pt-1">
+          <motion.div
+            initial={{ scale: 0, opacity: 0 }}
+            animate={isInView ? { scale: 1, opacity: 1 } : {}}
+            transition={{ duration: 0.5, delay: 0.15, type: 'spring', stiffness: 200 }}
+            className="relative"
+          >
+            <div
+              className="w-12 h-12 rounded-full flex items-center justify-center text-lg"
+              style={{
+                background: `linear-gradient(135deg, ${item.color}, ${item.color}cc)`,
+                boxShadow: `0 0 0 3px ${item.color}22, 0 6px 18px ${item.color}40`,
+              }}
+            >
+              {item.icon}
+            </div>
+            {/* Chapter numeral — the sequence carries real meaning here */}
+            <div
+              className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center font-serif font-bold"
+              style={{ background: '#2d1a00', color: item.color, fontSize: '9px', border: `1px solid ${item.color}55` }}
+            >
+              {item.num}
+            </div>
+          </motion.div>
+          <div className="flex-1 w-px mt-2" style={{ background: `${item.color}30`, minHeight: '18px' }} />
+        </div>
+
+        <motion.div
+          className="flex-1 min-w-0"
+          initial={{ opacity: 0, x: 24 }}
+          animate={isInView ? { opacity: 1, x: 0 } : {}}
+          transition={{ duration: 0.6, delay: 0.05, ease: [0.25, 0.46, 0.45, 0.94] }}
+        >
+          <div
+            className="rounded-2xl px-5 py-4"
+            style={{
+              background: 'rgba(255,253,247,0.95)',
+              border: '1px solid rgba(224,112,0,0.12)',
+              boxShadow: '0 4px 18px rgba(45,26,0,0.07)',
+            }}
+          >
+            <div className="text-[10px] font-bold tracking-widest uppercase mb-1.5" style={{ color: item.color }}>
+              {item.eyebrow}{item.year ? ` · ${item.year}` : ''}
+            </div>
+            <div style={{ fontFamily: "'Gotu', sans-serif", fontSize: '0.8rem', color: `${item.color}dd`, fontStyle: 'italic', marginBottom: '4px' }}>
+              {item.marathi}
+            </div>
+            <h3 className="font-serif font-bold mb-1.5" style={{ color: '#2d1a00', fontSize: '1.05rem', lineHeight: 1.3 }}>
+              {item.title}
+            </h3>
+            <p className="text-sm leading-relaxed" style={{ color: '#7a5a38' }}>
+              {item.text}
+            </p>
+          </div>
+        </motion.div>
       </div>
-      <div className="mt-1 text-[0.9rem]" style={{ fontFamily: "'Tiro Devanagari Marathi',serif", color: '#e0b866', fontStyle: 'italic' }}>
-        {item.marathi}
-      </div>
-      <h3 className="mt-1 font-serif font-black" style={{ color: '#fff8ec', fontSize: '1.2rem' }}>
-        {item.title}
-      </h3>
-      <p className="mt-1.5 text-sm leading-relaxed" style={{ color: 'rgba(255,248,236,0.6)' }}>
-        {item.text}
-      </p>
-    </div>
-  );
-}
 
-// ── Small gold line-and-circle motif for the section header ──
-function TimelineOrnament({ color = '#e0b866', width = 150 }) {
-  return (
-    <svg viewBox="0 0 200 22" width={width} height={width * 0.11} fill="none" aria-hidden="true">
-      <path
-        d="M6 11 H74 M194 11 H126 M100 3 C108 3 114 7 114 11 C114 15 108 19 100 19 C92 19 86 15 86 11 C86 7 92 3 100 3 Z M78 11 h6 M116 11 h6"
-        stroke={color} strokeWidth="1.3" strokeLinecap="round"
-      />
-    </svg>
-  );
-}
+      {/* ── DESKTOP: alternating sides + a large ghost numeral behind the dot ── */}
+      <div className={`hidden md:flex items-center gap-0 w-full ${item.side === 'left' ? 'flex-row' : 'flex-row-reverse'}`}>
+        <motion.div
+          className="w-[calc(50%-40px)]"
+          initial={{ opacity: 0, x: item.side === 'left' ? -50 : 50 }}
+          animate={isInView ? { opacity: 1, x: 0 } : {}}
+          transition={{ duration: 0.7, delay: 0.05, ease: [0.25, 0.46, 0.45, 0.94] }}
+        >
+          <div
+            className="relative rounded-3xl p-7 transition-shadow duration-300"
+            style={{
+              background: 'rgba(255,253,247,0.9)',
+              backdropFilter: 'blur(12px)',
+              border: '1px solid rgba(224,112,0,0.12)',
+              boxShadow: '0 8px 28px rgba(45,26,0,0.07)',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.boxShadow = `0 18px 50px ${item.color}26`)}
+            onMouseLeave={(e) => (e.currentTarget.style.boxShadow = '0 8px 28px rgba(45,26,0,0.07)')}
+          >
+            <div
+              className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase mb-3"
+              style={{ background: `${item.color}18`, color: item.color, border: `1px solid ${item.color}30` }}
+            >
+              {item.eyebrow}{item.year ? ` · ${item.year}` : ''}
+            </div>
+            <div style={{ fontFamily: "'Gotu', sans-serif", fontSize: '0.85rem', color: `${item.color}dd`, fontStyle: 'italic', marginBottom: '6px' }}>
+              {item.marathi}
+            </div>
+            <h3 className="font-serif font-bold mb-2" style={{ color: '#2d1a00', fontSize: '1.3rem' }}>
+              {item.title}
+            </h3>
+            <p className="text-sm leading-relaxed" style={{ color: '#7a5a38' }}>
+              {item.text}
+            </p>
+            <div
+              className={`absolute top-1/2 -translate-y-1/2 w-0 h-0 ${item.side === 'left' ? '-right-3' : '-left-3'}`}
+              style={{
+                borderTop: '10px solid transparent',
+                borderBottom: '10px solid transparent',
+                [item.side === 'left' ? 'borderLeft' : 'borderRight']: '12px solid rgba(255,253,247,0.9)',
+              }}
+            />
+          </div>
+        </motion.div>
 
-// ── Closing flourish — a gold rosette capstone, replacing the old 🌟 emoji ──
-function ClosingFlourish() {
-  return (
-    <div className="flex flex-col items-center gap-2">
-      <svg width="46" height="46" viewBox="0 0 46 46" fill="none" aria-hidden="true">
-        <circle cx="23" cy="23" r="21" stroke="#f0cc5a" strokeWidth="1" opacity="0.4" />
-        {[0, 45, 90, 135, 180, 225, 270, 315].map((a) => (
-          <line key={a} x1="23" y1="23"
-            x2={23 + 16 * Math.cos((a * Math.PI) / 180)} y2={23 + 16 * Math.sin((a * Math.PI) / 180)}
-            stroke="#f0cc5a" strokeWidth="1" opacity="0.5" />
-        ))}
-        <circle cx="23" cy="23" r="6" fill="#f0cc5a" />
-      </svg>
-      <div className="text-[0.68rem] font-bold uppercase tracking-[0.25em]" style={{ color: 'rgba(240,204,90,0.65)' }}>
-        Since 1873
+        {/* Center dot — with a large, quiet ghost numeral behind it (the page's signature detail) */}
+        <div className="w-20 flex flex-col items-center flex-shrink-0 relative z-10">
+          <div
+            className="absolute font-serif font-black select-none pointer-events-none"
+            style={{ fontSize: '2.6rem', color: `${item.color}14`, top: '-16px' }}
+          >
+            {item.num}
+          </div>
+          <motion.div
+            initial={{ scale: 0, opacity: 0 }}
+            animate={isInView ? { scale: 1, opacity: 1 } : {}}
+            transition={{ duration: 0.5, delay: 0.25, type: 'spring', stiffness: 200 }}
+            className="w-14 h-14 rounded-full flex items-center justify-center text-2xl relative z-10"
+            style={{
+              background: `linear-gradient(135deg, ${item.color}, ${item.color}cc)`,
+              boxShadow: `0 0 0 4px ${item.color}20, 0 0 0 8px ${item.color}0f, 0 8px 22px ${item.color}40`,
+            }}
+          >
+            {item.icon}
+          </motion.div>
+        </div>
+
+        <div className="w-[calc(50%-40px)]" />
       </div>
     </div>
   );
@@ -429,220 +493,87 @@ function AboutHero() {
   );
 }
 
-// ── Timeline Section — GSAP ScrollTrigger–driven "Spotlight Archway" chapters ──
-// A scroll-scrubbed gold spine and a traveling spotlight glow run the full
-// height of the chapter list, and each chapter reveals once as it enters
-// view — real scroll-linkage, not an autoplay-on-mount demo.
-//
-// Reduced-motion / no-JS safe: every card and node renders fully visible in
-// plain CSS by default (no inline opacity/scale in the JSX below). GSAP only
-// dims cards down to their "waiting" state at runtime, inside the
-// motion-is-OK branch of gsap.matchMedia() — so if that branch never runs
-// (prefers-reduced-motion, or JS fails entirely), nothing is left stuck
-// hidden; visitors just see the static, fully-lit layout.
-//
-// Alignment is content-height-agnostic on purpose: mobile uses one shared
-// fixed-width gutter column (TIMELINE_RAIL) that holds both the rail line
-// and every node, sized by natural document flow; desktop uses a CSS Grid
-// row (1fr / TIMELINE_RAIL / 1fr) whose middle column is inherently
-// centered regardless of container width. Neither needs a JS pixel
-// calculation, so real (variable-length) chapter copy can't knock them
-// out of alignment the way the old two-different-offsets bug did.
+// ── Timeline Section ───────────────────────────────────
 function TimelineSection() {
-  const root = useRef(null);
-
-  useLayoutEffect(() => {
-    const ctx = gsap.context(() => {
-      const mm = gsap.matchMedia();
-
-      mm.add(
-        {
-          isMobile: '(max-width: 767px)',
-          isDesktop: '(min-width: 768px)',
-          reduceMotion: '(prefers-reduced-motion: reduce)',
-        },
-        (context) => {
-          const { isMobile, reduceMotion } = context.conditions;
-
-          // Ambient embers are purely decorative, so they're gated on
-          // reduced-motion alone rather than tied to scroll progress.
-          if (!reduceMotion) {
-            gsap.set('.tl-ember', { y: 0, opacity: 0 });
-            gsap.to('.tl-ember', {
-              y: -140, opacity: 1, duration: 4, repeat: -1, ease: 'none',
-              stagger: { each: 0.7, repeat: -1 }, keyframes: { opacity: [0, 0.9, 0] },
-            });
-          }
-
-          // Leave every chapter in its static, fully-visible fallback.
-          if (reduceMotion) return;
-
-          const scope = isMobile ? '.tl-mobile' : '.tl-desktop';
-          const cardSel = isMobile ? '.tl-card' : '.tl-dcard';
-          const nodeSel = isMobile ? '.tl-node' : '.tl-dnode';
-          const spotSel = isMobile ? '.tl-spot' : '.tl-spot-d';
-          const railFillSel = isMobile ? '.tl-rail-fill' : '.tl-rail-fill-d';
-          const rowPrefix = isMobile ? '.tl-row-' : '.tl-drow-';
-          const cardPrefix = isMobile ? '.tl-card-' : '.tl-dcard-';
-          const nodePrefix = isMobile ? '.tl-node-' : '.tl-dnode-';
-
-          gsap.set(cardSel, { opacity: 0.22, filter: 'brightness(0.55) blur(1px)' });
-          gsap.set(nodeSel, { scale: 0 });
-          gsap.set(spotSel, { opacity: 0 });
-
-          // Rail fill + traveling spotlight scrub continuously with scroll —
-          // no per-chapter pixel math, so this holds up for any copy length.
-          gsap.timeline({
-            scrollTrigger: { trigger: scope, start: 'top 70%', end: 'bottom 65%', scrub: 0.6 },
-          })
-            .fromTo(railFillSel, { scaleY: 0 }, { scaleY: 1, ease: 'none' }, 0)
-            .fromTo(spotSel, { top: '0%', opacity: 1 }, { top: '100%', ease: 'none' }, 0);
-
-          // Each chapter reveals once, the moment it enters view.
-          TIMELINE.forEach((_, i) => {
-            ScrollTrigger.create({
-              trigger: `${rowPrefix}${i}`,
-              start: 'top 82%',
-              toggleActions: 'play none none none',
-              onEnter: () => {
-                gsap.to(`${nodePrefix}${i}`, { scale: 1, duration: 0.5, ease: 'elastic.out(1,0.5)' });
-                gsap.to(`${cardPrefix}${i}`, { opacity: 1, filter: 'brightness(1) blur(0px)', duration: 0.5 });
-                gsap.fromTo(`${nodePrefix}${i} circle`, { strokeDashoffset: 100 }, { strokeDashoffset: 0, duration: 0.5, ease: 'power2.out' });
-              },
-            });
-          });
-        }
-      );
-    }, root);
-
-    return () => ctx.revert();
-  }, []);
+  const timelineRef = useRef(null);
+  const { scrollYProgress: timelineProgress } = useScroll({
+    target: timelineRef,
+    offset: ['start 0.8', 'end 0.25'],
+  });
+  // Closing marker only fades in once the progress line has actually
+  // drawn its way down to it — otherwise it can render as an isolated
+  // dot floating above blank space if it appears before the line (or the
+  // cards above it) has caught up.
+  const starOpacity = useTransform(timelineProgress, [0.85, 1], [0, 1]);
 
   return (
-    <section
-      ref={root}
-      className="relative overflow-hidden px-6 py-16 md:px-10 md:py-24"
-      style={{ background: 'linear-gradient(180deg,#1c0d02,#2f1600 40%,#231000)' }}
-    >
-      {/* Temple-archway backdrop: tiled arch silhouettes + drifting embers */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.05]"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='90' height='120' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M45 118 V60 A25 25 0 0 1 95 60 V118' stroke='%23d4af37' stroke-width='2' fill='none'/%3E%3C/svg%3E")`,
-          backgroundSize: '90px 120px',
-        }}
-      />
-      {[...Array(8)].map((_, i) => (
-        <span
-          key={i}
-          className="tl-ember pointer-events-none absolute h-1 w-1 rounded-full"
-          style={{ left: `${8 + i * 11}%`, bottom: 60, background: '#f0cc5a', boxShadow: '0 0 6px 2px rgba(240,204,90,0.6)' }}
-        />
-      ))}
-      {/* Spotlight-reel framing: film grain + velvet curtain edges */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.05] mix-blend-overlay"
-        style={{
-          backgroundImage:
-            "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
-        }}
-      />
-      {[0, 1].map((s) => (
-        <div
-          key={s}
-          className="pointer-events-none absolute top-0 bottom-0 w-6 md:w-10"
-          style={{
-            [s ? 'right' : 'left']: 0,
-            backgroundImage: 'repeating-linear-gradient(90deg,rgba(0,0,0,0.5) 0 4px,rgba(122,20,20,0.4) 4px 8px)',
-          }}
-        />
-      ))}
+    <section className="py-16 md:py-24 relative overflow-hidden"
+      style={{ background: 'linear-gradient(180deg,#fef3e0 0%,#fffdf7 100%)' }}>
 
-      <div className="relative z-10 mb-12 text-center md:mb-16">
-        <div className="flex justify-center"><TimelineOrnament /></div>
-        <div className="mt-4 text-xs font-bold tracking-widest uppercase" style={{ color: '#e0b866' }}>
-          The Journey
-        </div>
-        <h2 className="mt-2 font-serif font-black" style={{ fontSize: 'clamp(1.8rem,4vw,3rem)', color: '#fff8ec' }}>
-          150 Years, Five Chapters
-        </h2>
-        <p className="mt-2" style={{ fontFamily: "'Tiro Devanagari Marathi',serif", color: '#e0b866', fontStyle: 'italic', fontSize: '1.05rem' }}>
-          एक माणूस, एक स्वप्न, एक चव
-        </p>
-        <Link
-          to="/our-history"
-          className="mt-3 inline-block text-sm font-semibold underline underline-offset-2"
-          style={{ color: '#f0cc5a' }}
-        >
-          Read the full illustrated timeline on Our History →
-        </Link>
-      </div>
+      <div className="absolute inset-0 pointer-events-none opacity-[0.025]"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23e07000'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E")`,
+        }} />
 
-      {/* ── MOBILE: single column, shared gutter rail on the left ── */}
-      <div className="tl-mobile relative z-10 mx-auto max-w-md md:hidden">
-        <div
-          className="tl-spot pointer-events-none absolute left-1/2 z-0 -translate-x-1/2 rounded-full"
-          style={{ width: 280, height: 190, background: 'radial-gradient(ellipse,rgba(255,224,160,0.18),transparent 70%)' }}
-        />
-        <span
-          className="absolute top-2 bottom-2 w-px"
-          style={{ left: TIMELINE_RAIL / 2, background: 'rgba(224,184,102,0.14)' }}
-        />
-        <span
-          className="tl-rail-fill absolute top-2 bottom-2 w-[3px] origin-top -translate-x-1/2 rounded-full"
-          style={{ left: TIMELINE_RAIL / 2, background: 'linear-gradient(to bottom,#f0cc5a,#7a3300)', boxShadow: '0 0 10px rgba(240,204,90,0.5)' }}
-        />
-        {TIMELINE.map((item, i) => (
-          <div key={i} className={`tl-row-${i} relative flex items-start`}>
-            <div className="relative flex flex-shrink-0 justify-center pt-1" style={{ width: TIMELINE_RAIL }}>
-              <div className={`tl-node tl-node-${i} relative z-10`}>
-                <TimelineIris item={item} />
-              </div>
-            </div>
-            <div className={`tl-card tl-card-${i} min-w-0 flex-1 pb-10 last:pb-0`}>
-              <TimelineCopy item={item} />
-            </div>
+      <div className="max-w-5xl mx-auto px-5 sm:px-6">
+        <FadeIn className="text-center mb-12 md:mb-16">
+          <div className="text-xs font-bold tracking-widest uppercase mb-3" style={{ color: '#e07000' }}>
+            The Journey
           </div>
-        ))}
-      </div>
+          <h2 className="font-serif font-black text-brown-dark mb-3"
+            style={{ fontSize: 'clamp(1.8rem,4vw,3rem)' }}>
+            150 Years, Five Chapters
+          </h2>
+          <p style={{ fontFamily: "'Gotu',sans-serif", color: '#7a3300', fontSize: '1.05rem' }}>
+            एक माणूस, एक स्वप्न, एक चव
+          </p>
+          <Link
+            to="/our-history"
+            className="inline-block mt-3 text-sm font-semibold underline underline-offset-2"
+            style={{ color: '#e07000' }}
+          >
+            Read the full illustrated timeline on Our History →
+          </Link>
+        </FadeIn>
 
-      {/* ── DESKTOP: centered rail, alternating sides via a 1fr/rail/1fr grid ── */}
-      <div className="tl-desktop relative z-10 mx-auto hidden max-w-3xl md:block">
-        <div
-          className="tl-spot-d pointer-events-none absolute left-1/2 z-0 -translate-x-1/2 rounded-full"
-          style={{ width: 480, height: 260, background: 'radial-gradient(ellipse,rgba(255,224,160,0.16),transparent 70%)' }}
-        />
-        <span className="absolute left-1/2 top-2 bottom-2 w-px -translate-x-1/2" style={{ background: 'rgba(224,184,102,0.14)' }} />
-        <span
-          className="tl-rail-fill-d absolute left-1/2 top-2 bottom-2 w-[3px] origin-top -translate-x-1/2 rounded-full"
-          style={{ background: 'linear-gradient(to bottom,#f0cc5a,#7a3300)', boxShadow: '0 0 10px rgba(240,204,90,0.5)' }}
-        />
-        {TIMELINE.map((item, i) => {
-          const left = i % 2 === 0;
-          return (
-            <div
-              key={i}
-              className={`tl-drow-${i} relative grid items-center py-8`}
-              style={{ gridTemplateColumns: `1fr ${TIMELINE_RAIL}px 1fr` }}
-            >
-              <div className="pr-12">
-                {left && <div className={`tl-dcard tl-dcard-${i}`}><TimelineCopy item={item} align="right" /></div>}
-              </div>
-              <div className="relative z-10 flex justify-center">
-                <div className={`tl-dnode tl-dnode-${i}`}>
-                  <TimelineIris item={item} />
-                </div>
-              </div>
-              <div className="pl-12">
-                {!left && <div className={`tl-dcard tl-dcard-${i}`}><TimelineCopy item={item} align="left" /></div>}
-              </div>
+        <div ref={timelineRef} className="relative">
+          <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px -translate-x-1/2"
+            style={{ background: 'rgba(224,112,0,0.3)' }} />
+          <div className="md:hidden absolute left-[22px] top-0 bottom-0 w-px"
+            style={{ background: 'rgba(224,112,0,0.3)' }} />
+
+          <motion.div
+            className="hidden md:block absolute left-1/2 top-0 w-[2px] -translate-x-1/2 rounded-full"
+            style={{
+              scaleY: timelineProgress,
+              transformOrigin: 'top',
+              height: '100%',
+              background: 'linear-gradient(to bottom, #e07000, #d4af37, #2d5a1b)',
+              boxShadow: '0 0 14px rgba(212,175,55,0.55)',
+            }}
+          />
+          <motion.div
+            className="md:hidden absolute left-[22px] top-0 w-[2px] rounded-full"
+            style={{
+              scaleY: timelineProgress,
+              transformOrigin: 'top',
+              height: '100%',
+              background: 'linear-gradient(to bottom, #e07000, #d4af37, #2d5a1b)',
+              boxShadow: '0 0 10px rgba(212,175,55,0.45)',
+            }}
+          />
+
+          {TIMELINE.map((item, index) => (
+            <TimelineItem key={index} item={item} />
+          ))}
+
+          <motion.div className="flex justify-center mt-4" style={{ opacity: starOpacity }}>
+            <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm"
+              style={{ background: 'linear-gradient(135deg,#e07000,#d4af37)', boxShadow: '0 0 0 6px rgba(224,112,0,0.15)' }}>
+              🌟
             </div>
-          );
-        })}
-      </div>
-
-      <div className="relative z-10 mt-12 flex justify-center md:mt-16">
-        <ClosingFlourish />
+          </motion.div>
+        </div>
       </div>
     </section>
   );
