@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, useInView, useScroll, useTransform } from 'framer-motion';
+import { motion, useInView, useScroll, useTransform, useReducedMotion } from 'framer-motion';
 import PageWrapper from '../components/PageWrapper';
 import SEO from '../components/SEO';
 import { buildBreadcrumbSchema } from '../utils/structuredData';
@@ -134,6 +134,11 @@ function EmberParticles({ count = 10 }) {
       })),
     [count]
   );
+  // Purely decorative, continuously-looping motion — exactly what
+  // prefers-reduced-motion asks sites to cut. Simplest correct behavior is
+  // to just not render it rather than try to freeze N staggered loops.
+  const shouldReduceMotion = useReducedMotion();
+  if (shouldReduceMotion) return null;
 
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -421,6 +426,7 @@ function AboutHero() {
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
   const y = useTransform(scrollYProgress, [0, 1], ['0%', '25%']);
   const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
+  const shouldReduceMotion = useReducedMotion();
 
   return (
     <section ref={heroRef} className="relative min-h-[78vh] md:min-h-[85vh] flex items-center overflow-hidden"
@@ -485,7 +491,7 @@ function AboutHero() {
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.1 }}
           className="mt-12 md:mt-16 flex flex-col items-center gap-2 text-white/40 text-xs">
           <span className="tracking-widest uppercase text-[10px]">Scroll to explore the journey</span>
-          <motion.div animate={{ y: [0, 8, 0] }} transition={{ repeat: Infinity, duration: 1.5 }}
+          <motion.div animate={shouldReduceMotion ? { y: 0 } : { y: [0, 8, 0] }} transition={shouldReduceMotion ? { duration: 0 } : { repeat: Infinity, duration: 1.5 }}
             className="w-6 h-6 rounded-full border border-white/30 flex items-center justify-center text-xs">↓</motion.div>
         </motion.div>
       </motion.div>
@@ -660,6 +666,7 @@ function ValuesSection() {
 function FounderSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-80px' });
+  const shouldReduceMotion = useReducedMotion();
 
   return (
     <section className="py-16 md:py-24 relative overflow-hidden" style={{ background: '#fffdf7' }} ref={ref}>
@@ -695,14 +702,14 @@ function FounderSection() {
               ))}
 
               <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ repeat: Infinity, duration: 45, ease: 'linear' }}
+                animate={shouldReduceMotion ? { rotate: 0 } : { rotate: 360 }}
+                transition={shouldReduceMotion ? { duration: 0 } : { repeat: Infinity, duration: 45, ease: 'linear' }}
                 className="absolute pointer-events-none"
                 style={{ top: '38%', left: '50%', width: 200, height: 200, marginLeft: -100, marginTop: -100, borderRadius: '50%', border: '1px dashed rgba(212,175,55,0.45)' }}
               />
               <motion.div
-                animate={{ rotate: -360 }}
-                transition={{ repeat: Infinity, duration: 60, ease: 'linear' }}
+                animate={shouldReduceMotion ? { rotate: 0 } : { rotate: -360 }}
+                transition={shouldReduceMotion ? { duration: 0 } : { repeat: Infinity, duration: 60, ease: 'linear' }}
                 className="absolute pointer-events-none"
                 style={{ top: '38%', left: '50%', width: 160, height: 160, marginLeft: -80, marginTop: -80, borderRadius: '50%', border: '1px solid rgba(224,112,0,0.2)' }}
               />
@@ -727,8 +734,8 @@ function FounderSection() {
             </div>
 
             <motion.div
-              animate={{ scale: [1, 1.05, 1] }}
-              transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
+              animate={shouldReduceMotion ? { scale: 1 } : { scale: [1, 1.05, 1] }}
+              transition={shouldReduceMotion ? { duration: 0 } : { repeat: Infinity, duration: 3, ease: 'easeInOut' }}
               className="absolute -top-5 -right-5 w-20 h-20 rounded-full flex flex-col items-center justify-center z-20"
               style={{ background: 'linear-gradient(135deg,#d4af37,#f0cc5a)', boxShadow: '0 8px 24px rgba(212,175,55,0.55)' }}>
               <div className="font-serif font-black text-brown-dark text-lg leading-none">1873</div>

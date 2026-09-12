@@ -45,7 +45,7 @@ export default function AddressTab({ user, onUpdate }) {
         </div>
 
         {!editing && !hasAddress && (
-          <div className="text-center py-8 text-brown-mid/50 text-sm">
+          <div className="text-center py-8 text-brown-mid/75 text-sm">
             No address saved yet. Click "Add Address" to add one.
           </div>
         )}
@@ -74,7 +74,7 @@ export default function AddressTab({ user, onUpdate }) {
               { label: 'Pincode', key: 'pincode', placeholder: '413001' },
             ].map(({ label, key, placeholder, full }) => (
               <div key={key} className={full ? 'sm:col-span-2' : ''}>
-                <label className="block text-xs font-bold uppercase tracking-wider text-brown-mid/60 mb-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider text-brown-mid/75 mb-1.5">
                   {label}
                 </label>
                 <input

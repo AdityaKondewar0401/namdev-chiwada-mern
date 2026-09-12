@@ -22,7 +22,6 @@ export default {
       fontFamily: {
         sans: ['DM Sans', 'system-ui', 'sans-serif'],
         serif: ['Playfair Display', 'serif'],
-        cormorant: ['Cormorant Garamond', 'serif'],
         poppins: ['Poppins', 'sans-serif'],
         devanagari: ['Noto Serif Devanagari', 'serif'],
       },

@@ -59,7 +59,7 @@ export default function ProfileTab({ user, onUpdate }) {
         </div>
         <div className="min-w-0 flex-1">
           <div className="font-serif font-black text-brown-dark text-lg sm:text-xl truncate">{user?.name}</div>
-          <div className="text-sm text-brown-mid/60 mt-0.5 break-all">{user?.email}</div>
+          <div className="text-sm text-brown-mid/75 mt-0.5 break-all">{user?.email}</div>
           <div className="inline-flex items-center gap-1.5 mt-2 px-3 py-1 rounded-full text-xs font-bold"
             style={{ background: user?.role === 'admin' ? '#fef3c7' : '#f0fdf4', color: user?.role === 'admin' ? '#92400e' : '#166534' }}>
             <span className="w-1.5 h-1.5 rounded-full" style={{ background: user?.role === 'admin' ? '#f59e0b' : '#22c55e' }} />
@@ -114,7 +114,7 @@ export default function ProfileTab({ user, onUpdate }) {
             { label: 'Account Type', key: 'role', value: user?.role === 'admin' ? 'Administrator' : 'Customer', type: 'text', readOnly: true, icon: '🏷️' },
           ].map(({ label, key, value, type, readOnly, icon }) => (
             <div key={key}>
-              <label className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-brown-mid/60 mb-1.5">
+              <label className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-brown-mid/75 mb-1.5">
                 <span aria-hidden="true">{icon}</span>{label}
               </label>
               {editing && !readOnly ? (

@@ -74,7 +74,7 @@ export default function OrdersTab({ orders, loading }) {
       <div className="text-center py-20">
         <div className="text-6xl mb-4">📦</div>
         <h3 className="font-serif font-bold text-brown-dark text-xl mb-2">No orders yet</h3>
-        <p className="text-brown-mid/60 text-sm mb-6">Start shopping to see your orders here</p>
+        <p className="text-brown-mid/75 text-sm mb-6">Start shopping to see your orders here</p>
         <Link to="/products" className="inline-block px-6 py-3 rounded-full font-bold text-white text-sm"
           style={{ background: 'linear-gradient(135deg,#e07000,#ff9010)' }}>
           Browse Products →
@@ -86,7 +86,7 @@ export default function OrdersTab({ orders, loading }) {
   return (
     <div>
       <h2 className="font-serif font-black text-brown-dark text-2xl mb-6">
-        My Orders <span className="text-lg text-brown-mid/50 font-normal">({orders.length})</span>
+        My Orders <span className="text-lg text-brown-mid/75 font-normal">({orders.length})</span>
       </h2>
 
       <div className="space-y-4">
@@ -118,7 +118,7 @@ export default function OrdersTab({ orders, loading }) {
                       <div className="font-bold text-brown-dark text-sm">
                         Order #{order._id.slice(-8).toUpperCase()}
                       </div>
-                      <div className="text-xs text-brown-mid/60 mt-0.5">
+                      <div className="text-xs text-brown-mid/75 mt-0.5">
                         {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
                         · {order.items?.length} item{order.items?.length !== 1 ? 's' : ''}
                       </div>
@@ -132,7 +132,7 @@ export default function OrdersTab({ orders, loading }) {
                       <span className="w-1.5 h-1.5 rounded-full" style={{ background: sc.dot }} />
                       {order.status}
                     </span>
-                    <svg className={`w-4 h-4 text-brown-mid/40 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                    <svg className={`w-4 h-4 text-brown-mid/75 transition-transform ${isOpen ? 'rotate-180' : ''}`}
                       fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                     </svg>
@@ -157,7 +157,7 @@ export default function OrdersTab({ orders, loading }) {
                               className="w-14 h-16 rounded-xl object-cover flex-shrink-0" />
                             <div className="flex-1">
                               <div className="font-semibold text-brown-dark text-sm">{item.name}</div>
-                              <div className="text-xs text-brown-mid/60">{item.size} × {item.qty}</div>
+                              <div className="text-xs text-brown-mid/75">{item.size} × {item.qty}</div>
                             </div>
                             <div className="font-bold text-saffron">₹{item.price * item.qty}</div>
                           </div>
@@ -186,7 +186,7 @@ export default function OrdersTab({ orders, loading }) {
                       </div>
 
                       {order.shippingAddress && (
-                        <div className="mt-3 text-xs text-brown-mid/60">
+                        <div className="mt-3 text-xs text-brown-mid/75">
                           <span className="font-semibold text-brown-dark">Delivered to: </span>
                           {order.shippingAddress.fullName}, {order.shippingAddress.line1}, {order.shippingAddress.city} – {order.shippingAddress.pincode}
                         </div>

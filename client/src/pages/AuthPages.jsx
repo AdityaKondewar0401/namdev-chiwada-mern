@@ -107,15 +107,25 @@ function AuthShell({ title, subtitle, children }) {
 function GoogleLoginButton() {
   const navigate = useNavigate();
   const { saveUser } = useAuth();
+  // BUG FIX: this used to call google.accounts.id.initialize() with
+  // whatever VITE_GOOGLE_CLIENT_ID happened to be (including undefined),
+  // which throws Google's own "[GSI_LOGGER]: Missing required parameter:
+  // client_id" console error and never renders a working button — visitors
+  // saw a broken/blank "OR" divider with nothing usable under it. If this
+  // env var isn't configured (a misconfigured deploy, or local dev without
+  // it set), degrade gracefully by not showing the Google option at all
+  // rather than an erroring dead button; email/password login still works.
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
   useEffect(() => {
+    if (!clientId) return undefined;
     let cancelled = false;
 
     const renderGoogleButton = () => {
       if (cancelled || !window.google) return false;
 
       window.google.accounts.id.initialize({
-        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+        client_id: clientId,
         callback: handleGoogleResponse,
         cancel_on_tap_outside: false,
       });
@@ -174,6 +184,8 @@ function GoogleLoginButton() {
       toast.error('Google login failed');
     }
   };
+
+  if (!clientId) return null;
 
   return (
     <div className="mt-5">

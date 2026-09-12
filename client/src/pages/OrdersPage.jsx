@@ -112,7 +112,7 @@ function WhatsAppSupportBox({ order }) {
             <div className="p-5">
               {/* Quick Issues */}
               <div className="mb-4">
-                <div className="text-xs font-bold uppercase tracking-wider text-brown-mid/60 mb-2">Quick Issues</div>
+                <div className="text-xs font-bold uppercase tracking-wider text-brown-mid/75 mb-2">Quick Issues</div>
                 <div className="flex flex-wrap gap-2">
                   {quickIssues.map((issue) => (
                     <a
@@ -132,7 +132,7 @@ function WhatsAppSupportBox({ order }) {
               {/* Divider */}
               <div className="flex items-center gap-3 mb-4">
                 <div className="flex-1 h-px bg-saffron/10" />
-                <span className="text-xs text-brown-mid/40 font-medium">or describe your issue</span>
+                <span className="text-xs text-brown-mid/75 font-medium">or describe your issue</span>
                 <div className="flex-1 h-px bg-saffron/10" />
               </div>
 
@@ -156,7 +156,7 @@ function WhatsAppSupportBox({ order }) {
                 </button>
               </div>
 
-              <div className="mt-3 flex items-center gap-2 text-xs text-brown-mid/50">
+              <div className="mt-3 flex items-center gap-2 text-xs text-brown-mid/75">
                 <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse inline-block" />
                 Typically replies within 30 minutes · Order ID auto-included
               </div>
@@ -185,7 +185,7 @@ function OrderDetail({ id }) {
       {[1, 2, 3].map(i => <div key={i} className="skeleton h-28 rounded-2xl" />)}
     </div>
   );
-  if (!order) return <div className="text-center py-16 text-brown-mid/60">Order not found.</div>;
+  if (!order) return <div className="text-center py-16 text-brown-mid/75">Order not found.</div>;
 
   const stepIdx = STATUS_STEPS.indexOf(order.status);
   const isCancelled = order.status === 'cancelled';
@@ -214,19 +214,19 @@ function OrderDetail({ id }) {
           {/* Top row: ID + Status badge */}
           <div className="flex items-start justify-between gap-4 flex-wrap mb-5">
             <div>
-              <div className="text-xs text-brown-mid/50 font-medium uppercase tracking-wider mb-1">Order</div>
+              <div className="text-xs text-brown-mid/75 font-medium uppercase tracking-wider mb-1">Order</div>
               <div className="font-black text-brown-dark text-2xl font-serif">#{shortId}</div>
-              <div className="text-xs text-brown-mid/50 mt-1 font-mono">{order._id}</div>
+              <div className="text-xs text-brown-mid/75 mt-1 font-mono">{order._id}</div>
             </div>
             <div className="text-right">
               <span className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-bold border capitalize ${STATUS_COLORS[order.status]}`}>
                 <span>{STATUS_ICONS[order.status]}</span>
                 {order.status}
               </span>
-              <div className="text-xs text-brown-mid/50 mt-2">
+              <div className="text-xs text-brown-mid/75 mt-2">
                 {orderDate.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
               </div>
-              <div className="text-xs text-brown-mid/40">
+              <div className="text-xs text-brown-mid/75">
                 {orderDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
               </div>
             </div>
@@ -247,7 +247,7 @@ function OrderDetail({ id }) {
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 transition-all shadow-sm ${
                         i < stepIdx ? 'bg-saffron text-white' :
                         i === stepIdx ? 'bg-saffron text-white ring-4 ring-saffron/20' :
-                        'bg-cream-mid text-brown-mid/30'
+                        'bg-cream-mid text-brown-mid/75'
                       }`}>
                         {i < stepIdx ? '✓' : i === stepIdx ? STATUS_ICONS[step] : i + 1}
                       </div>
@@ -260,7 +260,7 @@ function OrderDetail({ id }) {
               </div>
               <div className="flex justify-between mt-2">
                 {STATUS_STEPS.map((s, i) => (
-                  <span key={s} className={`text-xs capitalize flex-1 text-center first:text-left last:text-right font-medium ${i <= stepIdx ? 'text-saffron' : 'text-brown-mid/40'}`}>
+                  <span key={s} className={`text-xs capitalize flex-1 text-center first:text-left last:text-right font-medium ${i <= stepIdx ? 'text-saffron' : 'text-brown-mid/75'}`}>
                     {s}
                   </span>
                 ))}
@@ -324,7 +324,7 @@ function OrderDetail({ id }) {
             <div className="mt-4 space-y-2 border-t border-saffron/10 pt-4">
               {order.courier.history.slice().reverse().map((h, i) => (
                 <div key={i} className="flex flex-col sm:flex-row sm:items-start gap-0.5 sm:gap-3 text-xs">
-                  <span className="text-brown-mid/50 flex-shrink-0 sm:w-32">
+                  <span className="text-brown-mid/75 flex-shrink-0 sm:w-32">
                     {h.eventTimestamp ? new Date(h.eventTimestamp).toLocaleString('en-IN') : ''}
                   </span>
                   <span className="text-brown-dark min-w-0 flex-1">
@@ -358,10 +358,10 @@ function OrderDetail({ id }) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold text-brown-dark text-sm">{item.name}</div>
-                  <div className="text-xs text-brown-mid/60 mt-0.5">
+                  <div className="text-xs text-brown-mid/75 mt-0.5">
                     Size: <span className="font-medium text-brown-dark">{item.size}</span>
                   </div>
-                  <div className="text-xs text-brown-mid/60">
+                  <div className="text-xs text-brown-mid/75">
                     ₹{item.price} × {item.qty} = <span className="font-semibold text-brown-dark">₹{item.price * item.qty}</span>
                   </div>
                 </div>
@@ -426,22 +426,22 @@ function OrderDetail({ id }) {
             </h3>
             <div className="space-y-2.5">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-brown-mid/60">Method</span>
+                <span className="text-brown-mid/75">Method</span>
                 <span className="font-semibold text-brown-dark">{PAYMENT_LABELS[order.paymentMethod] || order.paymentMethod}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-brown-mid/60">Status</span>
+                <span className="text-brown-mid/75">Status</span>
                 <span className={`font-bold capitalize px-2 py-0.5 rounded-full text-xs ${
                   order.paymentStatus === 'paid' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
                 }`}>{order.paymentStatus || 'pending'}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-brown-mid/60">Amount Paid</span>
+                <span className="text-brown-mid/75">Amount Paid</span>
                 <span className="font-black text-saffron">₹{order.total}</span>
               </div>
               {order.notes && (
                 <div className="mt-3 pt-3 border-t border-saffron/8">
-                  <div className="text-xs text-brown-mid/50 font-semibold mb-1 uppercase tracking-wider">Order Notes</div>
+                  <div className="text-xs text-brown-mid/75 font-semibold mb-1 uppercase tracking-wider">Order Notes</div>
                   <div className="text-sm text-brown-dark italic">"{order.notes}"</div>
                 </div>
               )}
@@ -457,7 +457,7 @@ function OrderDetail({ id }) {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
         className="flex flex-wrap gap-3 justify-between items-center pt-2">
         <Link to="/orders"
-          className="text-sm text-brown-mid/60 hover:text-brown-dark transition-colors font-medium flex items-center gap-1">
+          className="text-sm text-brown-mid/75 hover:text-brown-dark transition-colors font-medium flex items-center gap-1">
           ← Back to All Orders
         </Link>
         <Link to="/products"
@@ -492,7 +492,7 @@ function OrdersList() {
     <div className="text-center py-20">
       <div className="text-6xl mb-4">📦</div>
       <div className="font-serif font-bold text-brown-dark text-xl mb-2">No orders yet</div>
-      <div className="text-brown-mid/60 text-sm mb-6">Looks like you haven't ordered anything yet!</div>
+      <div className="text-brown-mid/75 text-sm mb-6">Looks like you haven't ordered anything yet!</div>
       <Link to="/products" className="btn-saffron px-8 py-3.5 font-bold">Start Shopping →</Link>
     </div>
   );
@@ -515,14 +515,14 @@ function OrdersList() {
             <div className="p-5">
               <div className="flex items-start justify-between gap-3 flex-wrap">
                 <div>
-                  <div className="text-xs text-brown-mid/50 font-medium">Order #{shortId}</div>
+                  <div className="text-xs text-brown-mid/75 font-medium">Order #{shortId}</div>
                   <div className="font-serif font-bold text-brown-dark text-lg mt-0.5">
                     {order.items.length} item{order.items.length > 1 ? 's' : ''}
                   </div>
-                  <div className="text-xs text-brown-mid/50 mt-0.5">
+                  <div className="text-xs text-brown-mid/75 mt-0.5">
                     {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
                   </div>
-                  <div className="text-xs text-brown-mid/40 mt-0.5">
+                  <div className="text-xs text-brown-mid/75 mt-0.5">
                     {PAYMENT_LABELS[order.paymentMethod] || order.paymentMethod}
                   </div>
                 </div>

@@ -38,7 +38,7 @@ export default function WishlistTab({ items, setItems, loading }) {
       <div className="text-center py-20">
         <div className="text-6xl mb-4">❤️</div>
         <h3 className="font-serif font-bold text-brown-dark text-xl mb-2">Wishlist is empty</h3>
-        <p className="text-brown-mid/60 text-sm mb-6">Save products you love for later</p>
+        <p className="text-brown-mid/75 text-sm mb-6">Save products you love for later</p>
         <Link to="/products" className="inline-block px-6 py-3 rounded-full font-bold text-white text-sm"
           style={{ background: 'linear-gradient(135deg,#e07000,#ff9010)' }}>
           Browse Products →
@@ -50,7 +50,7 @@ export default function WishlistTab({ items, setItems, loading }) {
   return (
     <div>
       <h2 className="font-serif font-black text-brown-dark text-2xl mb-6">
-        Wishlist <span className="text-lg text-brown-mid/50 font-normal">({items.length})</span>
+        Wishlist <span className="text-lg text-brown-mid/75 font-normal">({items.length})</span>
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {items.map((product) => (
@@ -72,13 +72,13 @@ export default function WishlistTab({ items, setItems, loading }) {
               {product.rating > 0 && (
                 <div className="flex items-center gap-1 mb-1.5">
                   <span className="text-amber-400 text-xs">{'★'.repeat(Math.round(product.rating))}</span>
-                  {product.reviews > 0 && <span className="text-[11px] text-brown-mid/50">({product.reviews})</span>}
+                  {product.reviews > 0 && <span className="text-[11px] text-brown-mid/75">({product.reviews})</span>}
                 </div>
               )}
               <div className="flex items-baseline gap-2">
                 <div className="font-black text-saffron">₹{product.price}</div>
                 {product.originalPrice > product.price && (
-                  <div className="text-xs text-brown-mid/40 line-through">₹{product.originalPrice}</div>
+                  <div className="text-xs text-brown-mid/75 line-through">₹{product.originalPrice}</div>
                 )}
               </div>
             </div>

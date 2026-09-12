@@ -68,7 +68,7 @@ function FeaturedSuggestions() {
 
   return (
     <div className="mt-12 w-full max-w-4xl mx-auto px-6">
-      <div className="text-xs font-bold text-brown-mid/50 uppercase tracking-widest mb-4 text-center">
+      <div className="text-xs font-bold text-brown-mid/75 uppercase tracking-widest mb-4 text-center">
         You might like
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -199,7 +199,7 @@ export default function CartPage() {
             <h2 className="font-serif font-black text-brown-dark text-2xl mb-3">
               Your cart is empty
             </h2>
-            <p className="text-brown-mid/60 mb-8">
+            <p className="text-brown-mid/75 mb-8">
               Looks like you haven't added any snacks yet!
             </p>
             <Link to="/products" className="btn-saffron px-8 py-3.5">
@@ -268,7 +268,7 @@ export default function CartPage() {
                           </div>
                         </div>
 
-                        <div className="text-xs text-brown-mid/60 mb-3">
+                        <div className="text-xs text-brown-mid/75 mb-3">
                           Size: {item.size} · ₹{item.price} each
                         </div>
 
@@ -447,7 +447,7 @@ export default function CartPage() {
                       setPromoDiscount(0);
                       setFreeShipping(false);
                     }}
-                    className="ml-auto text-xs text-brown-mid/60 hover:text-red-500"
+                    className="ml-auto text-xs text-brown-mid/75 hover:text-red-500"
                   >
                     ✕
                   </button>
@@ -522,7 +522,7 @@ export default function CartPage() {
                 </div>
               </div>
 
-              <div className="mt-4 text-center text-xs text-brown-mid/50">
+              <div className="mt-4 text-center text-xs text-brown-mid/75">
                 🔒 Secure Checkout · 📦 Fast Delivery
               </div>
 

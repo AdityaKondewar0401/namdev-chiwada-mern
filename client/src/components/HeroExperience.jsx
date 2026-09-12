@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { cldUrl } from '../utils/cloudinary';
 
@@ -38,6 +38,13 @@ function MaskLine({ children, delay }) {
 
 export default function HeroExperience() {
   const navigate = useNavigate();
+  // The four `repeat: Infinity` animations below (marquee, breathing
+  // spotlight, rotating halo, floating pack) are continuous/ambient motion
+  // — exactly what prefers-reduced-motion is for. Framer Motion's own CSS
+  // doesn't respond to that media query (it drives transform/opacity
+  // directly, not via CSS `animation`), so each loop is switched to a
+  // static resting frame here instead.
+  const shouldReduceMotion = useReducedMotion();
 
   return (
     <section
@@ -48,8 +55,8 @@ export default function HeroExperience() {
       <motion.div
         aria-hidden="true"
         className="pointer-events-none absolute left-0 top-1/2 flex -translate-y-1/2 whitespace-nowrap"
-        animate={{ x: ['0%', '-50%'] }}
-        transition={{ duration: 32, repeat: Infinity, ease: 'linear' }}
+        animate={shouldReduceMotion ? { x: '0%' } : { x: ['0%', '-50%'] }}
+        transition={shouldReduceMotion ? { duration: 0 } : { duration: 32, repeat: Infinity, ease: 'linear' }}
         style={{
           fontFamily: "'Playfair Display', serif",
           fontWeight: 900,
@@ -145,8 +152,8 @@ export default function HeroExperience() {
                 'radial-gradient(ellipse at 50% 46%, rgba(255,225,150,0.30) 0%, rgba(224,112,0,0.13) 44%, transparent 72%)',
               filter: 'blur(14px)',
             }}
-            animate={{ scale: [1, 1.05, 1], opacity: [0.85, 1, 0.85] }}
-            transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+            animate={shouldReduceMotion ? { scale: 1, opacity: 0.9 } : { scale: [1, 1.05, 1], opacity: [0.85, 1, 0.85] }}
+            transition={shouldReduceMotion ? { duration: 0 } : { duration: 5, repeat: Infinity, ease: 'easeInOut' }}
           />
           {/* slow rotating light-sweep halo */}
           <motion.div
@@ -158,8 +165,8 @@ export default function HeroExperience() {
               background:
                 'conic-gradient(from 90deg, transparent, rgba(212,168,55,0.26), transparent 45%, rgba(224,112,0,0.14) 70%, transparent)',
             }}
-            animate={{ rotate: 360 }}
-            transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+            animate={shouldReduceMotion ? { rotate: 0 } : { rotate: 360 }}
+            transition={shouldReduceMotion ? { duration: 0 } : { duration: 20, repeat: Infinity, ease: 'linear' }}
           />
           {/* soft grounding shadow under the pack */}
           <div
@@ -183,8 +190,8 @@ export default function HeroExperience() {
             decoding="async"
             className="relative block w-[min(80vw,380px)] md:w-[clamp(320px,40vw,460px)]"
             style={{ filter: 'drop-shadow(0 26px 34px rgba(0,0,0,0.42)) drop-shadow(0 6px 10px rgba(0,0,0,0.28))' }}
-            animate={{ rotate: [-0.9, 0.9, -0.9], y: [0, -9, 0] }}
-            transition={{ duration: 6.5, repeat: Infinity, ease: 'easeInOut' }}
+            animate={shouldReduceMotion ? { rotate: 0, y: 0 } : { rotate: [-0.9, 0.9, -0.9], y: [0, -9, 0] }}
+            transition={shouldReduceMotion ? { duration: 0 } : { duration: 6.5, repeat: Infinity, ease: 'easeInOut' }}
           />
         </motion.div>
       </div>
