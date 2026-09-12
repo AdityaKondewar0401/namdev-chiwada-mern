@@ -1,6 +1,11 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import {
+  MapPin, Truck, Lock, CreditCard, Zap, Banknote, CheckCircle2, AlertTriangle, Ban,
+  Gift, ShoppingCart, Leaf, Receipt, ChevronDown, Loader2, Package, Landmark,
+  Smartphone, Wallet, BadgeCheck, Check,
+} from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { orderAPI, shippingAPI } from '../services/api';
@@ -202,8 +207,8 @@ function OrderSummaryBody({ cart, promoCode, setPromoCode, applyPromo, promoLoad
           </button>
         </div>
         {promoApplied && (
-          <p style={{ color: '#1ea064', fontSize: 12, marginTop: 6, fontFamily: "'Lora', serif" }}>
-            🎉 {promoApplied.message}
+          <p style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#1ea064', fontSize: 12, marginTop: 6, fontFamily: "'Lora', serif" }}>
+            <CheckCircle2 size={13} /> {promoApplied.message}
           </p>
         )}
         {promoError && (
@@ -222,14 +227,14 @@ function OrderSummaryBody({ cart, promoCode, setPromoCode, applyPromo, promoLoad
         </div>
         {discount > 0 && (
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#1ea064', fontFamily: "'Lora', serif" }}>
-            <span>Discount 🎁</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><Gift size={13} /> Discount</span>
             <span>-₹{discount.toLocaleString()}</span>
           </div>
         )}
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#7a5c3a', fontFamily: "'Lora', serif" }}>
           <span>Shipping</span>
-          <span style={{ color: shipping === 0 ? '#1ea064' : 'inherit', fontWeight: shipping === 0 ? 700 : 400 }}>
-            {shipping === 0 ? '🚚 FREE' : `₹${shipping}`}
+          <span style={{ display: 'flex', alignItems: 'center', gap: 5, color: shipping === 0 ? '#1ea064' : 'inherit', fontWeight: shipping === 0 ? 700 : 400 }}>
+            {shipping === 0 ? <><Truck size={13} /> FREE</> : `₹${shipping}`}
           </span>
         </div>
         {subtotal < 499 && (
@@ -288,14 +293,18 @@ const styles = `
     gap: 12px;
   }
 
-  /* ── Payment cards ──
-     Premium trust-card look built from the brand's own charcoal/gold
-     palette instead of a generic template blue — elevation and a gold
-     accent bar signal the selected state rather than a flat colour fill. */
+  /* ── Payment cards ── Side-by-side pair, each a self-contained
+     trust card: charcoal/gold icon tile up top, a dashed-divider
+     footer pinned to the bottom (icon-preview row for Online, a
+     reassurance line for COD), and a corner checkmark badge marking
+     whichever card is currently selected. */
   .payment-card {
     position: relative;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
     border-radius: 16px;
-    padding: 18px 20px;
+    padding: 16px 14px;
     cursor: pointer;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
@@ -309,24 +318,32 @@ const styles = `
     transform: translateY(-1px);
   }
   .payment-card.selected {
-    border-color: #2b1a08;
-    background: linear-gradient(135deg, #fffaf0, #fffefb);
-    box-shadow: inset 4px 0 0 #e07000, 0 10px 28px rgba(43,26,8,0.12);
+    border-color: #e07000;
+    background: linear-gradient(160deg, #fff8ec, #fffefb);
+    box-shadow: 0 8px 20px rgba(224,112,0,0.16);
   }
 
-  .radio-dot {
-    width: 20px; height: 20px;
-    border-radius: 50%; border: 1.5px solid #d8cba8;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0; transition: border-color 0.18s ease;
-  }
-  .payment-card.selected .radio-dot { border-color: #2b1a08; }
-  .radio-dot-inner {
-    width: 9px; height: 9px;
-    border-radius: 50%; transition: transform 0.18s ease; transform: scale(0);
+  .payment-check-badge {
+    position: absolute; top: 10px; right: 10px;
+    width: 20px; height: 20px; border-radius: 50%;
     background: #e07000;
+    display: flex; align-items: center; justify-content: center;
   }
-  .radio-dot-inner.visible { transform: scale(1); }
+
+  .payment-footer-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px dashed rgba(224,112,0,0.2);
+    /* Fixed reservation so the dashed divider lands at the same height
+       on both cards — the COD copy wraps to two lines on narrow
+       screens while the online icon row stays on one, and without
+       this the two footers (and their dividers) drift out of line. */
+    min-height: 46px;
+  }
 
   .submit-btn {
     width: 100%; padding: 16px;
@@ -415,37 +432,16 @@ const styles = `
     font-size: 18px; flex-shrink: 0;
     background: linear-gradient(135deg, #fff3dd, #fbe0ac);
     border: 1px solid rgba(224,160,80,0.35);
-    transition: background 0.18s ease, border-color 0.18s ease;
+    color: #9a5a00;
+    transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
   }
   .payment-card.selected .payment-icon-circle {
     background: linear-gradient(135deg, #2b1a08, #4a3018);
     border-color: #2b1a08;
-  }
-
-  .upi-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 14px; }
-  .upi-chip {
-    width: 30px; height: 30px;
-    display: flex; align-items: center; justify-content: center;
-    background: #fdfaf4;
-    border: 1px solid #ece1cc;
-    border-radius: 50%;
-    font-size: 13px;
-    cursor: default;
-  }
-
-  .payment-note {
-    margin-top: 14px;
-    padding: 9px 12px;
-    border-radius: 8px;
-    font-size: 12px;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: rgba(224,112,0,0.06);
-    border-left: 3px solid #e07000;
-    color: #5c3d1a;
+    /* Gold, not the default near-black body text color — without this
+       the icon (stroke uses currentColor) sinks into the dark circle
+       and reads as invisible instead of the intended lit-up gold. */
+    color: #f0c869;
   }
 
   /* ── Payment panel — a premium trust card built from the brand's own
@@ -515,13 +511,15 @@ const styles = `
     .field-row-city { flex-direction: row !important; }
 
     .payment-card {
-      padding: 16px 16px;
-      border-radius: 16px;
+      padding: 14px 10px;
+      border-radius: 14px;
     }
 
     .payment-icon-circle {
-      width: 38px; height: 38px; font-size: 18px;
+      width: 36px; height: 36px; font-size: 18px;
     }
+
+    .payment-footer-row { gap: 7px; }
 
     /* Hide desktop order summary panel on mobile — replaced by the
        collapsible .mobile-order-summary card below */
@@ -859,7 +857,7 @@ function CheckoutPage() {
         <SEO title={`Checkout | ${SITE_NAME}`} canonical="/checkout" robots="noindex,nofollow" />
         <style>{styles}</style>
         <div className="empty-cart-wrap">
-          <div style={{ fontSize: 64 }}>🛒</div>
+          <ShoppingCart size={56} color="#c07030" strokeWidth={1.5} />
           <p style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, color: '#3d2800', fontSize: 22 }}>
             Your cart is empty
           </p>
@@ -899,12 +897,18 @@ function CheckoutPage() {
             }}>
               Checkout
             </h1>
-            <p style={{ color: '#9a7c5a', fontSize: 14, marginTop: 6, fontFamily: "'Lora', serif" }}>
-              You're just one step away from deliciousness 🌿
+            <p style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#9a7c5a', fontSize: 14, marginTop: 6, fontFamily: "'Lora', serif" }}>
+              You're just one step away from deliciousness <Leaf size={14} />
             </p>
             <div style={{ display: 'flex', gap: 16, marginTop: 10, flexWrap: 'wrap' }}>
-              {['🚚 Fast Dispatch', '🔒 Secure Payments', '💯 Quality Assured'].map((t) => (
-                <span key={t} style={{ fontSize: 11, color: '#9a5a00', fontWeight: 600, fontFamily: "'Lora', serif" }}>{t}</span>
+              {[
+                { Icon: Truck, label: 'Fast Dispatch' },
+                { Icon: Lock, label: 'Secure Payments' },
+                { Icon: BadgeCheck, label: 'Quality Assured' },
+              ].map(({ Icon, label }) => (
+                <span key={label} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#9a5a00', fontWeight: 600, fontFamily: "'Lora', serif" }}>
+                  <Icon size={13} /> {label}
+                </span>
               ))}
             </div>
           </div>
@@ -921,8 +925,8 @@ function CheckoutPage() {
                     <span style={{
                       width: 36, height: 36, borderRadius: '50%',
                       background: 'linear-gradient(135deg, #fff0dc, #ffe0b0)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18,
-                    }}>📍</span>
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9a5a00',
+                    }}><MapPin size={17} /></span>
                     Delivery Address
                   </div>
 
@@ -940,18 +944,18 @@ function CheckoutPage() {
 
                     {/* Shadowfax delivery-pincode serviceability status */}
                     {/^\d{6}$/.test(address.pincode) && !errors.pincode && (
-                      <div style={{ fontSize: 13, fontWeight: 600, marginTop: -6 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, marginTop: -6 }}>
                         {serviceability.status === 'checking' && (
-                          <span style={{ color: '#9a7c5a' }}>⏳ Checking delivery availability…</span>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#9a7c5a' }}><Loader2 size={14} className="animate-spin" /> Checking delivery availability…</span>
                         )}
                         {serviceability.status === 'ok' && (
-                          <span style={{ color: '#15803d' }}>✅ Delivery available to this pincode</span>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#15803d' }}><CheckCircle2 size={14} /> Delivery available to this pincode</span>
                         )}
                         {serviceability.status === 'unserviceable' && (
-                          <span style={{ color: '#dc2626' }}>🚫 We currently can't deliver to this pincode</span>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#dc2626' }}><Ban size={14} /> We currently can't deliver to this pincode</span>
                         )}
                         {serviceability.status === 'unknown' && (
-                          <span style={{ color: '#9a7c5a' }}>⚠️ Couldn't verify delivery availability — you can still continue</span>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#9a7c5a' }}><AlertTriangle size={14} /> Couldn't verify delivery availability — you can still continue</span>
                         )}
                       </div>
                     )}
@@ -962,10 +966,11 @@ function CheckoutPage() {
 
                     {overWeightLimit && (
                       <div style={{
+                        display: 'flex', alignItems: 'center', gap: 8,
                         background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c',
                         borderRadius: 10, padding: '10px 14px', fontSize: 13, fontWeight: 600,
                       }}>
-                        ⚠️ This order weighs {(totalWeightGrams / 1000).toFixed(2)}kg, over our 7kg single-shipment limit. Please split it into two orders.
+                        <AlertTriangle size={16} style={{ flexShrink: 0 }} /> This order weighs {(totalWeightGrams / 1000).toFixed(2)}kg, over our 7kg single-shipment limit. Please split it into two orders.
                       </div>
                     )}
                   </div>
@@ -978,100 +983,94 @@ function CheckoutPage() {
                       width: 36, height: 36, borderRadius: 10,
                       background: 'linear-gradient(135deg, #fff3dd, #fbe0ac)',
                       border: '1px solid rgba(224,160,80,0.35)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18,
-                    }}>💳</span>
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9a5a00',
+                    }}><CreditCard size={17} /></span>
                     Payment Method
-                    <span className="badge-secure">🔒 Secure</span>
+                    <span className="badge-secure"><Lock size={10} /> Secure</span>
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  <div style={{ display: 'flex', gap: 14, alignItems: 'stretch' }}>
 
                     {/* Online Payment Card */}
                     <div
                       className={`payment-card ${paymentMethod === 'razorpay' ? 'selected' : ''}`}
                       onClick={() => setPaymentMethod('razorpay')}
+                      style={{ flex: 1 }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                        <div className="payment-icon-circle">
-                          <span style={{ fontSize: 19 }}>⚡</span>
-                        </div>
+                      {paymentMethod === 'razorpay' && (
+                        <span className="payment-check-badge">
+                          <Check size={12} color="#fff" strokeWidth={3} />
+                        </span>
+                      )}
 
-                        <div style={{ flex: 1 }}>
-                          <div style={{
-                            fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
-                            fontWeight: 700,
-                            fontSize: 16,
-                            color: '#0f172a',
-                            marginBottom: 2,
-                          }}>
-                            Pay Online
-                          </div>
-                          <div style={{ fontSize: 12, color: '#64748b', fontFamily: "'Inter', system-ui, -apple-system, sans-serif" }}>
-                            UPI, Cards, Net Banking, Wallets
-                          </div>
+                      <div style={{ marginBottom: 12 }}>
+                        <div className="payment-icon-circle" style={{ margin: '0 auto 10px' }}>
+                          <Zap size={18} />
                         </div>
-
-                        <div className="radio-dot">
-                          <div className={`radio-dot-inner ${paymentMethod === 'razorpay' ? 'visible' : ''}`} />
+                        <div style={{
+                          fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
+                          fontWeight: 700,
+                          fontSize: 15,
+                          color: '#0f172a',
+                          marginBottom: 4,
+                        }}>
+                          Pay Online
+                        </div>
+                        <div style={{ fontFamily: "'Lora', serif", fontWeight: 700, fontSize: 17, color: '#e07000' }}>
+                          ₹{total.toLocaleString()}
                         </div>
                       </div>
 
-                      <div className="upi-chips">
-                        {[
-                          { icon: '🏦', label: 'Net Banking' },
-                          { icon: '💳', label: 'Credit/Debit' },
-                          { icon: '📱', label: 'UPI' },
-                          { icon: '👛', label: 'Wallets' },
-                        ].map(chip => (
-                          <span key={chip.label} className="upi-chip" title={chip.label}>{chip.icon}</span>
+                      <div className="payment-footer-row">
+                        {[Smartphone, CreditCard, Landmark, Wallet].map((Icon, i) => (
+                          <Icon key={i} size={15} color="#c07030" />
                         ))}
                       </div>
-
-                      {paymentMethod === 'razorpay' && (
-                        <div className="payment-note">
-                          🔒 Secured by Razorpay — 256-bit SSL encrypted
-                        </div>
-                      )}
                     </div>
 
                     {/* COD Card */}
                     <div
                       className={`payment-card ${paymentMethod === 'cod' ? 'selected' : ''}`}
                       onClick={() => setPaymentMethod('cod')}
+                      style={{ flex: 1 }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                        <div className="payment-icon-circle">
-                          <span style={{ fontSize: 19 }}>💵</span>
-                        </div>
+                      {paymentMethod === 'cod' && (
+                        <span className="payment-check-badge">
+                          <Check size={12} color="#fff" strokeWidth={3} />
+                        </span>
+                      )}
 
-                        <div style={{ flex: 1 }}>
-                          <div style={{
-                            fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
-                            fontWeight: 700,
-                            fontSize: 16,
-                            color: '#0f172a',
-                            marginBottom: 2,
-                          }}>
-                            Cash on Delivery
-                          </div>
-                          <div style={{ fontSize: 12, color: '#64748b', fontFamily: "'Inter', system-ui, -apple-system, sans-serif" }}>
-                            Pay when your order arrives at your door
-                          </div>
+                      <div style={{ marginBottom: 12 }}>
+                        <div className="payment-icon-circle" style={{ margin: '0 auto 10px' }}>
+                          <Banknote size={18} />
                         </div>
-
-                        <div className="radio-dot">
-                          <div className={`radio-dot-inner ${paymentMethod === 'cod' ? 'visible' : ''}`} />
+                        <div style={{
+                          fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
+                          fontWeight: 700,
+                          fontSize: 15,
+                          color: '#0f172a',
+                          marginBottom: 4,
+                        }}>
+                          Cash on Delivery
+                        </div>
+                        <div style={{ fontFamily: "'Lora', serif", fontWeight: 700, fontSize: 17, color: '#3d2800' }}>
+                          ₹{total.toLocaleString()}
                         </div>
                       </div>
 
-                      {paymentMethod === 'cod' && (
-                        <div className="payment-note">
-                          ✅ No advance payment needed — pay on delivery
-                        </div>
-                      )}
+                      <div className="payment-footer-row" style={{ borderTopColor: 'rgba(180,150,100,0.3)' }}>
+                        <span style={{ fontSize: 11, color: '#9a7c5a', fontFamily: "'Inter', system-ui, -apple-system, sans-serif" }}>
+                          Pay when it arrives at your door
+                        </span>
+                      </div>
                     </div>
                   </div>
-                  {/* Extra space at bottom so COD card clears the sticky mobile CTA bar */}
+
+                  <div style={{ textAlign: 'center', fontSize: 11, color: '#b09070', marginTop: 16 }}>
+                    <Lock size={10} style={{ verticalAlign: -1, marginRight: 4 }} />
+                    Secured by Razorpay · 256-bit SSL
+                  </div>
+                  {/* Extra space at bottom so the panel clears the sticky mobile CTA bar */}
                   <div style={{ height: 8 }} />
                 </motion.div>
 
@@ -1103,18 +1102,18 @@ function CheckoutPage() {
                       <span style={{
                         width: 36, height: 36, borderRadius: '50%',
                         background: 'linear-gradient(135deg, #fff0dc, #ffe0b0)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18,
-                      }}>🧾</span>
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9a5a00',
+                      }}><Receipt size={17} /></span>
                       Order Summary
                       <span style={{ fontSize: 12, color: '#9a7c5a', fontWeight: 600 }}>
                         ({cart.length} item{cart.length !== 1 ? 's' : ''})
                       </span>
                     </div>
                     <span style={{
-                      fontSize: 20, color: '#9a5a00',
+                      color: '#9a5a00', display: 'flex',
                       transform: mobileSummaryOpen ? 'rotate(180deg)' : 'none',
                       transition: 'transform 0.2s ease',
-                    }}>⌄</span>
+                    }}><ChevronDown size={18} /></span>
                   </button>
 
                   <AnimatePresence initial={false}>
@@ -1158,8 +1157,8 @@ function CheckoutPage() {
                     <span style={{
                       width: 36, height: 36, borderRadius: '50%',
                       background: 'linear-gradient(135deg, #fff0dc, #ffe0b0)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18,
-                    }}>🧾</span>
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9a5a00',
+                    }}><Receipt size={17} /></span>
                     Order Summary
                   </div>
 
@@ -1186,12 +1185,13 @@ function CheckoutPage() {
                     <span style={{ fontFamily: "'Lora', serif", fontWeight: 700, fontSize: 18, color: '#e07000', letterSpacing: '0.01em' }}>₹{total.toLocaleString()}</span>
                   </div>
 
-                  <button type="submit" className="submit-btn" disabled={processing || overWeightLimit || serviceability.status === 'unserviceable'}>
+                  <button type="submit" className="submit-btn" disabled={processing || overWeightLimit || serviceability.status === 'unserviceable'}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                     {processing
-                      ? '⏳ Processing...'
+                      ? <><Loader2 size={16} className="animate-spin" /> Processing...</>
                       : paymentMethod === 'razorpay'
-                        ? `⚡ Pay ₹${total.toLocaleString()}`
-                        : `📦 Place Order — ₹${total.toLocaleString()}`}
+                        ? <><Zap size={16} /> Pay ₹{total.toLocaleString()}</>
+                        : <><Package size={16} /> Place Order — ₹{total.toLocaleString()}</>}
                   </button>
 
                   <div style={{
@@ -1205,7 +1205,7 @@ function CheckoutPage() {
                     justifyContent: 'center',
                     gap: 6,
                   }}>
-                    🔒 Safe & Secure Checkout
+                    <Lock size={12} /> Safe &amp; Secure Checkout
                   </div>
                 </motion.div>
               </div>
@@ -1218,8 +1218,8 @@ function CheckoutPage() {
             <div className={`mobile-cta-bar${keyboardOpen ? ' cta-hidden' : ''}`}>
               <div className="mobile-cta-total">
                 <div>
-                  <div style={{ fontSize: 11, color: '#9a7c5a', fontFamily: "'Lora', serif", marginBottom: 1 }}>
-                    {cart.length} item{cart.length !== 1 ? 's' : ''} · {shipping === 0 ? '🚚 Free delivery' : `₹${shipping} shipping`}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#9a7c5a', fontFamily: "'Lora', serif", marginBottom: 1 }}>
+                    {cart.length} item{cart.length !== 1 ? 's' : ''} · {shipping === 0 ? <><Truck size={12} /> Free delivery</> : `₹${shipping} shipping`}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
                     <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 800, fontSize: 15, color: '#3d2800' }}>Total</span>
@@ -1228,12 +1228,13 @@ function CheckoutPage() {
                 </div>
 
               </div>
-              <button type="submit" className="submit-btn" disabled={processing || overWeightLimit || serviceability.status === 'unserviceable'}>
+              <button type="submit" className="submit-btn" disabled={processing || overWeightLimit || serviceability.status === 'unserviceable'}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                 {processing
-                  ? '⏳ Processing...'
+                  ? <><Loader2 size={16} className="animate-spin" /> Processing...</>
                   : paymentMethod === 'razorpay'
-                    ? `⚡ Pay ₹${total.toLocaleString()}`
-                    : `📦 Place Order — ₹${total.toLocaleString()}`}
+                    ? <><Zap size={16} /> Pay ₹{total.toLocaleString()}</>
+                    : <><Package size={16} /> Place Order — ₹{total.toLocaleString()}</>}
               </button>
             </div>
 
