@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { Mail, Lock, User, Phone, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-hot-toast';
 import PageWrapper from '../components/PageWrapper';
@@ -8,55 +9,33 @@ import SEO from '../components/SEO';
 import { SITE_NAME } from '../config/seo.config';
 
 // ─────────────────────────────────────────────
-// AuthPages (Login + Register) — REDESIGNED
+// AuthPages (Login + Register) — REDESIGNED (split-screen)
 //
-// 1. BUG FIX — this file used `bg-cream-DEFAULT`, `text-saffron-DEFAULT`,
-//    `border-saffron-DEFAULT/10`, and `accent-saffron-DEFAULT` throughout.
-//    Your tailwind.config.js defines colors as flat keys (`saffron: '#e07000'`),
-//    not nested `{ DEFAULT: ... }` objects — so none of those `-DEFAULT`
-//    classes actually generated any CSS. That's why links looked black
-//    instead of saffron, the background had no cream tint, the card
-//    border had no saffron tint, and the checkbox used the browser's
-//    default blue instead of your brand color. All fixed to the flat
-//    names used everywhere else in the codebase (`bg-cream`, `text-saffron`,
-//    `border-saffron/10`, `accent-saffron`).
-//
-// 2. Real logo — the "N" circle badge is replaced with the actual
-//    /images/logo.png (same file the Navbar uses), with a soft gold
-//    glow behind it and a small "Since 1873" eyebrow underneath.
-//
-// 3. Icon-adorned fields — email/password/name/phone inputs now carry
-//    a small icon, matching the field style already used on the
-//    Account and Admin pages.
-//
-// 4. Show/hide password toggle — a small, safe, purely front-end
-//    addition (no backend dependency) on every password field.
-//
-// 5. Restrained background/card polish — two soft blurred glows behind
-//    the card, a thin gold hairline along the card's top edge, and a
-//    small trust-badge row (150+ Years · No Artificial Colors · FSSAI
-//    Licensed) underneath — reusing the same trust line already used
-//    on the homepage hero, for a consistent first impression.
+// Replaces the old single centered card (glow orbs, gradient top bar,
+// trust-badge row) with a split layout: a dark brand panel — the real
+// logo + a one-line heritage statement — beside a plain, minimal form.
+// On mobile the panel collapses to a compact header above the form
+// instead of disappearing, so the brand context never fully drops away.
 //
 // No submit logic changed: login/register calls, redirect-after-login
 // (`from` location state), and the marketing-consent checkbox default
-// (unchecked, genuine opt-in) are all exactly as before.
+// (unchecked, genuine opt-in) are all exactly as before. Emoji icons
+// (✉️ 🔒 👤 📱 🙈 👁️) are replaced with lucide-react, matching the
+// icon system already used across the admin panel and checkout.
 // ─────────────────────────────────────────────
 
 // Small reusable icon-adorned input, used by both Login and Register.
 // Password fields automatically get a show/hide toggle.
-function IconField({ icon, type = 'text', value, onChange, placeholder, label, required, minLength, autoComplete }) {
+function IconField({ icon: Icon, type = 'text', value, onChange, placeholder, label, required, minLength, autoComplete }) {
   const [show, setShow] = useState(false);
   const isPassword = type === 'password';
   const inputType = isPassword ? (show ? 'text' : 'password') : type;
 
   return (
     <div>
-      <label className="block text-xs font-bold uppercase tracking-wider text-brown-dark mb-1.5">{label}</label>
-      <div className="relative">
-        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-brown-mid/40 pointer-events-none" aria-hidden="true">
-          {icon}
-        </span>
+      <label className="mb-1.5 block text-[0.65rem] font-bold uppercase tracking-wider text-brown-mid/50">{label}</label>
+      <div className="flex items-center gap-2.5 rounded-lg px-3.5 py-3" style={{ border: '1px solid rgba(45,26,0,0.15)' }}>
+        <Icon size={16} className="flex-shrink-0 text-brown-mid/40" />
         <input
           type={inputType}
           required={required}
@@ -65,16 +44,16 @@ function IconField({ icon, type = 'text', value, onChange, placeholder, label, r
           onChange={onChange}
           placeholder={placeholder}
           autoComplete={autoComplete}
-          className="form-input pl-10 pr-10"
+          className="w-full bg-transparent text-sm text-brown-dark outline-none placeholder:text-brown-mid/30"
         />
         {isPassword && (
           <button
             type="button"
             onClick={() => setShow((s) => !s)}
             aria-label={show ? 'Hide password' : 'Show password'}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-brown-mid/40 hover:text-saffron transition-colors text-sm"
+            className="flex-shrink-0 text-brown-mid/30 hover:text-saffron transition-colors"
           >
-            {show ? '🙈' : '👁️'}
+            {show ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
         )}
       </div>
@@ -82,60 +61,44 @@ function IconField({ icon, type = 'text', value, onChange, placeholder, label, r
   );
 }
 
-const TRUST_BADGES = [
-  { icon: '✦', label: '150+ Years' },
-  { icon: '🍃', label: 'No Artificial Colors' },
-  { icon: '🛡', label: 'FSSAI Licensed' },
-];
-
-function AuthCard({ title, subtitle, children }) {
+// ── Split-screen shell ── dark brand panel + minimal form panel.
+// The panel is a normal-flow block (not `min-h-screen`) on mobile, so it
+// naturally collapses to just "logo + headline" height above the form
+// instead of eating the viewport — no separate mobile-only markup needed.
+function AuthShell({ title, subtitle, children }) {
   return (
-    <div className="relative min-h-screen bg-cream flex items-center justify-center px-4 py-16 overflow-hidden">
-      {/* Soft decorative glows — restrained, not a marketing hero */}
-      <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full pointer-events-none"
-        style={{ background: 'radial-gradient(circle, rgba(212,175,55,0.16), transparent 70%)', filter: 'blur(10px)' }} />
-      <div className="absolute -bottom-24 -left-24 w-80 h-80 rounded-full pointer-events-none"
-        style={{ background: 'radial-gradient(circle, rgba(224,112,0,0.12), transparent 70%)', filter: 'blur(10px)' }} />
-
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
-        className="relative w-full max-w-md">
-
-        <div className="text-center mb-8">
-          <Link to="/" className="inline-flex flex-col items-center group">
-            <div className="relative mb-2">
-              <div
-                className="absolute inset-0 rounded-full opacity-50 pointer-events-none"
-                style={{ background: 'radial-gradient(circle, rgba(212,175,55,0.45), transparent 70%)', filter: 'blur(14px)' }}
-              />
-              <img
-                src="/images/logo.png"
-                alt="Namdev Chiwda"
-                className="relative h-20 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
-              />
-            </div>
-            <div className="flex items-center gap-1.5 text-saffron text-[11px] font-bold tracking-widest uppercase">
-              <span>✦</span> Since 1873
-            </div>
-          </Link>
+    <div className="flex min-h-screen flex-col md:flex-row">
+      <div
+        className="relative flex flex-shrink-0 flex-col justify-between overflow-hidden px-6 py-7 md:w-[42%] md:px-10 md:py-12"
+        style={{ background: 'linear-gradient(165deg,#1c0d02,#3d1c00 55%,#1c0d02)' }}
+      >
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.07]"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 78 V40 A17 17 0 0 1 63 40 V78' stroke='%23d4af37' stroke-width='2' fill='none'/%3E%3C/svg%3E")`,
+            backgroundSize: '60px 80px',
+          }}
+        />
+        <Link to="/" className="relative z-10 inline-block flex-shrink-0">
+          <img src="/images/logo.png" alt="Namdev Chiwda" className="h-11 w-auto object-contain md:h-14" />
+        </Link>
+        <div className="relative z-10 mt-6 font-serif font-black leading-tight text-white md:mt-0" style={{ fontSize: 'clamp(1.25rem,2.6vw,1.8rem)' }}>
+          Six generations.<br />One recipe.
         </div>
+      </div>
 
-        <div className="relative bg-white rounded-xl2 shadow-saffron border border-saffron/10 p-8 overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1"
-            style={{ background: 'linear-gradient(90deg,#e07000,#d4af37,#e07000)' }} />
-          <h2 className="font-serif font-black text-brown-dark text-2xl mb-1">{title}</h2>
-          <p className="text-brown-mid/60 text-sm mb-6">{subtitle}</p>
-          {children}
-        </div>
-
-        {/* Trust footer — same reassurance line used on the homepage hero */}
-        <div className="flex items-center justify-center gap-4 mt-6 flex-wrap">
-          {TRUST_BADGES.map((t) => (
-            <div key={t.label} className="flex items-center gap-1.5 text-brown-mid/50 text-[11px] font-medium">
-              <span aria-hidden="true">{t.icon}</span>{t.label}
-            </div>
-          ))}
-        </div>
-      </motion.div>
+      <div className="flex flex-1 items-center justify-center px-6 py-10 md:px-10" style={{ background: '#fffdf9' }}>
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="w-full max-w-[320px]"
+        >
+          <h1 className="font-serif font-black text-brown-dark" style={{ fontSize: '1.55rem' }}>{title}</h1>
+          <p className="mt-1 text-sm text-brown-mid/50">{subtitle}</p>
+          <div className="mt-7">{children}</div>
+        </motion.div>
+      </div>
     </div>
   );
 }
@@ -213,14 +176,14 @@ function GoogleLoginButton() {
   };
 
   return (
-    <div className="mt-4">
-      <div className="flex items-center gap-3 my-5">
-        <div className="flex-1 h-px bg-saffron/20" />
-        <span className="text-xs text-brown-mid/50 font-medium">OR</span>
-        <div className="flex-1 h-px bg-saffron/20" />
+    <div className="mt-5">
+      <div className="flex items-center gap-3 py-1">
+        <div className="h-px flex-1" style={{ background: 'rgba(45,26,0,0.1)' }} />
+        <span className="text-[0.65rem] font-semibold text-brown-mid/40">OR</span>
+        <div className="h-px flex-1" style={{ background: 'rgba(45,26,0,0.1)' }} />
       </div>
 
-      <div id="google-signin-btn" className="flex justify-center" />
+      <div id="google-signin-btn" className="mt-4 flex justify-center" />
     </div>
   );
 }
@@ -249,11 +212,11 @@ export function LoginPage() {
         canonical="/login"
         robots="noindex,nofollow"
       />
-      <AuthCard title="Welcome Back" subtitle={`Sign in to your ${SITE_NAME} account`}>
+      <AuthShell title="Welcome back" subtitle="Sign in to your account">
         <form onSubmit={handleSubmit} className="space-y-4">
 
           <IconField
-            icon="✉️"
+            icon={Mail}
             type="email"
             label="Email"
             required
@@ -264,7 +227,7 @@ export function LoginPage() {
           />
 
           <IconField
-            icon="🔒"
+            icon={Lock}
             type="password"
             label="Password"
             required
@@ -275,20 +238,21 @@ export function LoginPage() {
           />
 
           <button type="submit" disabled={loading}
-            className={`w-full btn-saffron py-3.5 font-bold text-base mt-2 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}>
-            {loading ? 'Signing in...' : 'Sign In'}
+            className={`flex w-full items-center justify-center gap-2 rounded-lg py-3.5 text-sm font-bold text-white transition-opacity ${loading ? 'opacity-70' : ''}`}
+            style={{ background: '#1c0d02' }}>
+            {loading ? 'Signing in...' : <>Sign In <ArrowRight size={15} /></>}
           </button>
         </form>
 
         <GoogleLoginButton />
 
-        <p className="text-center text-sm text-brown-mid/60 mt-5">
+        <p className="mt-6 text-center text-sm text-brown-mid/50">
           Don't have an account?{' '}
-          <Link to="/register" className="text-saffron font-semibold hover:text-saffron-light">
+          <Link to="/register" className="font-bold text-saffron hover:text-saffron-light">
             Register
           </Link>
         </p>
-      </AuthCard>
+      </AuthShell>
     </PageWrapper>
   );
 }
@@ -311,7 +275,7 @@ export function RegisterPage() {
     if (res.success) navigate('/', { replace: true });
   };
 
-  const FIELD_ICONS = { name: '👤', email: '✉️', phone: '📱', password: '🔒' };
+  const FIELD_ICONS = { name: User, email: Mail, phone: Phone, password: Lock };
   const FIELD_AUTOCOMPLETE = { name: 'name', email: 'email', phone: 'tel', password: 'new-password' };
 
   return (
@@ -322,7 +286,7 @@ export function RegisterPage() {
         canonical="/register"
         robots="noindex,nofollow"
       />
-      <AuthCard title="Create Account" subtitle={`Join ${SITE_NAME} — it's free!`}>
+      <AuthShell title="Create account" subtitle={`Join ${SITE_NAME} — it's free`}>
         <form onSubmit={handleSubmit} className="space-y-4">
 
           {[
@@ -346,33 +310,34 @@ export function RegisterPage() {
           ))}
 
           {/* Marketing opt-in — explicit, unchecked by default; unchanged */}
-          <label className="flex items-start gap-2.5 pt-1 cursor-pointer select-none">
+          <label className="flex cursor-pointer select-none items-start gap-2.5 pt-1">
             <input
               type="checkbox"
               checked={form.marketingConsent}
               onChange={(e) => setForm({ ...form, marketingConsent: e.target.checked })}
-              className="mt-0.5 w-4 h-4 accent-saffron flex-shrink-0"
+              className="mt-0.5 h-4 w-4 flex-shrink-0 accent-saffron"
             />
-            <span className="text-xs text-brown-mid/70 leading-relaxed">
+            <span className="text-xs leading-relaxed text-brown-mid/60">
               Send me order updates and offers via WhatsApp, SMS, and email. You can turn this off anytime from your account.
             </span>
           </label>
 
           <button type="submit" disabled={loading}
-            className={`w-full btn-saffron py-3.5 font-bold text-base mt-2 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}>
-            {loading ? 'Creating Account...' : 'Create Account'}
+            className={`flex w-full items-center justify-center gap-2 rounded-lg py-3.5 text-sm font-bold text-white transition-opacity ${loading ? 'opacity-70' : ''}`}
+            style={{ background: '#1c0d02' }}>
+            {loading ? 'Creating Account...' : <>Create Account <ArrowRight size={15} /></>}
           </button>
         </form>
 
         <GoogleLoginButton />
 
-        <p className="text-center text-sm text-brown-mid/60 mt-5">
+        <p className="mt-6 text-center text-sm text-brown-mid/50">
           Already have an account?{' '}
-          <Link to="/login" className="text-saffron font-semibold hover:text-saffron-light">
+          <Link to="/login" className="font-bold text-saffron hover:text-saffron-light">
             Sign In
           </Link>
         </p>
-      </AuthCard>
+      </AuthShell>
     </PageWrapper>
   );
 }
