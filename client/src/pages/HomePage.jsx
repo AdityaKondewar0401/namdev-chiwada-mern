@@ -383,87 +383,6 @@ function FeaturesSection() {
   );
 }
 
-// ── Shipping partner tape ──
-function ShippingPartnerTape({ embedded = false }) {
-  const card = (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5 }}
-      className="relative w-full"
-      style={{ transform: 'rotate(1deg)' }}
-    >
-      <div
-        className="absolute z-10"
-        style={{
-          top: -14,
-          left: '50%',
-          transform: 'translateX(-50%) rotate(-2deg)',
-          width: 'clamp(90px,18vw,140px)',
-          height: 26,
-          background: 'rgba(224,112,0,0.35)',
-          boxShadow: '0 2px 6px rgba(45,26,0,0.12)',
-          borderRadius: 3,
-        }}
-      />
-
-      <div
-        className={`flex flex-col sm:flex-row items-center justify-center gap-3 text-center ${
-          embedded ? 'gap-4 px-6 pt-6 pb-9 sm:px-8' : 'sm:gap-7 px-6 sm:px-12 pt-6 pb-8 md:pt-10 md:pb-14'
-        }`}
-        style={{
-          background: '#fff',
-          boxShadow: '0 12px 36px rgba(45,26,0,0.12)',
-          clipPath:
-            'polygon(0 0,100% 0,100% 88%,95% 100%,90% 88%,85% 100%,80% 88%,75% 100%,70% 88%,65% 100%,60% 88%,55% 100%,50% 88%,45% 100%,40% 88%,35% 100%,30% 88%,25% 100%,20% 88%,15% 100%,10% 88%,5% 100%,0 88%)',
-        }}
-      >
-        <span
-          className="font-serif font-bold text-brown-dark leading-snug"
-          style={{ fontSize: embedded ? 'clamp(1.05rem,2.4vw,1.35rem)' : 'clamp(1.1rem,2.8vw,1.6rem)' }}
-        >
-          Proudly shipped with{' '}
-          <span style={{ color: '#e07000' }}>Shadowfax 360</span>
-        </span>
-
-        <img
-          src="/shadowfax-logo.webp"
-          alt="Shadowfax"
-          style={{ height: 40 }}
-          className={`w-auto flex-shrink-0 ${embedded ? 'md:h-[52px]' : 'md:h-[64px]'}`}
-          loading="lazy"
-          onError={(e) => {
-            e.currentTarget.style.display = 'none';
-          }}
-        />
-      </div>
-    </motion.div>
-  );
-
-  if (embedded) return card;
-
-  return (
-    <div className="w-full py-6 md:py-14" style={{ background: 'linear-gradient(135deg,#fff8ec,#fdf0d6)' }}>
-      <div className="max-w-3xl mx-auto px-4 sm:px-6">{card}</div>
-    </div>
-  );
-}
-
-// ── Shipping tape + heritage patch — stacked on mobile, side by side on desktop ──
-function ShippingHeritageBand() {
-  return (
-    <div className="w-full py-9 md:py-16" style={{ background: 'linear-gradient(135deg,#fff8ec,#fdf1da)' }}>
-      <div className="mx-auto flex max-w-5xl flex-col items-center justify-center gap-12 px-5 sm:px-6 md:flex-row md:gap-12">
-        <div className="w-full max-w-lg">
-          <ShippingPartnerTape embedded />
-        </div>
-        <HeritagePatch embedded />
-      </div>
-    </div>
-  );
-}
-
 // ── Stats band ──
 function StatsSection() {
   const ref = useReveal();
@@ -867,7 +786,7 @@ export default function HomePage() {
 
       <FeaturesSection />
 
-      <ShippingHeritageBand />
+      <HeritagePatch />
 
       <NamkeenSection />
 
