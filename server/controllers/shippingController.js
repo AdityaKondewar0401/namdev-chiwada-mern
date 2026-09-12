@@ -198,6 +198,10 @@ exports.resyncTracking = async (req, res, next) => {
     }
 
     await order.save();
+    // Same reason as orderController.updateOrderStatus: without this, the
+    // admin Orders list replaces its in-memory order with this response and
+    // the customer's name/email collapse to "Guest" until a full reload.
+    await order.populate('user', 'name email');
     res.json({ success: true, order });
   } catch (err) {
     next(err);
@@ -265,6 +269,7 @@ exports.createShipment = async (req, res, next) => {
     }
 
     await order.save();
+    await order.populate('user', 'name email');
 
     res.json({ success: true, order });
   } catch (err) {
@@ -298,6 +303,7 @@ exports.cancelShipment = async (req, res, next) => {
     order.courier.cancelReason = remarks || 'Cancelled by admin';
     order.courier.lastSyncedAt = new Date();
     await order.save();
+    await order.populate('user', 'name email');
 
     res.json({ success: true, order, shadowfax: result });
   } catch (err) {

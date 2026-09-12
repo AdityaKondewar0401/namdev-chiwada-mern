@@ -26,7 +26,20 @@ exports.getProducts = async (req, res, next) => {
 
     if (category && category !== 'all') query.category = category;
     if (featured === 'true') query.featured = true;
-    if (search) query.$text = { $search: search };
+    // Substring match (not MongoDB's `$text`, which tokenizes into whole
+    // stemmed words and so never matches a partial word like "bakar" against
+    // "Bakarwadi" — the exact bug a shopper hit typing a partial product
+    // name into the navbar search). Mirrors searchProducts' already-correct
+    // regex approach below, safely escaped for the same ReDoS reason.
+    if (search) {
+      const safeSearch = escapeRegex(String(search).slice(0, 100));
+      query.$or = [
+        { name: { $regex: safeSearch, $options: 'i' } },
+        { sub: { $regex: safeSearch, $options: 'i' } },
+        { desc: { $regex: safeSearch, $options: 'i' } },
+        { intro: { $regex: safeSearch, $options: 'i' } },
+      ];
+    }
 
     let sortObj = { sortOrder: 1 }; // Default: our custom order
     if (sort === 'price-asc')  sortObj = { price: 1 };

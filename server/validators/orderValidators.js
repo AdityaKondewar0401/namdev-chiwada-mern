@@ -132,10 +132,24 @@ const addPromo = [
     .exists({ checkFalsy: true }).withMessage('type is required')
     .bail()
     .isIn(PROMO_TYPES).withMessage(`type must be one of: ${PROMO_TYPES.join(', ')}`),
-  body('value')
-    .optional()
-    .isFloat({ min: 0, max: 100000 }).withMessage('value must be a non-negative number')
-    .toFloat(),
+  // `value` is semantically required for percent/flat promos but ignored
+  // for shipping ones — a plain `.optional()` here let it be omitted for
+  // percent/flat too, and the controller's unconditional `Number(value)`
+  // then silently wrote NaN into the promo's stored value. One custom
+  // validator does the required-conditionally-on-type check AND the
+  // numeric-bounds check together, since express-validator chains can't
+  // otherwise see a sibling field (`type`) mid-chain.
+  body('value').custom((value, { req }) => {
+    if (req.body.type === 'shipping') return true;
+    const num = Number(value);
+    if (value === undefined || value === null || value === '' || Number.isNaN(num)) {
+      throw new Error('value is required and must be a number for percent/flat promo types');
+    }
+    if (num < 0 || num > 100000) {
+      throw new Error('value must be between 0 and 100000');
+    }
+    return true;
+  }),
 ];
 
 const promoCodeParam = [

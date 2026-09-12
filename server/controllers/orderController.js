@@ -445,12 +445,17 @@ exports.updateOrderStatus =
         return res.status(400).json({ success: false, message: 'A delivered order cannot be cancelled' });
       }
 
+      // Populate `user` the same way getAllOrders does — without this, the
+      // admin Orders list replaces its in-memory order with this response
+      // (see OrdersTab.jsx's updateStatus) and the customer's name/email
+      // collapse to "Guest" until the next full page reload, even though
+      // the order's actual `user` reference never changed.
       const order =
         await Order.findByIdAndUpdate(
           req.params.id,
           { status },
           { new: true }
-        );
+        ).populate('user', 'name email');
 
       if (!order) {
         return res.status(404).json({
@@ -561,10 +566,22 @@ exports.addPromo = async (req, res, next) => {
       });
     }
 
+    // Belt-and-suspenders alongside orderValidators.addPromo's own check:
+    // never let a non-numeric value reach the database, since a stored
+    // NaN would silently poison every future discount calculation for
+    // this code instead of failing loudly here.
+    const numericValue = type === 'shipping' ? 0 : Number(value);
+    if (Number.isNaN(numericValue)) {
+      return res.status(400).json({
+        success: false,
+        message: 'value must be a valid number for this promo type',
+      });
+    }
+
     const promo = await Promo.create({
       code: code.toUpperCase(),
       type,
-      value: type === 'shipping' ? 0 : Number(value),
+      value: numericValue,
     });
 
     res.status(201).json({
