@@ -87,17 +87,12 @@ export default function ProductDetailPage() {
   const mobileScrollRef = useRef(null);
   const relatedSentinelRef = useRef(null);
 
-  // Broadcasts whether the mobile sticky Add-to-Cart bar is currently on
-  // screen. WhatsAppFloat (rendered globally, outside this page) listens
-  // for this to hide itself — that's what lets this bar go back to a
-  // single full-width row instead of permanently losing width to a fixed
-  // right-side gap for the float.
-  useEffect(() => {
-    window.dispatchEvent(new CustomEvent('pdp-sticky-bar', { detail: { visible: stickyVisible } }));
-    return () => {
-      window.dispatchEvent(new CustomEvent('pdp-sticky-bar', { detail: { visible: false } }));
-    };
-  }, [stickyVisible]);
+  // NOTE: this used to also dispatch a `pdp-sticky-bar` CustomEvent so
+  // WhatsAppFloat (rendered globally, outside this page) could hide itself
+  // while this bar is on screen. That was a real cross-component race —
+  // WhatsAppFloat now instead just repositions itself above this bar's
+  // band via a CSS breakpoint (see components/WhatsAppFloat.jsx), which
+  // can't race since there's no event/effect ordering involved.
 
   useEffect(() => {
     const el = relatedSentinelRef.current;
@@ -263,9 +258,16 @@ export default function ProductDetailPage() {
     }
   };
 
-  const discount = product.originalPrice
+  // Only a genuine discount (originalPrice actually higher than what this
+  // size costs) counts — originalPrice is one flat field on the product
+  // while price varies by size, so for sizes it wasn't set against this
+  // can come out zero or negative. Showing "-62% OFF" (or an "original"
+  // price lower than the current one) reads as broken pricing, so treat
+  // anything <= 0 as "no discount" rather than rendering the raw number.
+  const rawDiscount = product.originalPrice
     ? Math.round(((product.originalPrice - currentSize.price) / product.originalPrice) * 100)
     : null;
+  const discount = rawDiscount > 0 ? rawDiscount : null;
 
   const handleMouseMove = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -377,12 +379,10 @@ export default function ProductDetailPage() {
             />
           </div>
 
-          {/* Sticky bottom bar — back to a single row. This only works
-              cleanly because WhatsAppFloat now listens for the
-              'pdp-sticky-bar' event (dispatched above) and hides itself
-              while this bar is on screen, so there's no fixed right-side
-              gap to squeeze into anymore — the button gets the full
-              width it needs. */}
+          {/* Sticky bottom bar — a single full-width row. WhatsAppFloat
+              repositions itself above this bar's band on mobile product
+              pages (a CSS breakpoint, not a signal from here), so this bar
+              doesn't need to reserve a gap for it. */}
           <motion.div
             initial={false}
             animate={{ y: stickyVisible ? 0 : '120%' }}
@@ -635,7 +635,7 @@ function ProductInfo({ product, currentSize, discount, selectedSizeIdx, setSelec
         <span className="font-black text-saffron" style={{ fontSize: '2rem' }}>
           ₹{currentSize.price}
         </span>
-        {product.originalPrice && (
+        {discount && (
           <span className="text-brown-mid/40 line-through text-base mb-1">₹{product.originalPrice}</span>
         )}
         {discount && (

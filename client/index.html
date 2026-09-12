@@ -32,26 +32,22 @@
     <meta name="twitter:description" content="Namdev Chiwda — authentic Solapuri Chiwda and traditional Maharashtrian snacks, crafted in Solapur since 1873. Order online and get fresh delivery across Maharashtra." />
     <meta name="twitter:image" content="https://www.namdevchiwda.com/images/chiwada-1.jpg" />
 
-    <!-- LCP preload for the homepage hero product image (HeroExperience.jsx)
-         — must stay in sync with PRODUCTS[0].img there and the transform/
-         widths in utils/cloudinary.js (cldUrl/cldSrcSet defaults) if either
-         changes. Split by viewport since the mobile and desktop hero <img>s
-         use different `sizes`. -->
+    <!-- LCP preload for the homepage hero product image. HeroExperience.jsx
+         renders ONE fixed-width image (no responsive srcset) —
+         cldUrl(PACK, 'f_auto,q_auto,w_1000') — sized responsively via CSS
+         instead, so a single preload matching that exact URL is all that's
+         needed. BUG FIX: this used to preload a completely different,
+         no-longer-used image (special1_sy4zxa.png, split into two
+         viewport-conditional srcset variants for an older hero design) —
+         confirmed live via a "preloaded but not used" console warning. That
+         wasted the page's earliest, highest-priority bandwidth on an image
+         nobody sees while the real hero image got no preload at all, hurting
+         LCP. Must stay in sync with the `PACK` constant in
+         components/HeroExperience.jsx if that image ever changes. -->
     <link
       rel="preload"
       as="image"
-      href="https://res.cloudinary.com/dz7ykg6qr/image/upload/f_auto,q_auto/v1776256647/special1_sy4zxa.png"
-      imagesrcset="https://res.cloudinary.com/dz7ykg6qr/image/upload/f_auto,q_auto,w_400/v1776256647/special1_sy4zxa.png 400w, https://res.cloudinary.com/dz7ykg6qr/image/upload/f_auto,q_auto,w_600/v1776256647/special1_sy4zxa.png 600w, https://res.cloudinary.com/dz7ykg6qr/image/upload/f_auto,q_auto,w_800/v1776256647/special1_sy4zxa.png 800w, https://res.cloudinary.com/dz7ykg6qr/image/upload/f_auto,q_auto,w_1000/v1776256647/special1_sy4zxa.png 1000w, https://res.cloudinary.com/dz7ykg6qr/image/upload/f_auto,q_auto,w_1400/v1776256647/special1_sy4zxa.png 1400w"
-      imagesizes="90vw"
-      media="(max-width: 1023px)"
-    />
-    <link
-      rel="preload"
-      as="image"
-      href="https://res.cloudinary.com/dz7ykg6qr/image/upload/f_auto,q_auto,w_800/v1776256647/special1_sy4zxa.png"
-      imagesrcset="https://res.cloudinary.com/dz7ykg6qr/image/upload/f_auto,q_auto,w_400/v1776256647/special1_sy4zxa.png 400w, https://res.cloudinary.com/dz7ykg6qr/image/upload/f_auto,q_auto,w_600/v1776256647/special1_sy4zxa.png 600w, https://res.cloudinary.com/dz7ykg6qr/image/upload/f_auto,q_auto,w_800/v1776256647/special1_sy4zxa.png 800w, https://res.cloudinary.com/dz7ykg6qr/image/upload/f_auto,q_auto,w_1000/v1776256647/special1_sy4zxa.png 1000w, https://res.cloudinary.com/dz7ykg6qr/image/upload/f_auto,q_auto,w_1400/v1776256647/special1_sy4zxa.png 1400w"
-      imagesizes="(min-width: 1024px) 760px, 56vw"
-      media="(min-width: 1024px)"
+      href="https://res.cloudinary.com/dz7ykg6qr/image/upload/f_auto,q_auto,w_1000/v1789065799/ChatGPT_Image_Sep_11_2026_12_13_02_AM_yry4na.png"
     />
 
     <!-- Google Fonts -->

@@ -536,7 +536,13 @@ const styles = `
       display: flex;
       position: fixed;
       bottom: 0; left: 0; right: 0;
-      z-index: 100;
+      /* BUG FIX: this was z-index: 100 — higher than the mobile nav menu's
+         full-screen overlay (Navbar.jsx's fixed inset-0 z-50), so opening
+         the hamburger menu on /checkout didn't actually cover this bar; it
+         bled through on top of the menu instead. z-40 matches the other
+         fixed bottom bars elsewhere on the site (WhatsAppFloat, CartPage's
+         sticky bar) and stays safely below the menu overlay. */
+      z-index: 40;
       background: rgba(253,243,231,0.97);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
@@ -575,11 +581,29 @@ function CheckoutPage() {
 
   const formRef = useRef(null);
 
+  // BUG FIX: this used to only prefill fullName/phone from the logged-in
+  // user and always left line1/city/state/pincode blank — so a saved
+  // profile address (AddressTab.jsx, user.address = {street, city, state,
+  // pincode}) never showed up here at all, even though the user had
+  // already saved one. Prefill from it when present; `line2` has no
+  // equivalent on the saved address, so it still starts blank.
+  //
+  // `state` needs one extra check: AddressTab saves it as free text (a
+  // plain <input>, no fixed list), but this page's state field is a
+  // <select> built from the STATES list below. A saved value that isn't an
+  // exact match for one of those options (different case, a typo, "MH"
+  // instead of "Maharashtra") wouldn't select anything in the <select> —
+  // browsers silently fall back to the first option, which would show the
+  // wrong state without any error. Only prefill it when it's a real match.
+  const savedState = user?.address?.state;
   const [address, setAddress] = useState({
     fullName: user?.name || '',
     phone: user?.phone || '',
-    line1: '', line2: '', city: '',
-    state: 'Maharashtra', pincode: '',
+    line1: user?.address?.street || '',
+    line2: '',
+    city: user?.address?.city || '',
+    state: STATES.includes(savedState) ? savedState : 'Maharashtra',
+    pincode: user?.address?.pincode || '',
   });
 
   const [promoCode, setPromoCode] = useState('');

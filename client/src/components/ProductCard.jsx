@@ -153,7 +153,12 @@ export default function ProductCard({ product, index = 0 }) {
             <span className="font-black text-[0.95rem] sm:text-xl" style={{ color: MAROON }}>
               ₹{currentSize.price}
             </span>
-            {product.originalPrice && (
+            {/* originalPrice is one flat field on the product while price
+                varies by size — only show it as a "was" price when it's
+                actually higher than what this size costs, otherwise a
+                lower "original" price next to the real price reads as a
+                markup rather than a discount. */}
+            {product.originalPrice > currentSize.price && (
               <span className="text-[9px] sm:text-xs text-brown-mid/35 line-through">
                 ₹{product.originalPrice}
               </span>
