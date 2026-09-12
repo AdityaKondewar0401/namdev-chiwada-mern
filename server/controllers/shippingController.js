@@ -177,11 +177,29 @@ exports.resyncTracking = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'This order has no Shadowfax shipment yet' });
     }
 
-    const { order: sfxOrder, history, trackingUrl } = await shadowfaxService.trackOrder(order.courier.awbNumber);
+    // BUG FIX: a Shadowfax failure here used to fall through to the outer
+    // catch's `next(err)` — errorHandler.js only surfaces a raw error's
+    // real message via `err.expose`, which ShadowfaxApiError never sets,
+    // so every failure (missing SHADOWFAX_AUTH_TOKEN, a rejected AWB,
+    // a network error, ...) showed the admin the same generic "Something
+    // went wrong. Please try again." in production, with zero indication
+    // of what actually happened or how to fix it. Same admin-only-so-
+    // safe-to-expose reasoning as createShipment's existing catch below.
+    let sfxOrder, history, trackingUrl;
+    try {
+      ({ order: sfxOrder, history, trackingUrl } = await shadowfaxService.trackOrder(order.courier.awbNumber));
+    } catch (sfxErr) {
+      order.courier.error = `Tracking sync failed: ${sfxErr.message}`;
+      order.courier.lastSyncedAt = new Date();
+      await order.save().catch(() => {});
+      await order.populate('user', 'name email');
+      return res.status(502).json({ success: false, message: order.courier.error, order });
+    }
 
     order.courier.status = sfxOrder?.status;
     order.courier.statusDisplay = sfxOrder?.status_display;
     order.courier.trackingUrl = trackingUrl || order.courier.trackingUrl;
+    order.courier.error = undefined;
     order.courier.lastSyncedAt = new Date();
     order.courier.history = (history || []).map((h) => ({
       statusId: h.status_id,
@@ -293,14 +311,28 @@ exports.cancelShipment = async (req, res, next) => {
     }
 
     const { remarks } = req.body || {};
-    const result = await shadowfaxService.cancelOrder(
-      order.courier.awbNumber,
-      remarks || 'Cancelled by admin'
-    );
+
+    // Same bug fix as resyncTracking above — surface the real Shadowfax
+    // failure reason instead of letting it fall through to the generic
+    // errorHandler.js message.
+    let result;
+    try {
+      result = await shadowfaxService.cancelOrder(
+        order.courier.awbNumber,
+        remarks || 'Cancelled by admin'
+      );
+    } catch (sfxErr) {
+      order.courier.error = `Shipment cancellation failed: ${sfxErr.message}`;
+      order.courier.lastSyncedAt = new Date();
+      await order.save().catch(() => {});
+      await order.populate('user', 'name email');
+      return res.status(502).json({ success: false, message: order.courier.error, order });
+    }
 
     order.courier.status = 'cancelled_by_customer';
     order.courier.statusDisplay = result.responseMsg || 'Cancelled';
     order.courier.cancelReason = remarks || 'Cancelled by admin';
+    order.courier.error = undefined;
     order.courier.lastSyncedAt = new Date();
     await order.save();
     await order.populate('user', 'name email');
@@ -322,8 +354,16 @@ exports.escalateOrder = async (req, res, next) => {
     }
 
     const { issueCategory } = req.body || {};
-    const result = await shadowfaxService.raiseEscalation(order.courier.awbNumber, issueCategory);
-    res.json({ success: true, result });
+    try {
+      const result = await shadowfaxService.raiseEscalation(order.courier.awbNumber, issueCategory);
+      res.json({ success: true, result });
+    } catch (sfxErr) {
+      // Same bug fix as resyncTracking/cancelShipment — nothing to persist
+      // here (this doesn't change the order's own courier state), but the
+      // real Shadowfax message still needs to reach the admin instead of
+      // errorHandler.js's generic fallback.
+      res.status(502).json({ success: false, message: sfxErr.message });
+    }
   } catch (err) {
     next(err);
   }
@@ -339,8 +379,12 @@ exports.getProofOfDelivery = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'This order has no Shadowfax shipment' });
     }
 
-    const podDetails = await shadowfaxService.getPodDetails([order.courier.awbNumber]);
-    res.json({ success: true, pod: podDetails[order.courier.awbNumber] || null });
+    try {
+      const podDetails = await shadowfaxService.getPodDetails([order.courier.awbNumber]);
+      res.json({ success: true, pod: podDetails[order.courier.awbNumber] || null });
+    } catch (sfxErr) {
+      res.status(502).json({ success: false, message: sfxErr.message });
+    }
   } catch (err) {
     next(err);
   }

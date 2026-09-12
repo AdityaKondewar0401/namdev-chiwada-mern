@@ -28,6 +28,17 @@ function OrderCard({ order, onUpdateStatus, onOrderUpdated }) {
       onOrderUpdated(res.data.order);
       toast.success(successMsg);
     } catch (err) {
+      // shippingController.createShipment (and friends) still return the
+      // updated order — with courier.error now set — on a failed Shadowfax
+      // call, specifically so the failure is visible and survives a
+      // refresh (see that controller's own comment). Applying it here too
+      // means the card's "⚠️ {courier.error}" banner shows immediately
+      // instead of only after a full page reload — without this, clicking
+      // "Create Shipment" with no SHADOWFAX_AUTH_TOKEN configured (or any
+      // other Shadowfax failure) looked like it silently did nothing once
+      // the toast faded, even though the attempt (and its error) really
+      // was recorded on the order.
+      if (err.response?.data?.order) onOrderUpdated(err.response.data.order);
       toast.error(err.response?.data?.message || 'Shadowfax action failed');
     } finally {
       setCourierBusy(false);
