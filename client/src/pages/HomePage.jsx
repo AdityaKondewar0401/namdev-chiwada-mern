@@ -42,6 +42,15 @@ const FEATURES = [
   {
     icon: '🚚',
     image: 'https://res.cloudinary.com/dz7ykg6qr/image/upload/v1786263981/1777361411288-SF360_prmfr9.jpg',
+    // BUG FIX: this is a flat brand-logo lockup on a plain white
+    // background (a press-kit asset), not a photo — stretched/cropped
+    // with object-cover like the real photo cards next to it, it read as
+    // mostly empty white space with a small logo, i.e. "broken" next to
+    // the rich, full-bleed photography on the other cards. `logoBadge`
+    // tells GlassFeatureCard to render it as a contained partner-logo
+    // badge instead (the same pattern delivery-partner logos commonly
+    // use), rather than forcing a flat vector asset into a photo slot.
+    logoBadge: true,
     title: 'Pan-Maharashtra Delivery',
     desc: 'Fresh-packed and delivered across Maharashtra via Shadowfax, fast and reliable.',
   },
@@ -107,6 +116,25 @@ function GlassFeatureCard({
             }}
           >
             <VegMark size={36} border={3} />
+          </div>
+        ) : f.logoBadge ? (
+          // Partner-logo badge — the source asset is a flat vector
+          // lockup on white, not a photo, so it's shown contained with
+          // padding on a clean background instead of cropped/stretched
+          // edge-to-edge like the real photo cards.
+          <div
+            className="w-full h-full flex items-center justify-center p-4 sm:p-5"
+            style={{ background: '#fffdf7' }}
+          >
+            <img
+              src={f.image}
+              alt=""
+              loading="lazy"
+              className="w-full h-full object-contain"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
+            />
           </div>
         ) : (
           <img
