@@ -51,10 +51,31 @@ const courierSchema = new mongoose.Schema({
   history:          [courierHistorySchema],
 }, { _id: false });
 
+// ── Attribution — how this order came in. Set for every order (default
+// 'website' covers the normal logged-in checkout flow); WhatsApp orders
+// carry the same source/referral shape captured on WhatsAppSession at the
+// start of that conversation (see models/WhatsAppSession.js), copied over
+// once in utils/orderCreation.createOrderForUser so this stays a simple
+// read-only record of the order's origin, not a live link to the session. ──
+const attributionSchema = new mongoose.Schema({
+  channel: {
+    type: String,
+    enum: ['website', 'whatsapp'],
+    default: 'website',
+  },
+  source: { type: String }, // WhatsApp only: 'organic' | 'website' | 'ad'
+  referral: {
+    source_id: { type: String },
+    headline: { type: String },
+    ctwa_clid: { type: String },
+  },
+}, { _id: false });
+
 const orderSchema = new mongoose.Schema({
   user:            { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
   items:           [orderItemSchema],
   shippingAddress: { type: shippingAddressSchema },
+  attribution:     { type: attributionSchema, default: () => ({}) },
 
   subtotal:       { type: Number, required: true },
   shippingCharge: { type: Number, default: 0 },

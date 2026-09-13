@@ -6,6 +6,7 @@ import { productAPI } from '../services/api';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import RelatedProductCard from '../components/RelatedProductCard';
+import OrderOnWhatsAppButton from '../components/OrderOnWhatsAppButton';
 import { DetailSkeleton } from '../components/Skeletons';
 import PageWrapper from '../components/PageWrapper';
 import SEO from '../components/SEO';
@@ -370,7 +371,11 @@ export default function ProductDetailPage() {
             )}
           </div>
 
-          <div className="relative -mt-6 rounded-t-[28px] bg-white shadow-[0_-8px_24px_rgba(58,35,23,0.08)] px-5 pt-6 pb-28">
+          {/* pb-44 (not pb-28): the fixed sticky bar below grew a second row
+              (OrderOnWhatsAppButton) — this padding just needs to clear
+              whatever height that bar actually is, since the bar floats on
+              top rather than pushing this content. */}
+          <div className="relative -mt-6 rounded-t-[28px] bg-white shadow-[0_-8px_24px_rgba(58,35,23,0.08)] px-5 pt-6 pb-44">
             <MobileHandle />
             <ProductInfo
               product={product} currentSize={currentSize} discount={discount}
@@ -431,6 +436,7 @@ export default function ProductDetailPage() {
                 </AnimatePresence>
               </motion.button>
             </div>
+            <OrderOnWhatsAppButton product={product} className="w-full mt-2 py-2.5" />
           </motion.div>
         </div>
 
@@ -554,6 +560,7 @@ export default function ProductDetailPage() {
                     </AnimatePresence>
                   </motion.button>
                 </div>
+                <OrderOnWhatsAppButton product={product} className="w-full mt-3 py-3" />
               </div>
             </div>
           </div>

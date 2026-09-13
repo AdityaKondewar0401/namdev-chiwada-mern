@@ -76,9 +76,11 @@ export default function WhatsAppFloat({ phone = '919130160491', message = "Namas
       // Raised above the mobile sticky add-to-cart bar's band on a product
       // page (below `lg`, where that bar actually renders — see
       // ProductDetailPage's own `lg:hidden` wrapper on it); normal spot
-      // everywhere else, and always normal at `lg` and up.
+      // everywhere else, and always normal at `lg` and up. bottom-40 (not
+      // bottom-24): that bar grew a second row (OrderOnWhatsAppButton), so
+      // the old offset now overlapped it — bump matches the new bar height.
       className={`fixed right-5 z-40 w-14 h-14 rounded-full flex items-center justify-center text-white transition-transform duration-200 hover:scale-110 animate-pulse2 ${
-        isProductDetail ? 'bottom-24 lg:bottom-5' : 'bottom-5'
+        isProductDetail ? 'bottom-40 lg:bottom-5' : 'bottom-5'
       }`}
       style={{
         background: '#25D366',

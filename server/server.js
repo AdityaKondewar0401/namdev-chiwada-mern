@@ -99,7 +99,16 @@ app.use(cors({
 app.options('*', cors());
 
 // ── Middleware ─────────────────────────────────────────
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({
+  limit: '10mb',
+  // Capture the raw request body buffer alongside the parsed JSON —
+  // needed by the WhatsApp webhook (routes/whatsapp.js) to verify Meta's
+  // X-Hub-Signature-256 HMAC, which must be computed over the exact raw
+  // bytes Meta sent, not a re-serialized JSON.stringify(req.body) (key
+  // order/whitespace differences would break the signature). Negligible
+  // cost on every other route — it's the same buffer already being read.
+  verify: (req, res, buf) => { req.rawBody = buf; },
+}));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 if (process.env.NODE_ENV === 'development') {
@@ -119,6 +128,7 @@ app.use('/api/orders',   require('./routes/orders'));
 app.use('/api/wishlist', require('./routes/wishlist'));
 app.use('/api/payment', require('./routes/payment'));
 app.use('/api/shipping', require('./routes/shipping'));
+app.use('/api/whatsapp', require('./routes/whatsapp'));
 
 // ── Health Check ───────────────────────────────────────
 app.get('/api/health', (req, res) => {

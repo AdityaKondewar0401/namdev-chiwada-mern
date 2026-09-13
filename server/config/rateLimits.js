@@ -60,6 +60,17 @@ const rateLimitConfig = {
       windowMs: envInt('RATE_LIMIT_IP_WEBHOOK_WINDOW_MS', 60 * 1000), // 1 min
       max: envInt('RATE_LIMIT_IP_WEBHOOK_MAX', 120),
     },
+
+    // WhatsApp Cloud API webhook (Meta) — same "server-to-server, not
+    // browser traffic" reasoning as the Shadowfax tier above, but kept as
+    // its own independent tier/bucket since the two are unrelated
+    // third parties with unrelated traffic patterns (a burst of inbound
+    // customer messages should never be throttled by, or count against,
+    // Shadowfax courier-status volume, or vice versa).
+    whatsappWebhook: {
+      windowMs: envInt('RATE_LIMIT_IP_WHATSAPP_WEBHOOK_WINDOW_MS', 60 * 1000), // 1 min
+      max: envInt('RATE_LIMIT_IP_WHATSAPP_WEBHOOK_MAX', 120),
+    },
   },
 
   // ── Per-account exponential backoff. Keyed by normalized email, not

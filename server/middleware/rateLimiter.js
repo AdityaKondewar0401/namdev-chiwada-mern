@@ -69,3 +69,11 @@ exports.webhookLimiter = buildLimiter({
   max: rateLimitConfig.ip.webhook.max,
   message: 'Too many webhook requests from this source.',
 });
+
+// ── Separate tier: WhatsApp Cloud API (Meta) webhook. Same reasoning as
+// webhookLimiter above, kept independent — see config/rateLimits.js.
+exports.whatsappWebhookLimiter = buildLimiter({
+  windowMs: rateLimitConfig.ip.whatsappWebhook.windowMs,
+  max: rateLimitConfig.ip.whatsappWebhook.max,
+  message: 'Too many webhook requests from this source.',
+});
