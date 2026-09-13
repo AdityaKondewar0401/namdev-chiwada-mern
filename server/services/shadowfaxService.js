@@ -33,6 +33,24 @@ class ShadowfaxApiError extends Error {
   }
 }
 
+// BUG FIX: Shadowfax error responses carry a generic `message: "Failure"`
+// flag alongside a separate `errors` field that holds the actual specific
+// reason (a field validation message, a missing-config complaint, etc).
+// The two call sites below used to check `data?.message || data?.errors`
+// (or only `data.errors` after already matching on message === 'Failure'),
+// but sfxFetch's HTTP-error branch checked `message` FIRST — since
+// "Failure" is a truthy string, `||` short-circuited there and `errors`
+// was never even looked at, so every failure surfaced as the literally
+// useless string "Failure" instead of whatever Shadowfax actually said
+// was wrong. Prefer `errors` whenever it's present; it's where the real
+// detail lives.
+function extractShadowfaxErrorDetail(data, fallback) {
+  if (data?.errors) {
+    return typeof data.errors === 'string' ? data.errors : JSON.stringify(data.errors);
+  }
+  return data?.message || fallback;
+}
+
 // ── Order status mapping ──────────────────────────────────────────────
 // Maps Shadowfax's warehouse-model `status_id` values (see the "Order
 // States" / "warehouse order states" table in the API doc, and the
@@ -117,7 +135,7 @@ async function sfxFetch(path, { method = 'GET', body, query } = {}) {
 
   if (!res.ok) {
     throw new ShadowfaxApiError(
-      data?.message || data?.errors || `Shadowfax API error (${res.status})`,
+      extractShadowfaxErrorDetail(data, `Shadowfax API error (${res.status})`),
       { status: res.status, body: data }
     );
   }
@@ -207,7 +225,7 @@ async function createWarehouseOrder(order) {
 
   if (data.message === 'Failure') {
     throw new ShadowfaxApiError(
-      typeof data.errors === 'string' ? data.errors : JSON.stringify(data.errors),
+      extractShadowfaxErrorDetail(data, 'Shadowfax order creation failed'),
       { body: data }
     );
   }
