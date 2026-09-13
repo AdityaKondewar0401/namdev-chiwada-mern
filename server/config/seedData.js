@@ -10,19 +10,22 @@ const PRODUCTS = [
     tag: '🏆 Most Loved',
     badge: 'Bestseller',
     badgeColor: '#e07000',
-    price: 180,
-    originalPrice: 210,
-    weight: '250g',
+    // Only a 200g packet is currently sold — 250g/500g/1kg were removed
+    // (not just relabeled) per an explicit business decision. originalPrice
+    // dropped too: the old ₹210 strikethrough was against the discontinued
+    // 250g price and would've implied a misleading ~58% discount off ₹89.
+    // Set a real originalPrice again only if there's an actual "was" price
+    // for the 200g packet.
+    price: 89,
+    weight: '200g',
     img: 'https://res.cloudinary.com/dz7ykg6qr/image/upload/v1776077912/chiwada-1_lzpu9p.jpg',
     images: [
       'https://res.cloudinary.com/dz7ykg6qr/image/upload/v1776077911/chiwada-2_dcpktr.jpg',
       'https://res.cloudinary.com/dz7ykg6qr/image/upload/v1776078023/chiwada-3_mkertz.jpg',
-      
+
     ],
     sizes: [
-      { weight: '250g', price: 180 },
-      { weight: '500g', price: 340 },
-      { weight: '1kg',  price: 640 },
+      { weight: '200g', price: 89 },
     ],
     ingredients: ['Thick Poha','Mustard Seeds','Curry Leaves','Green Chili','Peanuts','Cashew','Turmeric','Rock Salt','Sugar','Groundnut Oil'],
     nutrition: [['Serving Size','30g'],['Calories','128 kcal'],['Total Fat','5.8g'],['Carbohydrates','17g'],['Protein','3.2g'],['Sodium','145mg']],
@@ -43,17 +46,16 @@ const PRODUCTS = [
     tag: '✨ Chef\'s Pick',
     badge: 'Premium',
     badgeColor: '#d4af37',
-    price: 200,
-    originalPrice: 230,
-    weight: '250g',
+    // Same catalog correction as Namdev Chiwda above — see that comment.
+    price: 89,
+    weight: '200g',
     img: 'https://res.cloudinary.com/dz7ykg6qr/image/upload/v1776077912/bakarwadi-1_pgklui.jpg',
     images: [
       'https://res.cloudinary.com/dz7ykg6qr/image/upload/v1776077912/bakarwadi-2_ln3slo.jpg',
       'https://res.cloudinary.com/dz7ykg6qr/image/upload/v1776078319/WhatsApp_Image_2025-10-12_at_09.55.44_8c57616c_h7rddn.jpg',
     ],
     sizes: [
-      { weight: '250g', price: 200 },
-      { weight: '500g', price: 380 },
+      { weight: '200g', price: 89 },
     ],
     ingredients: ['Refined Flour','Coconut','Sesame Seeds','Poppy Seeds','Tamarind','Jaggery','Red Chili','Coriander','Fennel'],
     nutrition: [['Serving Size','30g'],['Calories','158 kcal'],['Total Fat','8.9g'],['Carbohydrates','17g'],['Protein','3.1g'],['Sodium','160mg']],
