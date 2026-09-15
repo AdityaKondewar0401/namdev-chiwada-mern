@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Plus, Send, ShoppingCart, Check } from 'lucide-react';
+import { Heart, Plus, Send, ShoppingCart } from 'lucide-react';
 import { productAPI } from '../services/api';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -66,18 +66,16 @@ export default function ProductDetailPage() {
   // the backend already resolves either (see productController.getProduct).
   const { slug: routeSlug } = useParams();
   const navigate = useNavigate();
-  const { addToCart } = useCart();
+  const { addToCart, updateQuantity, getItemQuantity } = useCart();
   const { toggle, isWishlisted } = useWishlist();
 
   const [product, setProduct]                 = useState(null);
   const [notFound, setNotFound]               = useState(false);
   const [related, setRelated]                 = useState([]);
   const [loading, setLoading]                 = useState(true);
-  const [qty, setQty]                         = useState(1);
   const [selectedSizeIdx, setSelectedSizeIdx] = useState(0);
   const [mainImg, setMainImg]                 = useState('');
   const [activeTab, setActiveTab]             = useState('Ingredients');
-  const [added, setAdded]                     = useState(false);
   const [zoomOrigin, setZoomOrigin]           = useState('50% 50%');
   const [isZooming, setIsZooming]             = useState(false);
   const [mobileIdx, setMobileIdx]             = useState(0);
@@ -218,6 +216,12 @@ export default function ProductDetailPage() {
   const currentSize = product.sizes?.[selectedSizeIdx] || { weight: product.weight, price: product.price };
   const thumbs      = [product.img, ...(product.images || [])];
   const wishlisted  = isWishlisted(product._id);
+  // How many of THIS exact product+size are already in the cart — drives
+  // whether the purchase control below shows "Add to Cart" or the +/−
+  // stepper. Derived straight from cart state (not separate local state)
+  // so it's always correct: switching size shows that size's own count,
+  // and it updates live as the stepper is used.
+  const cartQty = getItemQuantity(product._id, currentSize.weight);
 
   const productSlug = product.slug || product._id;
   const breadcrumbItems = [
@@ -228,10 +232,12 @@ export default function ProductDetailPage() {
   const seoDescription = (product.desc || product.intro || '').slice(0, 160);
   const seoDescriptor = PRODUCT_SEO_DESCRIPTOR[product.slug] || DEFAULT_PRODUCT_SEO_DESCRIPTOR;
 
+  // Always adds exactly 1 — there's no pre-add quantity picker anymore
+  // (see the purchase control below). Once it's in the cart, the +/−
+  // stepper that replaces this button adjusts the real cart quantity
+  // directly via updateQuantity, one tap at a time.
   const handleAddToCart = () => {
-    addToCart(product, currentSize.weight, currentSize.price, qty);
-    setAdded(true);
-    setTimeout(() => setAdded(false), 2000);
+    addToCart(product, currentSize.weight, currentSize.price, 1);
   };
 
   // Adds/removes THIS product from the wishlist in place — toggle() itself
@@ -397,45 +403,59 @@ export default function ProductDetailPage() {
               boxShadow: '0 -6px 20px rgba(58,35,23,0.10)',
               paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))',
             }}>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1 bg-cream-mid rounded-full px-1 py-1 shrink-0">
-                <button onClick={() => setQty(Math.max(1, qty - 1))}
-                  className="rounded-full text-saffron font-bold flex items-center justify-center text-lg"
-                  style={{ width: 40, height: 40 }}>−</button>
-                <span className="font-bold text-brown-dark w-6 text-center text-sm">{qty}</span>
-                <button onClick={() => setQty(qty + 1)}
-                  className="rounded-full text-saffron font-bold flex items-center justify-center text-lg"
-                  style={{ width: 40, height: 40 }}>+</button>
-              </div>
-              <motion.button
-                whileTap={{ scale: 0.97 }}
-                onClick={handleAddToCart}
-                disabled={!product.inStock}
-                className="flex-1 min-w-0 py-3.5 rounded-full font-bold text-white text-sm flex items-center justify-center gap-2"
-                style={{
-                  background: !product.inStock ? '#9ca3af' : added ? '#16a34a' : `linear-gradient(135deg,${MAROON},#c0392b)`,
-                  boxShadow: product.inStock ? `0 6px 18px rgba(110,30,39,0.30)` : 'none',
-                }}>
-                <AnimatePresence mode="wait">
+            {/* Purchase control — a single element that IS either "Add to
+                Cart" or the quantity stepper, never both side by side (the
+                previous layout showed a pre-add stepper next to the
+                button at all times, which read as two separate,
+                confusing controls). Tapping Add to Cart adds 1 and the
+                control morphs directly into the stepper in the same
+                slot; the stepper's +/− then adjust the real cart
+                quantity, and dropping to 0 removes the line and morphs
+                back to "Add to Cart". */}
+            <AnimatePresence mode="wait" initial={false}>
+              {cartQty > 0 ? (
+                <motion.div
+                  key="stepper"
+                  initial={{ opacity: 0, scale: 0.94 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.94 }}
+                  transition={{ duration: 0.18 }}
+                  className="flex items-center justify-between rounded-full px-2"
+                  style={{ height: 52, background: `linear-gradient(135deg,${MAROON},#c0392b)`, boxShadow: '0 6px 18px rgba(110,30,39,0.30)' }}
+                >
+                  <button onClick={() => updateQuantity(product._id, currentSize.weight, cartQty - 1)}
+                    aria-label="Decrease quantity"
+                    className="rounded-full bg-white/15 hover:bg-white/25 active:bg-white/30 text-white font-bold flex items-center justify-center text-lg transition-colors"
+                    style={{ width: 40, height: 40 }}>−</button>
+                  <span className="text-white font-bold text-base">{cartQty}</span>
+                  <button onClick={() => updateQuantity(product._id, currentSize.weight, cartQty + 1)}
+                    aria-label="Increase quantity"
+                    className="rounded-full bg-white/15 hover:bg-white/25 active:bg-white/30 text-white font-bold flex items-center justify-center text-lg transition-colors"
+                    style={{ width: 40, height: 40 }}>+</button>
+                </motion.div>
+              ) : (
+                <motion.button
+                  key="add"
+                  initial={{ opacity: 0, scale: 0.94 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.94 }}
+                  transition={{ duration: 0.18 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={handleAddToCart}
+                  disabled={!product.inStock}
+                  className="w-full py-3.5 rounded-full font-bold text-white text-sm flex items-center justify-center gap-2"
+                  style={{
+                    background: !product.inStock ? '#9ca3af' : `linear-gradient(135deg,${MAROON},#c0392b)`,
+                    boxShadow: product.inStock ? '0 6px 18px rgba(110,30,39,0.30)' : 'none',
+                  }}>
                   {!product.inStock ? (
-                    <motion.span key="oos" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                      Out of Stock
-                    </motion.span>
-                  ) : added ? (
-                    <motion.span key="added" className="flex items-center gap-2 whitespace-nowrap"
-                      initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}>
-                      <Check size={16} strokeWidth={2.5} /> Added to Cart
-                    </motion.span>
+                    'Out of Stock'
                   ) : (
-                    <motion.span key="add" className="flex items-center gap-2 whitespace-nowrap"
-                      initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}>
-                      ₹{currentSize.price * qty} <span className="opacity-60">·</span>
-                      <ShoppingCart size={16} strokeWidth={2.2} /> Add to Cart
-                    </motion.span>
+                    <>₹{currentSize.price} <span className="opacity-60">·</span> <ShoppingCart size={16} strokeWidth={2.2} /> Add to Cart</>
                   )}
-                </AnimatePresence>
-              </motion.button>
-            </div>
+                </motion.button>
+              )}
+            </AnimatePresence>
             <OrderOnWhatsAppButton product={product} className="w-full mt-2 py-2.5" />
           </motion.div>
         </div>
@@ -525,40 +545,54 @@ export default function ProductDetailPage() {
                   renderH1={false}
                 />
 
-                <div className="flex items-center gap-3 mt-5">
-                  <div className="flex items-center gap-1 bg-white border border-saffron/20 rounded-full px-1 py-1 shadow-sm shrink-0">
-                    <button onClick={() => setQty(Math.max(1, qty - 1))}
-                      className="rounded-full border border-saffron/30 text-saffron font-bold flex items-center justify-center hover:bg-saffron hover:text-white transition-all text-lg"
-                      style={{ width: 40, height: 40 }}>
-                      −
-                    </button>
-                    <span className="font-bold text-brown-dark w-7 text-center">{qty}</span>
-                    <button onClick={() => setQty(qty + 1)}
-                      className="rounded-full border border-saffron/30 text-saffron font-bold flex items-center justify-center hover:bg-saffron hover:text-white transition-all text-lg"
-                      style={{ width: 40, height: 40 }}>
-                      +
-                    </button>
-                  </div>
-
-                  <motion.button
-                    whileTap={{ scale: 0.97 }}
-                    whileHover={{ y: -1 }}
-                    onClick={handleAddToCart}
-                    disabled={!product.inStock}
-                    className="flex-1 min-w-0 py-3.5 rounded-full font-bold text-white text-sm transition-all disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    style={{
-                      background: !product.inStock ? '#9ca3af' : added ? '#16a34a' : `linear-gradient(135deg,${MAROON},#c0392b)`,
-                      boxShadow: product.inStock ? `0 8px 22px -4px rgba(110,30,39,0.38)` : 'none',
-                      transition: 'background 0.3s ease',
-                    }}>
-                    <AnimatePresence mode="wait">
-                      <motion.span key={added ? 'added' : 'add'}
-                        initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
-                        transition={{ duration: 0.2 }}>
-                        {!product.inStock ? '❌ Out of Stock' : added ? '✓ Added to Cart!' : '🛒 Add to Cart'}
-                      </motion.span>
-                    </AnimatePresence>
-                  </motion.button>
+                {/* Purchase control — same "morphs in place" behavior as
+                    the mobile sticky bar; see the comment there. */}
+                <div className="mt-5">
+                  <AnimatePresence mode="wait" initial={false}>
+                    {cartQty > 0 ? (
+                      <motion.div
+                        key="stepper"
+                        initial={{ opacity: 0, scale: 0.94 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.94 }}
+                        transition={{ duration: 0.18 }}
+                        className="flex items-center justify-between rounded-full px-2"
+                        style={{ height: 52, background: `linear-gradient(135deg,${MAROON},#c0392b)`, boxShadow: '0 8px 22px -4px rgba(110,30,39,0.38)' }}
+                      >
+                        <button onClick={() => updateQuantity(product._id, currentSize.weight, cartQty - 1)}
+                          aria-label="Decrease quantity"
+                          className="rounded-full bg-white/15 hover:bg-white/25 active:bg-white/30 text-white font-bold flex items-center justify-center text-lg transition-colors"
+                          style={{ width: 40, height: 40 }}>
+                          −
+                        </button>
+                        <span className="text-white font-bold text-base">{cartQty}</span>
+                        <button onClick={() => updateQuantity(product._id, currentSize.weight, cartQty + 1)}
+                          aria-label="Increase quantity"
+                          className="rounded-full bg-white/15 hover:bg-white/25 active:bg-white/30 text-white font-bold flex items-center justify-center text-lg transition-colors"
+                          style={{ width: 40, height: 40 }}>
+                          +
+                        </button>
+                      </motion.div>
+                    ) : (
+                      <motion.button
+                        key="add"
+                        initial={{ opacity: 0, scale: 0.94 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.94 }}
+                        transition={{ duration: 0.18 }}
+                        whileTap={{ scale: 0.97 }}
+                        whileHover={{ y: -1 }}
+                        onClick={handleAddToCart}
+                        disabled={!product.inStock}
+                        className="w-full py-3.5 rounded-full font-bold text-white text-sm transition-all disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        style={{
+                          background: !product.inStock ? '#9ca3af' : `linear-gradient(135deg,${MAROON},#c0392b)`,
+                          boxShadow: product.inStock ? '0 8px 22px -4px rgba(110,30,39,0.38)' : 'none',
+                        }}>
+                        {!product.inStock ? '❌ Out of Stock' : '🛒 Add to Cart'}
+                      </motion.button>
+                    )}
+                  </AnimatePresence>
                 </div>
                 <OrderOnWhatsAppButton product={product} className="w-full mt-3 py-3" />
               </div>
