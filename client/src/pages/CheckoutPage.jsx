@@ -687,7 +687,7 @@ function CheckoutPage() {
       setPromoCode(incomingCode);
       orderAPI.validatePromo({ code: incomingCode, subtotal: cartTotal })
         .then(res => {
-          setPromoApplied({ discount: res.data.discount, message: res.data.message });
+          setPromoApplied({ discount: res.data.discount, freeShipping: res.data.freeShipping, message: res.data.message });
         })
         .catch(() => {
           setPromoCode('');
@@ -726,7 +726,18 @@ function CheckoutPage() {
 
   const subtotal = cartTotal;
   const discount = promoApplied?.discount || 0;
-  const shipping = subtotal >= 499 ? 0 : 49;
+  // BUG FIX: this used to compute shipping purely from the raw subtotal
+  // threshold, completely ignoring whether the applied promo grants free
+  // shipping (a `type: 'shipping'` Promo, e.g. "SOLAPUR") — so the promo
+  // showed its "applied ✅" message here, but Shipping/Total never
+  // actually changed to reflect it. `promoApplied` now also carries
+  // `freeShipping` (see applyPromo / the carry-forward effect above) so
+  // this can check it, matching what CartPage.jsx already did correctly.
+  // The real charge (calculateCartTotals, server-side, in both
+  // paymentController and orderCreation) was always correct — this was a
+  // display-only bug, but a trust-damaging one: the "Pay" button showed a
+  // higher total than what the payment popup then actually asked for.
+  const shipping = promoApplied?.freeShipping ? 0 : (subtotal >= 499 ? 0 : 49);
   const total = Math.max(0, subtotal - discount + shipping);
 
   function validate() {
@@ -763,7 +774,7 @@ function CheckoutPage() {
     setPromoError('');
     try {
       const res = await orderAPI.validatePromo({ code: promoCode, subtotal });
-      setPromoApplied({ discount: res.data.discount, message: res.data.message });
+      setPromoApplied({ discount: res.data.discount, freeShipping: res.data.freeShipping, message: res.data.message });
     } catch (err) {
       setPromoError(err.response?.data?.message || 'Invalid promo code');
       setPromoApplied(null);
