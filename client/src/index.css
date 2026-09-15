@@ -232,3 +232,21 @@ nav,
   50%  { transform: scale(2.2); opacity: 0;   }
   100% { transform: scale(1);   opacity: 0;   }
 }
+
+/* BUG FIX: toast notifications (react-hot-toast, see App.jsx's <Toaster>)
+   were landing on top of fixed mobile sticky bars — most visibly the
+   "added to cart" toast covering ProductDetailPage's quantity stepper
+   right after tapping Add to Cart. react-hot-toast positions its
+   container with an inline style, so a plain class rule needs
+   !important to actually override it. 1024px matches the `lg` breakpoint
+   every such sticky bar in this app already uses to decide "mobile or
+   not" (ProductDetailPage's purchase bar, CartPage's checkout bar) — at
+   `lg` and up there's no sticky bar to clear, so desktop keeps
+   react-hot-toast's own default position untouched. Measured against
+   the tallest of these bars (ProductDetailPage's, ~77px including its
+   WhatsApp button row) plus a clear gap. */
+@media (max-width: 1023.98px) {
+  .app-toaster {
+    bottom: 96px !important;
+  }
+}

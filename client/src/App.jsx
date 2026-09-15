@@ -326,6 +326,18 @@ export default function App() {
         <ScrollToTop />
         <Toaster
           position="bottom-center"
+          // BUG FIX: react-hot-toast's own bottom offset sits close to the
+          // viewport edge, which is fine on desktop but collides with
+          // fixed mobile sticky bars — e.g. ProductDetailPage's purchase
+          // control (Add to Cart / the quantity stepper) and CartPage's
+          // sticky checkout bar. A toast landing on top of the stepper
+          // right after "Add to Cart" both looks broken and blocks the
+          // +/- buttons underneath it. `containerClassName` hooks a class
+          // onto react-hot-toast's own container so index.css can push it
+          // above those bars on mobile only (see the media query there,
+          // scoped to the same `lg` breakpoint those bars use) — desktop,
+          // which has no such bars, is untouched.
+          containerClassName="app-toaster"
           toastOptions={{
             style: {
               background: '#2d1a00',
