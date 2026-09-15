@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, Lock, User, Phone, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-hot-toast';
 import PageWrapper from '../components/PageWrapper';
@@ -9,33 +8,40 @@ import SEO from '../components/SEO';
 import { SITE_NAME } from '../config/seo.config';
 
 // ─────────────────────────────────────────────
-// AuthPages (Login + Register) — REDESIGNED (split-screen)
+// AuthPages (Login + Register) — reverted to the centered-card design.
 //
-// Replaces the old single centered card (glow orbs, gradient top bar,
-// trust-badge row) with a split layout: a dark brand panel — the real
-// logo + a one-line heritage statement — beside a plain, minimal form.
-// On mobile the panel collapses to a compact header above the form
-// instead of disappearing, so the brand context never fully drops away.
+// The split-screen redesign (dark brand panel + lucide icons) that
+// briefly replaced this has been reverted per request, back to this
+// version: a centered card with soft glow orbs, a gradient top hairline,
+// the real logo + "Since 1873" eyebrow, emoji-adorned fields, and a
+// trust-badge row underneath.
+//
+// One thing IS kept from the split-screen version, not reverted: the
+// GoogleLoginButton's `clientId` guard (see below). That was a real
+// functional bug fix — without it, a missing VITE_GOOGLE_CLIENT_ID threw
+// Google's own "[GSI_LOGGER]: Missing required parameter" console error
+// and rendered a dead button — unrelated to which visual design is
+// active, so it stays fixed either way.
 //
 // No submit logic changed: login/register calls, redirect-after-login
 // (`from` location state), and the marketing-consent checkbox default
-// (unchecked, genuine opt-in) are all exactly as before. Emoji icons
-// (✉️ 🔒 👤 📱 🙈 👁️) are replaced with lucide-react, matching the
-// icon system already used across the admin panel and checkout.
+// (unchecked, genuine opt-in) are all exactly as before.
 // ─────────────────────────────────────────────
 
 // Small reusable icon-adorned input, used by both Login and Register.
 // Password fields automatically get a show/hide toggle.
-function IconField({ icon: Icon, type = 'text', value, onChange, placeholder, label, required, minLength, autoComplete }) {
+function IconField({ icon, type = 'text', value, onChange, placeholder, label, required, minLength, autoComplete }) {
   const [show, setShow] = useState(false);
   const isPassword = type === 'password';
   const inputType = isPassword ? (show ? 'text' : 'password') : type;
 
   return (
     <div>
-      <label className="mb-1.5 block text-[0.65rem] font-bold uppercase tracking-wider text-brown-mid/50">{label}</label>
-      <div className="flex items-center gap-2.5 rounded-lg px-3.5 py-3" style={{ border: '1px solid rgba(45,26,0,0.15)' }}>
-        <Icon size={16} className="flex-shrink-0 text-brown-mid/40" />
+      <label className="block text-xs font-bold uppercase tracking-wider text-brown-dark mb-1.5">{label}</label>
+      <div className="relative">
+        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-brown-mid/40 pointer-events-none" aria-hidden="true">
+          {icon}
+        </span>
         <input
           type={inputType}
           required={required}
@@ -44,16 +50,16 @@ function IconField({ icon: Icon, type = 'text', value, onChange, placeholder, la
           onChange={onChange}
           placeholder={placeholder}
           autoComplete={autoComplete}
-          className="w-full bg-transparent text-sm text-brown-dark outline-none placeholder:text-brown-mid/30"
+          className="form-input pl-10 pr-10"
         />
         {isPassword && (
           <button
             type="button"
             onClick={() => setShow((s) => !s)}
             aria-label={show ? 'Hide password' : 'Show password'}
-            className="flex-shrink-0 text-brown-mid/30 hover:text-saffron transition-colors"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-brown-mid/40 hover:text-saffron transition-colors text-sm"
           >
-            {show ? <EyeOff size={16} /> : <Eye size={16} />}
+            {show ? '🙈' : '👁️'}
           </button>
         )}
       </div>
@@ -61,44 +67,60 @@ function IconField({ icon: Icon, type = 'text', value, onChange, placeholder, la
   );
 }
 
-// ── Split-screen shell ── dark brand panel + minimal form panel.
-// The panel is a normal-flow block (not `min-h-screen`) on mobile, so it
-// naturally collapses to just "logo + headline" height above the form
-// instead of eating the viewport — no separate mobile-only markup needed.
-function AuthShell({ title, subtitle, children }) {
-  return (
-    <div className="flex min-h-screen flex-col md:flex-row">
-      <div
-        className="relative flex flex-shrink-0 flex-col justify-between overflow-hidden px-6 py-7 md:w-[42%] md:px-10 md:py-12"
-        style={{ background: 'linear-gradient(165deg,#1c0d02,#3d1c00 55%,#1c0d02)' }}
-      >
-        <div
-          className="pointer-events-none absolute inset-0 opacity-[0.07]"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 78 V40 A17 17 0 0 1 63 40 V78' stroke='%23d4af37' stroke-width='2' fill='none'/%3E%3C/svg%3E")`,
-            backgroundSize: '60px 80px',
-          }}
-        />
-        <Link to="/" className="relative z-10 inline-block flex-shrink-0">
-          <img src="/images/logo.png" alt="Namdev Chiwda" className="h-11 w-auto object-contain md:h-14" />
-        </Link>
-        <div className="relative z-10 mt-6 font-serif font-black leading-tight text-white md:mt-0" style={{ fontSize: 'clamp(1.25rem,2.6vw,1.8rem)' }}>
-          Six generations.<br />One recipe.
-        </div>
-      </div>
+const TRUST_BADGES = [
+  { icon: '✦', label: '150+ Years' },
+  { icon: '🍃', label: 'No Artificial Colors' },
+  { icon: '🛡', label: 'FSSAI Licensed' },
+];
 
-      <div className="flex flex-1 items-center justify-center px-6 py-10 md:px-10" style={{ background: '#fffdf9' }}>
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="w-full max-w-[320px]"
-        >
-          <h1 className="font-serif font-black text-brown-dark" style={{ fontSize: '1.55rem' }}>{title}</h1>
-          <p className="mt-1 text-sm text-brown-mid/50">{subtitle}</p>
-          <div className="mt-7">{children}</div>
-        </motion.div>
-      </div>
+function AuthCard({ title, subtitle, children }) {
+  return (
+    <div className="relative min-h-screen bg-cream flex items-center justify-center px-4 py-16 overflow-hidden">
+      {/* Soft decorative glows — restrained, not a marketing hero */}
+      <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(212,175,55,0.16), transparent 70%)', filter: 'blur(10px)' }} />
+      <div className="absolute -bottom-24 -left-24 w-80 h-80 rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(224,112,0,0.12), transparent 70%)', filter: 'blur(10px)' }} />
+
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
+        className="relative w-full max-w-md">
+
+        <div className="text-center mb-8">
+          <Link to="/" className="inline-flex flex-col items-center group">
+            <div className="relative mb-2">
+              <div
+                className="absolute inset-0 rounded-full opacity-50 pointer-events-none"
+                style={{ background: 'radial-gradient(circle, rgba(212,175,55,0.45), transparent 70%)', filter: 'blur(14px)' }}
+              />
+              <img
+                src="/images/logo.png"
+                alt="Namdev Chiwda"
+                className="relative h-20 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+              />
+            </div>
+            <div className="flex items-center gap-1.5 text-saffron text-[11px] font-bold tracking-widest uppercase">
+              <span>✦</span> Since 1873
+            </div>
+          </Link>
+        </div>
+
+        <div className="relative bg-white rounded-xl2 shadow-saffron border border-saffron/10 p-8 overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1"
+            style={{ background: 'linear-gradient(90deg,#e07000,#d4af37,#e07000)' }} />
+          <h2 className="font-serif font-black text-brown-dark text-2xl mb-1">{title}</h2>
+          <p className="text-brown-mid/60 text-sm mb-6">{subtitle}</p>
+          {children}
+        </div>
+
+        {/* Trust footer — same reassurance line used on the homepage hero */}
+        <div className="flex items-center justify-center gap-4 mt-6 flex-wrap">
+          {TRUST_BADGES.map((t) => (
+            <div key={t.label} className="flex items-center gap-1.5 text-brown-mid/50 text-[11px] font-medium">
+              <span aria-hidden="true">{t.icon}</span>{t.label}
+            </div>
+          ))}
+        </div>
+      </motion.div>
     </div>
   );
 }
@@ -107,14 +129,16 @@ function AuthShell({ title, subtitle, children }) {
 function GoogleLoginButton() {
   const navigate = useNavigate();
   const { saveUser } = useAuth();
-  // BUG FIX: this used to call google.accounts.id.initialize() with
-  // whatever VITE_GOOGLE_CLIENT_ID happened to be (including undefined),
-  // which throws Google's own "[GSI_LOGGER]: Missing required parameter:
-  // client_id" console error and never renders a working button — visitors
-  // saw a broken/blank "OR" divider with nothing usable under it. If this
-  // env var isn't configured (a misconfigured deploy, or local dev without
-  // it set), degrade gracefully by not showing the Google option at all
-  // rather than an erroring dead button; email/password login still works.
+  // BUG FIX (kept from the split-screen version — see file header): this
+  // used to call google.accounts.id.initialize() with whatever
+  // VITE_GOOGLE_CLIENT_ID happened to be (including undefined), which
+  // throws Google's own "[GSI_LOGGER]: Missing required parameter:
+  // client_id" console error and never renders a working button —
+  // visitors saw a broken/blank "OR" divider with nothing usable under
+  // it. If this env var isn't configured (a misconfigured deploy, or
+  // local dev without it set), degrade gracefully by not showing the
+  // Google option at all rather than an erroring dead button;
+  // email/password login still works.
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
   useEffect(() => {
@@ -188,14 +212,14 @@ function GoogleLoginButton() {
   if (!clientId) return null;
 
   return (
-    <div className="mt-5">
-      <div className="flex items-center gap-3 py-1">
-        <div className="h-px flex-1" style={{ background: 'rgba(45,26,0,0.1)' }} />
-        <span className="text-[0.65rem] font-semibold text-brown-mid/40">OR</span>
-        <div className="h-px flex-1" style={{ background: 'rgba(45,26,0,0.1)' }} />
+    <div className="mt-4">
+      <div className="flex items-center gap-3 my-5">
+        <div className="flex-1 h-px bg-saffron/20" />
+        <span className="text-xs text-brown-mid/50 font-medium">OR</span>
+        <div className="flex-1 h-px bg-saffron/20" />
       </div>
 
-      <div id="google-signin-btn" className="mt-4 flex justify-center" />
+      <div id="google-signin-btn" className="flex justify-center" />
     </div>
   );
 }
@@ -224,11 +248,11 @@ export function LoginPage() {
         canonical="/login"
         robots="noindex,nofollow"
       />
-      <AuthShell title="Welcome back" subtitle="Sign in to your account">
+      <AuthCard title="Welcome Back" subtitle={`Sign in to your ${SITE_NAME} account`}>
         <form onSubmit={handleSubmit} className="space-y-4">
 
           <IconField
-            icon={Mail}
+            icon="✉️"
             type="email"
             label="Email"
             required
@@ -239,7 +263,7 @@ export function LoginPage() {
           />
 
           <IconField
-            icon={Lock}
+            icon="🔒"
             type="password"
             label="Password"
             required
@@ -250,21 +274,20 @@ export function LoginPage() {
           />
 
           <button type="submit" disabled={loading}
-            className={`flex w-full items-center justify-center gap-2 rounded-lg py-3.5 text-sm font-bold text-white transition-opacity ${loading ? 'opacity-70' : ''}`}
-            style={{ background: '#1c0d02' }}>
-            {loading ? 'Signing in...' : <>Sign In <ArrowRight size={15} /></>}
+            className={`w-full btn-saffron py-3.5 font-bold text-base mt-2 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}>
+            {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
 
         <GoogleLoginButton />
 
-        <p className="mt-6 text-center text-sm text-brown-mid/50">
+        <p className="text-center text-sm text-brown-mid/60 mt-5">
           Don't have an account?{' '}
-          <Link to="/register" className="font-bold text-saffron hover:text-saffron-light">
+          <Link to="/register" className="text-saffron font-semibold hover:text-saffron-light">
             Register
           </Link>
         </p>
-      </AuthShell>
+      </AuthCard>
     </PageWrapper>
   );
 }
@@ -287,7 +310,7 @@ export function RegisterPage() {
     if (res.success) navigate('/', { replace: true });
   };
 
-  const FIELD_ICONS = { name: User, email: Mail, phone: Phone, password: Lock };
+  const FIELD_ICONS = { name: '👤', email: '✉️', phone: '📱', password: '🔒' };
   const FIELD_AUTOCOMPLETE = { name: 'name', email: 'email', phone: 'tel', password: 'new-password' };
 
   return (
@@ -298,7 +321,7 @@ export function RegisterPage() {
         canonical="/register"
         robots="noindex,nofollow"
       />
-      <AuthShell title="Create account" subtitle={`Join ${SITE_NAME} — it's free`}>
+      <AuthCard title="Create Account" subtitle={`Join ${SITE_NAME} — it's free!`}>
         <form onSubmit={handleSubmit} className="space-y-4">
 
           {[
@@ -322,34 +345,33 @@ export function RegisterPage() {
           ))}
 
           {/* Marketing opt-in — explicit, unchecked by default; unchanged */}
-          <label className="flex cursor-pointer select-none items-start gap-2.5 pt-1">
+          <label className="flex items-start gap-2.5 pt-1 cursor-pointer select-none">
             <input
               type="checkbox"
               checked={form.marketingConsent}
               onChange={(e) => setForm({ ...form, marketingConsent: e.target.checked })}
-              className="mt-0.5 h-4 w-4 flex-shrink-0 accent-saffron"
+              className="mt-0.5 w-4 h-4 accent-saffron flex-shrink-0"
             />
-            <span className="text-xs leading-relaxed text-brown-mid/60">
+            <span className="text-xs text-brown-mid/70 leading-relaxed">
               Send me order updates and offers via WhatsApp, SMS, and email. You can turn this off anytime from your account.
             </span>
           </label>
 
           <button type="submit" disabled={loading}
-            className={`flex w-full items-center justify-center gap-2 rounded-lg py-3.5 text-sm font-bold text-white transition-opacity ${loading ? 'opacity-70' : ''}`}
-            style={{ background: '#1c0d02' }}>
-            {loading ? 'Creating Account...' : <>Create Account <ArrowRight size={15} /></>}
+            className={`w-full btn-saffron py-3.5 font-bold text-base mt-2 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}>
+            {loading ? 'Creating Account...' : 'Create Account'}
           </button>
         </form>
 
         <GoogleLoginButton />
 
-        <p className="mt-6 text-center text-sm text-brown-mid/50">
+        <p className="text-center text-sm text-brown-mid/60 mt-5">
           Already have an account?{' '}
-          <Link to="/login" className="font-bold text-saffron hover:text-saffron-light">
+          <Link to="/login" className="text-saffron font-semibold hover:text-saffron-light">
             Sign In
           </Link>
         </p>
-      </AuthShell>
+      </AuthCard>
     </PageWrapper>
   );
 }
