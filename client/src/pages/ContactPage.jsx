@@ -40,11 +40,15 @@ const CONTACT_BREADCRUMB_ITEMS = [
 //    of vanishing into nothing. Added a secondary "or send via
 //    WhatsApp" button next to it (pre-fills a wa.me message) since
 //    this page's own copy already says WhatsApp gets faster replies.
-// 4. The four social buttons (Instagram/Facebook/YouTube/WhatsApp)
-//    had no onClick/href at all — clicking any of them did nothing.
-//    WhatsApp now actually opens the real chat; the other three
-//    (no confirmed handles/URLs to link to) at least give honest
-//    feedback ("page coming soon") instead of silently doing nothing.
+// 4. The social row used plain emoji (📸 👥 ▶️) as stand-ins for real
+//    brand logos, and Instagram/Facebook/YouTube had no href at all —
+//    a "coming soon" toast instead of a link, left over from before
+//    real profile URLs existed. Footer.jsx already has real, confirmed
+//    Instagram/Facebook/WhatsApp links using actual brand marks (Simple
+//    Icons) — this row now uses that exact same data and icon
+//    treatment instead of drifting from it. YouTube is dropped rather
+//    than kept as a dead "#" link, matching Footer's own call not to
+//    show a link with no real destination yet.
 // 5. Removed an unused `useReveal()` import — it was wired to a ref
 //    on an element that never had the `reveal` CSS class needed for
 //    it to do anything, so it was running an IntersectionObserver
@@ -62,11 +66,14 @@ const CONTACT_ITEMS = [
   { icon: '🚚', label: 'Delivery & Payment', value: 'Delivered across Maharashtra, with priority delivery in Pune and Solapur.\nCash on Delivery and online payment both available at checkout.' },
 ];
 
+// Same real profiles/colors as Footer.jsx's SOCIALS — kept in sync
+// deliberately rather than each page maintaining its own copy of "the
+// business's real links," which is exactly how this list drifted out of
+// date (old emoji, no hrefs) in the first place.
 const SOCIALS = [
-  { icon: '📸', label: 'Instagram' },
-  { icon: '👥', label: 'Facebook' },
-  { icon: '▶️', label: 'YouTube' },
-  { icon: '💬', label: 'WhatsApp' },
+  { slug: 'instagram', label: 'Instagram', color: 'E4405F', href: 'https://www.instagram.com/namdevchiwda?igsh=aGJoeDE3eDhpOXRx' },
+  { slug: 'facebook', label: 'Facebook', color: '1877F2', href: 'https://www.facebook.com/share/19AojeQWs4/' },
+  { slug: 'whatsapp', label: 'WhatsApp', color: '25D366', href: `https://wa.me/${WHATSAPP_NUMBER}` },
 ];
 
 const FIELD_ICONS = { fname: '👤', lname: '👤', email: '✉️', phone: '📱' };
@@ -103,14 +110,6 @@ export default function ContactPage() {
       `Hi, I'm ${form.fname || 'a customer'} — ${form.subject}.\n\n${form.message}`
     );
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${text}`, '_blank', 'noreferrer');
-  };
-
-  const handleSocialClick = (label) => {
-    if (label === 'WhatsApp') {
-      window.open(`https://wa.me/${WHATSAPP_NUMBER}`, '_blank', 'noreferrer');
-    } else {
-      toast(`Our ${label} page is coming soon — reach us on WhatsApp meanwhile!`);
-    }
   };
 
   const inp = (name, label, placeholder, type = 'text', required = false) => (
@@ -208,16 +207,24 @@ export default function ContactPage() {
               <div className="mt-2">
                 <div className="text-xs font-bold uppercase tracking-wider text-brown-mid/60 mb-3">Connect With Us</div>
                 <div className="flex gap-3">
-                  {SOCIALS.map(({ icon, label }) => (
-                    <button
+                  {SOCIALS.map(({ slug, label, color, href }) => (
+                    <a
                       key={label}
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       title={label}
                       aria-label={label}
-                      onClick={() => handleSocialClick(label)}
-                      className="w-11 h-11 rounded-xl flex items-center justify-center text-lg bg-saffron-pale text-saffron hover:bg-saffron hover:text-white transition-all duration-200 hover:-translate-y-0.5"
+                      style={{ '--brand': `#${color}` }}
+                      // Same hover treatment as Footer.jsx's identical row:
+                      // lift to white (not the brand color) with a
+                      // brand-tinted glow — the logo image is already
+                      // rendered in that exact color, so filling the tile
+                      // with the same color behind it would hide the icon.
+                      className="w-11 h-11 rounded-xl flex items-center justify-center bg-saffron-pale transition-all duration-200 hover:bg-white hover:-translate-y-0.5 hover:shadow-[0_6px_16px_var(--brand)]"
                     >
-                      {icon}
-                    </button>
+                      <img src={`https://cdn.simpleicons.org/${slug}/${color}`} alt="" width={20} height={20} loading="lazy" />
+                    </a>
                   ))}
                 </div>
               </div>
