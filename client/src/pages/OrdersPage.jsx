@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import toast from 'react-hot-toast';
 import { orderAPI } from '../services/api';
 import PageWrapper from '../components/PageWrapper';
 import SEO from '../components/SEO';
@@ -9,36 +10,47 @@ import { SITE_NAME } from '../config/seo.config';
 // ── Constants ──────────────────────────────────────────
 const WHATSAPP_NUMBER = '919130160491'; // ← Replace with your actual WhatsApp number (with country code, no +)
 
-const STATUS_COLORS = {
-  pending:    'bg-yellow-100 text-yellow-700 border-yellow-200',
-  confirmed:  'bg-blue-100 text-blue-700 border-blue-200',
-  processing: 'bg-purple-100 text-purple-700 border-purple-200',
-  shipped:    'bg-indigo-100 text-indigo-700 border-indigo-200',
-  delivered:  'bg-green-100 text-green-700 border-green-200',
-  cancelled:  'bg-red-100 text-red-600 border-red-200',
-};
-
-const STATUS_STEPS = ['pending', 'confirmed', 'processing', 'shipped', 'delivered'];
-
-const STATUS_ICONS = {
-  pending:    '🕐',
-  confirmed:  '✅',
-  processing: '⚙️',
-  shipped:    '🚚',
-  delivered:  '🎉',
-  cancelled:  '❌',
-};
-
-const STATUS_DESC = {
-  pending:    'Your order has been received and is awaiting confirmation.',
-  confirmed:  'Your order has been confirmed and is being prepared.',
-  processing: 'Your order is being packed with care.',
-  shipped:    'Your order is on its way to you!',
-  delivered:  'Your order has been delivered. Enjoy your snacks! 🍿',
-  cancelled:  'This order has been cancelled.',
-};
-
 const PAYMENT_LABELS = { COD: 'Cash on Delivery', ONLINE: 'Online Payment', UPI: 'UPI' };
+
+// Fulfillment tracking is now entirely Shadowfax's job, not ours — see the
+// removed STATUS_STEPS/STATUS_DESC timeline this replaced. Our own
+// order.status enum (pending/confirmed/processing/shipped/delivered) is
+// admin-driven and isn't guaranteed to move in step with the courier's
+// real status, so no longer shown to the customer at all. Only
+// `cancelled` remains customer-facing — that's a real exception outcome,
+// not a fulfillment stage.
+const SHADOWFAX_TRACKER_BASE = 'https://tracker.shadowfax.in/#/';
+
+// Prefer the real, Shadowfax-generated per-shipment tracking URL (fetched
+// automatically the moment an admin creates the shipment — see
+// shippingController.createShipment's `trackOrder` call). That's a
+// guaranteed-correct deep link straight to this order's own tracking
+// page. Only falls back to Shadowfax's generic tracker (customer pastes
+// the AWB themselves — see the copy button next to it) for the rare case
+// where that fetch failed and was never resynced.
+function getTrackingHref(order) {
+  return order.courier?.trackingUrl || SHADOWFAX_TRACKER_BASE;
+}
+
+function CopyAwbButton({ awb }) {
+  const handleCopy = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(awb);
+      toast.success('AWB copied!');
+    } catch {
+      // clipboard unavailable in this context — silently skip, matches
+      // the same pattern already used for ProductDetailPage's share link.
+    }
+  };
+  return (
+    <button onClick={handleCopy} title="Copy AWB number"
+      className="text-brown-mid/50 hover:text-saffron transition-colors">
+      📋
+    </button>
+  );
+}
 
 // ── WhatsApp Support Box ───────────────────────────────
 function WhatsAppSupportBox({ order }) {
@@ -187,31 +199,29 @@ function OrderDetail({ id }) {
   );
   if (!order) return <div className="text-center py-16 text-brown-mid/75">Order not found.</div>;
 
-  const stepIdx = STATUS_STEPS.indexOf(order.status);
   const isCancelled = order.status === 'cancelled';
-  const isDelivered = order.status === 'delivered';
   const shortId = order._id.slice(-8).toUpperCase();
   const orderDate = new Date(order.createdAt);
 
   return (
     <div className="max-w-3xl mx-auto space-y-5">
 
-      {/* ── Card 1: Order Status Header ── */}
+      {/* ── Card 1: Order Header ── */}
       <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
         className="bg-white rounded-2xl border border-saffron/10 overflow-hidden"
         style={{ boxShadow: '0 4px 24px rgba(45,26,0,0.07)' }}>
 
-        {/* Colored top strip based on status */}
+        {/* Colored top strip — red only for the one real exception
+            (cancelled); every other order just gets the brand gradient,
+            since we no longer surface our own internal fulfillment stage. */}
         <div className="h-1.5 w-full" style={{
           background: isCancelled
             ? 'linear-gradient(90deg,#fca5a5,#ef4444)'
-            : isDelivered
-              ? 'linear-gradient(90deg,#86efac,#22c55e)'
-              : 'linear-gradient(90deg,#fed7aa,#e07000,#ff9010)'
+            : 'linear-gradient(90deg,#fed7aa,#e07000,#ff9010)'
         }} />
 
         <div className="p-6">
-          {/* Top row: ID + Status badge */}
+          {/* Top row: ID + date */}
           <div className="flex items-start justify-between gap-4 flex-wrap mb-5">
             <div>
               <div className="text-xs text-brown-mid/75 font-medium uppercase tracking-wider mb-1">Order</div>
@@ -219,10 +229,11 @@ function OrderDetail({ id }) {
               <div className="text-xs text-brown-mid/75 mt-1 font-mono">{order._id}</div>
             </div>
             <div className="text-right">
-              <span className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-bold border capitalize ${STATUS_COLORS[order.status]}`}>
-                <span>{STATUS_ICONS[order.status]}</span>
-                {order.status}
-              </span>
+              {isCancelled && (
+                <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-bold border bg-red-100 text-red-600 border-red-200">
+                  ❌ Cancelled
+                </span>
+              )}
               <div className="text-xs text-brown-mid/75 mt-2">
                 {orderDate.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
               </div>
@@ -232,40 +243,10 @@ function OrderDetail({ id }) {
             </div>
           </div>
 
-          {/* Status description */}
-          <div className={`text-sm px-4 py-3 rounded-xl mb-5 font-medium ${isCancelled ? 'bg-red-50 text-red-600' : isDelivered ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
-            {STATUS_ICONS[order.status]} {STATUS_DESC[order.status]}
-          </div>
-
-          {/* Progress tracker */}
-          {!isCancelled && (
-            <>
-              <div className="flex items-center">
-                {STATUS_STEPS.map((step, i) => (
-                  <div key={step} className="flex items-center flex-1">
-                    <div className="flex flex-col items-center">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 transition-all shadow-sm ${
-                        i < stepIdx ? 'bg-saffron text-white' :
-                        i === stepIdx ? 'bg-saffron text-white ring-4 ring-saffron/20' :
-                        'bg-cream-mid text-brown-mid/75'
-                      }`}>
-                        {i < stepIdx ? '✓' : i === stepIdx ? STATUS_ICONS[step] : i + 1}
-                      </div>
-                    </div>
-                    {i < STATUS_STEPS.length - 1 && (
-                      <div className={`flex-1 h-1 mx-1 rounded-full transition-all ${i < stepIdx ? 'bg-saffron' : 'bg-cream-mid'}`} />
-                    )}
-                  </div>
-                ))}
-              </div>
-              <div className="flex justify-between mt-2">
-                {STATUS_STEPS.map((s, i) => (
-                  <span key={s} className={`text-xs capitalize flex-1 text-center first:text-left last:text-right font-medium ${i <= stepIdx ? 'text-saffron' : 'text-brown-mid/75'}`}>
-                    {s}
-                  </span>
-                ))}
-              </div>
-            </>
+          {isCancelled && (
+            <div className="text-sm px-4 py-3 rounded-xl mb-5 font-medium bg-red-50 text-red-600">
+              ❌ This order has been cancelled.
+            </div>
           )}
 
           {/* Key info pills */}
@@ -292,49 +273,70 @@ function OrderDetail({ id }) {
         </div>
       </motion.div>
 
-      {/* ── Courier tracking (Shadowfax) — only shown once a shipment
-          actually exists for this order. AWB/status are synced by the
-          Shadowfax Push Callback webhook (see server/routes/shipping.js),
-          so this reflects the courier's live status, not just our own
-          internal order.status. ── */}
-      {order.courier?.awbNumber && (
+      {/* ── Shipping & Tracking — the customer's actual "where's my
+          order" answer now lives entirely on Shadowfax's own tracker,
+          not our internal status enum. Always shown (skipped only for a
+          cancelled order, where there's nothing to track) so there's a
+          calm placeholder before a shipment exists instead of the card
+          just disappearing. AWB/history are synced by the Shadowfax
+          Push Callback webhook (see server/routes/shipping.js). ── */}
+      {!isCancelled && (
         <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.16 }}
           className="bg-white rounded-2xl border border-saffron/10 p-6"
           style={{ boxShadow: '0 4px 24px rgba(45,26,0,0.07)' }}>
           <h3 className="font-serif font-bold text-brown-dark text-lg mb-3 flex items-center gap-2">
-            🚚 Courier Tracking
+            🚚 Shipping &amp; Tracking
           </h3>
-          <div className="flex flex-wrap items-center gap-2 mb-2">
-            <span className="px-3 py-1.5 rounded-full text-xs font-bold bg-cream-mid text-brown-dark font-mono">
-              AWB: {order.courier.awbNumber}
-            </span>
-            {order.courier.statusDisplay && (
-              <span className="px-3 py-1.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 capitalize">
-                {order.courier.statusDisplay}
-              </span>
-            )}
-          </div>
-          {order.courier.trackingUrl && (
-            <a href={order.courier.trackingUrl} target="_blank" rel="noreferrer"
-              className="inline-flex items-center gap-1 text-sm font-semibold text-saffron hover:underline mt-1">
-              Track shipment ↗
-            </a>
-          )}
-          {order.courier.history?.length > 0 && (
-            <div className="mt-4 space-y-2 border-t border-saffron/10 pt-4">
-              {order.courier.history.slice().reverse().map((h, i) => (
-                <div key={i} className="flex flex-col sm:flex-row sm:items-start gap-0.5 sm:gap-3 text-xs">
-                  <span className="text-brown-mid/75 flex-shrink-0 sm:w-32">
-                    {h.eventTimestamp ? new Date(h.eventTimestamp).toLocaleString('en-IN') : ''}
+
+          {!order.courier?.awbNumber ? (
+            <p className="text-sm text-brown-mid/70">
+              We'll add tracking here as soon as your order ships.
+            </p>
+          ) : (
+            <>
+              <div className="flex flex-wrap items-center gap-2 mb-4">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-cream-mid text-brown-dark font-mono">
+                  AWB: {order.courier.awbNumber}
+                  <CopyAwbButton awb={order.courier.awbNumber} />
+                </span>
+                {order.courier.statusDisplay && (
+                  <span className="px-3 py-1.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 capitalize">
+                    {order.courier.statusDisplay}
                   </span>
-                  <span className="text-brown-dark min-w-0 flex-1">
-                    <span className="font-semibold">{h.status}</span>
-                    {h.location ? ` · ${h.location}` : ''}
-                    {h.remarks ? ` — ${h.remarks}` : ''}
-                  </span>
+                )}
+              </div>
+
+              <a href={getTrackingHref(order)} target="_blank" rel="noreferrer"
+                className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 rounded-full font-bold text-white text-sm transition-all hover:-translate-y-0.5"
+                style={{ background: 'linear-gradient(135deg,#e07000,#ff9010)', boxShadow: '0 4px 12px rgba(224,112,0,0.25)' }}>
+                Track Order ↗
+              </a>
+              {/* Only shown in the fallback case — a real per-order
+                  trackingUrl opens straight to this shipment's own page,
+                  nothing to paste. */}
+              {!order.courier.trackingUrl && (
+                <p className="text-xs text-brown-mid/60 mt-2">
+                  Paste AWB <span className="font-mono font-semibold">{order.courier.awbNumber}</span> into the page that opens to see live status.
+                </p>
+              )}
+
+              {order.courier.history?.length > 0 && (
+                <div className="mt-4 space-y-2 border-t border-saffron/10 pt-4">
+                  {order.courier.history.slice().reverse().map((h, i) => (
+                    <div key={i} className="flex flex-col sm:flex-row sm:items-start gap-0.5 sm:gap-3 text-xs">
+                      <span className="text-brown-mid/75 flex-shrink-0 sm:w-32">
+                        {h.eventTimestamp ? new Date(h.eventTimestamp).toLocaleString('en-IN') : ''}
+                      </span>
+                      <span className="text-brown-dark min-w-0 flex-1">
+                        <span className="font-semibold">{h.status}</span>
+                        {h.location ? ` · ${h.location}` : ''}
+                        {h.remarks ? ` — ${h.remarks}` : ''}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              )}
+            </>
           )}
         </motion.div>
       )}
@@ -502,15 +504,15 @@ function OrdersList() {
       {orders.map((order, i) => {
         const shortId = order._id.slice(-8).toUpperCase();
         const isCancelled = order.status === 'cancelled';
-        const isDelivered = order.status === 'delivered';
         return (
           <motion.div key={order._id}
             initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
             className="bg-white rounded-2xl border border-saffron/10 overflow-hidden hover:shadow-lg transition-all group"
             style={{ boxShadow: '0 2px 16px rgba(45,26,0,0.06)' }}>
-            {/* Status strip */}
+            {/* Top strip — red only for the one real exception
+                (cancelled); no internal fulfillment-stage coloring. */}
             <div className="h-1 w-full" style={{
-              background: isCancelled ? '#ef4444' : isDelivered ? '#22c55e' : 'linear-gradient(90deg,#e07000,#ff9010)'
+              background: isCancelled ? '#ef4444' : 'linear-gradient(90deg,#e07000,#ff9010)'
             }} />
             <div className="p-5">
               <div className="flex items-start justify-between gap-3 flex-wrap">
@@ -527,14 +529,20 @@ function OrdersList() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <span className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold border capitalize ${STATUS_COLORS[order.status]}`}>
-                    {STATUS_ICONS[order.status]} {order.status}
-                  </span>
+                  {isCancelled && (
+                    <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold border bg-red-100 text-red-600 border-red-200">
+                      ❌ Cancelled
+                    </span>
+                  )}
                   <div className="font-black text-saffron text-xl mt-1.5">₹{order.total}</div>
+                  {/* Straight to Shadowfax tracking from the list — no
+                      need to open the order first just to check status. */}
                   {order.courier?.awbNumber && (
-                    <div className="text-[10px] font-mono font-bold text-blue-700 mt-1">
-                      🚚 AWB {order.courier.awbNumber}
-                    </div>
+                    <a href={getTrackingHref(order)} target="_blank" rel="noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="inline-flex items-center gap-1 text-[11px] font-bold text-saffron hover:underline mt-1">
+                      🚚 Track Order ↗
+                    </a>
                   )}
                 </div>
               </div>
