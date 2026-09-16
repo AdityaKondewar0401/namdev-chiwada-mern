@@ -199,7 +199,13 @@ function OrderSummaryBody({ cart, promoCode, setPromoCode, applyPromo, promoLoad
           <input
             className="promo-input"
             value={promoCode}
-            onChange={e => setPromoCode(e.target.value)}
+            // BUG FIX: this was the one promo input on the site that didn't
+            // force uppercase (CartPage's own promo input already does) —
+            // so a code typed in lowercase here got stored on the order
+            // exactly as typed, showing inconsistently wherever that order's
+            // promoCode is displayed later, even though the discount itself
+            // still applied correctly (validation re-uppercases for lookup).
+            onChange={e => setPromoCode(e.target.value.toUpperCase())}
             placeholder="Enter code"
           />
           <button type="button" className="promo-btn" onClick={applyPromo} disabled={promoLoading}>

@@ -258,8 +258,11 @@ function OrderDetail({ id }) {
               📦 {order.items.reduce((s, i) => s + i.qty, 0)} item{order.items.reduce((s, i) => s + i.qty, 0) > 1 ? 's' : ''}
             </div>
             {order.promoCode && (
+              // Defensive uppercase: an order placed before CheckoutPage's
+              // promo input forced uppercase may have this stored in
+              // whatever case the customer typed — never shown lowercase.
               <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-                🎟️ {order.promoCode}
+                🎟️ {order.promoCode.toUpperCase()}
               </div>
             )}
             {order.paymentStatus && (
@@ -386,7 +389,7 @@ function OrderDetail({ id }) {
             </div>
             {order.discount > 0 && (
               <div className="flex justify-between text-sm text-green-600 font-semibold">
-                <span>🎟️ Promo Discount {order.promoCode && `(${order.promoCode})`}</span>
+                <span>🎟️ Promo Discount {order.promoCode && `(${order.promoCode.toUpperCase()})`}</span>
                 <span>−₹{order.discount}</span>
               </div>
             )}

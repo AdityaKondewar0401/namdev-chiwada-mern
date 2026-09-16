@@ -134,25 +134,17 @@ function OrderCard({ order, onUpdateStatus, onOrderUpdated }) {
               )}
             </div>
 
-            <select
-              value={order.status || 'pending'}
-              onChange={(e) => onUpdateStatus(order._id, e.target.value)}
-              style={{
-                padding: '9px 28px 9px 12px', borderRadius: 10, minHeight: 40,
-                border: `1.5px solid ${cfg.border}`,
-                background: cfg.bg, color: cfg.color,
-                fontSize: 12, fontWeight: 700, cursor: 'pointer', outline: 'none',
-                textTransform: 'capitalize', appearance: 'none',
-                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='${encodeURIComponent(cfg.color)}' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
-                backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center',
-              }}
-            >
-              {STATUS_OPTIONS.map((s) => (
-                <option key={s} value={s} style={{ background: 'white', color: '#3d2800', textTransform: 'capitalize' }}>
-                  {s.charAt(0).toUpperCase() + s.slice(1)}
-                </option>
-              ))}
-            </select>
+            {/* BUG FIX: this used to be a <select> letting an admin freely
+                set order.status to any of pending/confirmed/processing/
+                shipped/delivered — a manual timeline an admin could set by
+                hand, disconnected from what the courier is actually doing.
+                Removed entirely: status now only ever changes automatically
+                (Shadowfax's Push Callback webhook maps real courier events
+                onto it — see shippingController.js) or via the dedicated
+                "Cancel Order" action below, which is a real, guarded admin
+                decision rather than a timeline stage. The badge at the top
+                of this card still shows the current status — just nothing
+                here can override it by hand anymore. */}
 
             {/* ── Primary actions — always visible, no need to expand.
                 "Create Shipment" only appears until an AWB exists (it's a
@@ -275,7 +267,7 @@ function OrderCard({ order, onUpdateStatus, onOrderUpdated }) {
                 </div>
                 {order.promoCode && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8, padding: '6px 12px', borderRadius: 8, background: '#dcfce7', border: '1px solid #bbf7d0', fontSize: 11, fontWeight: 700, color: '#15803d' }}>
-                    <Tag size={12} /> Promo: <span style={{ letterSpacing: '0.05em' }}>{order.promoCode}</span>
+                    <Tag size={12} /> Promo: <span style={{ letterSpacing: '0.05em' }}>{order.promoCode.toUpperCase()}</span>
                   </div>
                 )}
                 {order.razorpayPaymentId && (
