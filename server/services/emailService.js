@@ -351,10 +351,127 @@ async function sendB2BAccountSuspended(business, user) {
   await sendViaResend({ to: user.email, subject: 'Your wholesale account has been suspended — Namdev Chiwda', html });
 }
 
+/*
+  ───────────────────────────────────────────────────────────
+  B2B order emails (Phase 3). Same shell, same best-effort convention as
+  the onboarding emails above — callers wrap these in try/catch.
+  ───────────────────────────────────────────────────────────
+*/
+function b2bOrderItemsHtml(order) {
+  return (order.items || [])
+    .map((item, i) => `
+    <tr>
+      <td style="padding:10px 0; ${i > 0 ? 'border-top:1px solid rgba(224,112,0,0.1);' : ''} color:#2d1a00; font-size:13px;">
+        ${item.name} <span style="color:#9a7c5a;">· ${item.size} · ${item.cases} case${item.cases > 1 ? 's' : ''}</span>
+      </td>
+      <td style="padding:10px 0; ${i > 0 ? 'border-top:1px solid rgba(224,112,0,0.1);' : ''} text-align:right; color:#2d1a00; font-size:13px; font-weight:700; white-space:nowrap;">
+        ₹${item.lineTotal.toLocaleString('en-IN')}
+      </td>
+    </tr>`)
+    .join('');
+}
+
+async function sendB2BOrderPlaced(order, business, user) {
+  const testTag = business.isTest ? ' [TEST]' : '';
+  const holdNote = order.creditHold
+    ? '<div style="margin-top:10px; padding:10px 14px; background:#fef2f2; color:#991b1b; border-radius:10px; font-size:13px;"><strong>On credit hold</strong> — confirm requires an override.</div>'
+    : '';
+
+  const buyerHtml = b2bEmailShell({
+    eyebrow: 'ORDER PLACED',
+    heading: `Order ${order.orderNumber} received`,
+    bodyHtml: `<table role="presentation" width="100%">${b2bOrderItemsHtml(order)}</table>
+      <div style="margin-top:12px; font-weight:800; font-size:15px; color:#2d1a00;">Total: ₹${order.totals.payable.toLocaleString('en-IN')}</div>`,
+    ctaText: 'View order',
+    ctaUrl: `${B2B_CLIENT_URL}/b2b/orders/${order._id}`,
+  });
+
+  const adminHtml = b2bEmailShell({
+    eyebrow: 'NEW B2B ORDER' + testTag,
+    heading: `${order.orderNumber} — ${business.businessName}${testTag}`,
+    bodyHtml: `<table role="presentation" width="100%">${b2bOrderItemsHtml(order)}</table>
+      <div style="margin-top:12px; font-weight:800; font-size:15px; color:#2d1a00;">Total: ₹${order.totals.payable.toLocaleString('en-IN')}</div>
+      ${holdNote}`,
+    ctaText: 'Review in admin panel',
+    ctaUrl: `${B2B_CLIENT_URL}/admin`,
+  });
+
+  const sends = [];
+  if (user?.email) sends.push(sendViaResend({ to: user.email, subject: `Order ${order.orderNumber} received — Namdev Chiwda`, html: buyerHtml }));
+  const adminEmail = process.env.B2B_ADMIN_NOTIFY_EMAIL || 'care@namdevchiwda.com';
+  sends.push(sendViaResend({ to: adminEmail, subject: `New B2B order${testTag} — ${order.orderNumber}`, html: adminHtml }));
+
+  const results = await Promise.allSettled(sends);
+  const failed = results.find((r) => r.status === 'rejected');
+  if (failed) throw failed.reason;
+}
+
+async function sendB2BOrderEdited(order, business, before, after) {
+  if (!business?.user?.email && !business?.email) return;
+  const to = business.user?.email || business.email;
+  if (!to) return;
+
+  const html = b2bEmailShell({
+    eyebrow: 'ORDER UPDATED',
+    heading: `Order ${order.orderNumber} was updated`,
+    bodyHtml: `Your order's items were adjusted by our team.
+      <div style="margin-top:12px; font-size:13px;">
+        <div style="color:#9a7c5a;">Previous total: ₹${(before?.totals?.payable || 0).toLocaleString('en-IN')}</div>
+        <div style="font-weight:800; color:#2d1a00; margin-top:4px;">New total: ₹${(after?.totals?.payable || order.totals.payable).toLocaleString('en-IN')}</div>
+      </div>`,
+    ctaText: 'View order',
+    ctaUrl: `${B2B_CLIENT_URL}/b2b/orders/${order._id}`,
+  });
+  await sendViaResend({ to, subject: `Order ${order.orderNumber} updated — Namdev Chiwda`, html });
+}
+
+const STATUS_COPY = {
+  confirmed: { eyebrow: 'ORDER CONFIRMED', heading: 'Your order is confirmed' },
+  packed: { eyebrow: 'ORDER PACKED', heading: 'Your order has been packed' },
+  dispatched: { eyebrow: 'ORDER DISPATCHED', heading: 'Your order is on its way' },
+  delivered: { eyebrow: 'ORDER DELIVERED', heading: 'Your order has been delivered' },
+  cancelled: { eyebrow: 'ORDER CANCELLED', heading: 'Your order was cancelled' },
+  rejected: { eyebrow: 'ORDER REJECTED', heading: 'Your order was not accepted' },
+};
+
+async function sendB2BOrderStatusUpdate(order, business) {
+  const to = business?.user?.email || business?.email;
+  if (!to) return;
+  const copy = STATUS_COPY[order.status];
+  if (!copy) return; // 'placed' has its own function above
+
+  let extra = '';
+  if (order.status === 'dispatched' && order.dispatch) {
+    extra = `<div style="margin-top:10px; font-size:13px; color:#5a4326;">
+      ${order.dispatch.transporterName ? `Transporter: ${order.dispatch.transporterName}<br/>` : ''}
+      ${order.dispatch.lrNumber ? `LR number: ${order.dispatch.lrNumber}<br/>` : ''}
+      ${order.dispatch.vehicleNumber ? `Vehicle: ${order.dispatch.vehicleNumber}<br/>` : ''}
+    </div>`;
+  }
+  if (order.status === 'cancelled' && order.cancelReason) {
+    extra = `<div style="margin-top:10px; font-size:13px; color:#7a3300;"><strong>Reason:</strong> ${order.cancelReason}</div>`;
+  }
+  if (order.status === 'rejected' && order.rejectReason) {
+    extra = `<div style="margin-top:10px; font-size:13px; color:#7a3300;"><strong>Reason:</strong> ${order.rejectReason}</div>`;
+  }
+
+  const html = b2bEmailShell({
+    eyebrow: copy.eyebrow,
+    heading: `${copy.heading} — ${order.orderNumber}`,
+    bodyHtml: `Order ${order.orderNumber} for ${business.businessName || ''} is now <strong>${order.status}</strong>.${extra}`,
+    ctaText: 'View order',
+    ctaUrl: `${B2B_CLIENT_URL}/b2b/orders/${order._id}`,
+  });
+  await sendViaResend({ to, subject: `${copy.heading} — ${order.orderNumber}`, html });
+}
+
 module.exports = {
   sendOrderConfirmation,
   sendB2BApplicationReceived,
   sendB2BApplicationApproved,
   sendB2BApplicationRejected,
   sendB2BAccountSuspended,
+  sendB2BOrderPlaced,
+  sendB2BOrderEdited,
+  sendB2BOrderStatusUpdate,
 };

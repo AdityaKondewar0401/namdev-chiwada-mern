@@ -71,6 +71,19 @@ const rateLimitConfig = {
       windowMs: envInt('RATE_LIMIT_IP_WHATSAPP_WEBHOOK_WINDOW_MS', 60 * 1000), // 1 min
       max: envInt('RATE_LIMIT_IP_WHATSAPP_WEBHOOK_MAX', 120),
     },
+
+    // Additive, separate bucket for POST /api/b2b/orders/quote only —
+    // does NOT replace userAction, which still applies to every other
+    // authenticated B2B route. The Quick Order page debounces at ~400ms
+    // per row, and a buyer actively adjusting several case-steppers in a
+    // row could otherwise burn through a meaningful chunk of their
+    // shared 180/min userAction budget on quoting alone, crowding out
+    // unrelated actions (viewing orders, catalog, etc.) in the same
+    // window. Per-user, same as userAction.
+    b2bQuote: {
+      windowMs: envInt('RATE_LIMIT_IP_B2B_QUOTE_WINDOW_MS', 60 * 1000), // 1 min
+      max: envInt('RATE_LIMIT_IP_B2B_QUOTE_MAX', 120),
+    },
   },
 
   // ── Per-account exponential backoff. Keyed by normalized email, not

@@ -55,6 +55,7 @@ exports.updateAccount = [
   body('paymentTerms').optional({ values: 'falsy' }).isIn(PAYMENT_TERMS).withMessage('Invalid payment terms'),
   body('creditLimit').optional({ values: 'falsy' }).isFloat({ min: 0 }).withMessage('Credit limit must be >= 0'),
   body('adminNotes').optional({ values: 'falsy' }).isString().trim().isLength({ max: 2000 }),
+  body('isTest').optional().isBoolean().withMessage('isTest must be a boolean'),
 ];
 
 exports.approveAccount = [

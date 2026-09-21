@@ -51,6 +51,12 @@ export default function BusinessLandingPage() {
         title={`Wholesale &amp; Bulk Orders | ${SITE_NAME}`}
         description="Apply for a Namdev Chiwda wholesale account. Bulk pricing on our Solapur chiwda and bakarwadi for retailers, distributors, and caterers, since 1873."
         canonical="/business"
+        // Belt-and-braces alongside the sitemap omission (Part B1): this
+        // page only ever renders for a non-admin when B2B is live at
+        // RUNTIME (B2BFeatureGate checks /config), but a build where B2B
+        // was never turned on at build time shouldn't advertise it as
+        // indexable either, in case it's ever reached some other way.
+        robots={import.meta.env.VITE_B2B_ENABLED === 'true' ? 'index,follow' : 'noindex,nofollow'}
         jsonLd={buildFAQSchema(FAQS)}
       />
 

@@ -6,10 +6,9 @@ import { useEffect, useRef } from 'react';
 // real <Link>s + useLocation instead of a tab-click callback, since
 // these are separate ROUTES, not tabs within one page.
 //
-// Only "/b2b" itself is mounted in Phase 2 — the other five items will
-// 404 via the catch-all route until Phase 3/4 add their pages. The nav
-// itself ships now (as the spec's own Phase 2 file list asks for)
-// rather than being rebuilt later.
+// Dashboard/Quick Order/Orders/Profile were added in Phase 3. Invoices
+// and Statement still 404 via the catch-all route until Phase 4 adds
+// their pages — one-line addition there once they exist (per spec Part E).
 const NAV_ITEMS = [
   { label: 'Dashboard', to: '/b2b' },
   { label: 'Quick Order', to: '/b2b/order' },

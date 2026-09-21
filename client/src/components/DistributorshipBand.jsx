@@ -1,5 +1,7 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { useB2BEnabled } from '../hooks/useB2BEnabled';
 
 // Compact B2B band — retailers / distributors. Kept deliberately short:
 // one line of copy, one primary action, contact details as quiet text.
@@ -18,6 +20,10 @@ const WA_URL = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(
 )}`;
 
 export default function DistributorshipBand() {
+  const { user } = useAuth();
+  const { enabled: b2bEnabled } = useB2BEnabled();
+  const showApplyCta = b2bEnabled || user?.role === 'admin';
+
   return (
     <section
       id="distributorship"
@@ -58,19 +64,21 @@ export default function DistributorshipBand() {
         </p>
 
         <div className="mt-7 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3">
-          <Link
-            to="/business"
-            className="inline-flex items-center justify-center gap-2 rounded-full px-7 font-semibold transition-transform duration-200 hover:-translate-y-0.5"
-            style={{
-              minHeight: 48,
-              color: '#2d1a00',
-              background: 'linear-gradient(135deg,#e7c877,#d4af37)',
-              fontSize: '0.92rem',
-            }}
-          >
-            Apply for a wholesale account
-            <span aria-hidden="true">→</span>
-          </Link>
+          {showApplyCta && (
+            <Link
+              to="/business"
+              className="inline-flex items-center justify-center gap-2 rounded-full px-7 font-semibold transition-transform duration-200 hover:-translate-y-0.5"
+              style={{
+                minHeight: 48,
+                color: '#2d1a00',
+                background: 'linear-gradient(135deg,#e7c877,#d4af37)',
+                fontSize: '0.92rem',
+              }}
+            >
+              Apply for a wholesale account
+              <span aria-hidden="true">→</span>
+            </Link>
+          )}
 
           <a
             href={WA_URL}

@@ -101,3 +101,53 @@ test('requireApprovedBusiness returns 403 when req.business is missing entirely'
   assert.equal(nextCalled, false);
   assert.equal(res.statusCode, 403);
 });
+
+// requireB2BEnabled reads config/business.js's frozen `enabled`, computed
+// once from process.env.B2B_ENABLED at require time — same
+// clear-the-cache-and-re-require pattern as taxMode.test.js to exercise
+// both states in one process.
+function freshRequireB2BEnabled(envValue) {
+  if (envValue === undefined) delete process.env.B2B_ENABLED;
+  else process.env.B2B_ENABLED = envValue;
+  delete require.cache[require.resolve('../config/business')];
+  delete require.cache[require.resolve('../middleware/business')];
+  return require('../middleware/business').requireB2BEnabled;
+}
+
+test('requireB2BEnabled: default (unset) is disabled — 404 for a non-admin', () => {
+  const requireB2BEnabled = freshRequireB2BEnabled(undefined);
+  const req = { user: { role: 'user' }, originalUrl: '/api/b2b/orders' };
+  const res = mockRes();
+  let nextCalled = false;
+  requireB2BEnabled(req, res, () => { nextCalled = true; });
+
+  assert.equal(nextCalled, false);
+  assert.equal(res.statusCode, 404);
+  assert.equal(res.body.message, 'Route /api/b2b/orders not found');
+});
+
+test('requireB2BEnabled: disabled, but an admin still passes through', () => {
+  const requireB2BEnabled = freshRequireB2BEnabled('false');
+  const req = { user: { role: 'admin' }, originalUrl: '/api/b2b/orders' };
+  const res = mockRes();
+  let nextCalled = false;
+  requireB2BEnabled(req, res, () => { nextCalled = true; });
+
+  assert.equal(nextCalled, true);
+});
+
+test('requireB2BEnabled: enabled — a non-admin passes through too', () => {
+  const requireB2BEnabled = freshRequireB2BEnabled('true');
+  const req = { user: { role: 'user' }, originalUrl: '/api/b2b/orders' };
+  const res = mockRes();
+  let nextCalled = false;
+  requireB2BEnabled(req, res, () => { nextCalled = true; });
+
+  assert.equal(nextCalled, true);
+
+  // Restore so later tests in the same run (or a later file, since
+  // node:test files can share process.env) don't inherit this.
+  delete process.env.B2B_ENABLED;
+  delete require.cache[require.resolve('../config/business')];
+  delete require.cache[require.resolve('../middleware/business')];
+});

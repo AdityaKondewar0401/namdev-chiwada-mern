@@ -3,6 +3,7 @@ import toast from 'react-hot-toast';
 import { b2bAdminAPI } from '../../services/api';
 import B2BStatusBadge from '../b2b/B2BStatusBadge';
 import B2BModal from '../b2b/B2BModal';
+import B2BDisabledNotice from './B2BDisabledNotice';
 
 const STATUS_FILTERS = [
   { value: '', label: 'All' },
@@ -89,6 +90,16 @@ export default function B2BAccountsTab() {
     if (detailId) openDetail(detailId);
   };
 
+  const toggleTest = async (account) => {
+    try {
+      await b2bAdminAPI.updateAccount(account._id, { isTest: !account.isTest });
+      toast.success(account.isTest ? 'Marked as a real account' : 'Marked as a TEST account');
+      refreshAfterAction();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update');
+    }
+  };
+
   /* ── Create account for existing user ─────────────────────── */
   const submitCreate = async (e) => {
     e.preventDefault();
@@ -168,6 +179,7 @@ export default function B2BAccountsTab() {
 
   return (
     <div>
+      <B2BDisabledNotice />
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <div>
           <h2 className="font-serif font-black text-brown-dark text-lg">Business Accounts</h2>
@@ -220,7 +232,7 @@ export default function B2BAccountsTab() {
                     <div className="font-bold text-brown-dark text-sm truncate">{a.businessName}</div>
                     <div className="text-xs text-brown-mid/60 truncate">{a.user?.email}</div>
                   </div>
-                  <B2BStatusBadge status={a.status} />
+                  <B2BStatusBadge status={a.status} isTest={a.isTest} />
                 </div>
                 <div className="text-xs text-brown-mid/50 mt-2">{formatDate(a.createdAt)}</div>
                 <div className="flex items-center gap-2 mt-3">
@@ -258,7 +270,7 @@ export default function B2BAccountsTab() {
                   <tr key={a._id} className="border-t" style={{ borderColor: 'rgba(224,112,0,0.08)' }}>
                     <td className="py-3 pr-4 font-semibold text-brown-dark">{a.businessName}</td>
                     <td className="py-3 pr-4 text-brown-mid/70">{a.user?.email}</td>
-                    <td className="py-3 pr-4"><B2BStatusBadge status={a.status} /></td>
+                    <td className="py-3 pr-4"><B2BStatusBadge status={a.status} isTest={a.isTest} /></td>
                     <td className="py-3 pr-4 text-brown-mid/60">{formatDate(a.createdAt)}</td>
                     <td className="py-3 pr-4">
                       <div className="flex items-center gap-2">
@@ -301,7 +313,7 @@ export default function B2BAccountsTab() {
                 <div className="font-serif font-black text-brown-dark text-lg">{detail.business.businessName}</div>
                 <div className="text-sm text-brown-mid/60">{detail.business.user?.email} · {detail.business.user?.phone || detail.business.phone || '—'}</div>
               </div>
-              <B2BStatusBadge status={detail.business.status} />
+              <B2BStatusBadge status={detail.business.status} isTest={detail.business.isTest} />
             </div>
 
             <div className="grid grid-cols-2 gap-3 text-sm">
@@ -310,6 +322,14 @@ export default function B2BAccountsTab() {
               <div><span className="text-brown-mid/50">Tier</span><div className="font-semibold text-brown-dark">{detail.business.tier?.name || '—'}</div></div>
               <div><span className="text-brown-mid/50">Payment terms</span><div className="font-semibold text-brown-dark">{detail.business.paymentTerms}</div></div>
             </div>
+
+            <button
+              onClick={() => toggleTest(detail.business)}
+              className="w-full flex items-center justify-center gap-2 rounded-xl text-sm font-semibold"
+              style={{ minHeight: 44, background: detail.business.isTest ? '#f3e8ff' : '#f3f4f6', color: detail.business.isTest ? '#7e22ce' : '#374151', border: `1px solid ${detail.business.isTest ? '#e9d5ff' : '#e5e7eb'}` }}
+            >
+              {detail.business.isTest ? 'Unmark as TEST account' : 'Mark as TEST account'}
+            </button>
 
             {detail.business.rejectionReason && (
               <div className="p-3 rounded-xl text-sm" style={{ background: '#fef2f2', color: '#991b1b' }}>

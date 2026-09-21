@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { useB2BEnabled } from '../hooks/useB2BEnabled';
 
 const NAV_LINKS = [
   { label: 'Home', to: '/' },
@@ -97,6 +98,8 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const { user, logout } = useAuth();
   const { totalItems } = useCart();
+  const { enabled: b2bEnabled } = useB2BEnabled();
+  const showB2BEntry = b2bEnabled || user?.role === 'admin';
   const location = useLocation();
   const navigate = useNavigate();
   const headerRef = useRef(null);
@@ -388,9 +391,11 @@ export default function Navbar() {
                     {[
                       user?.role === 'admin' ? { icon: '⚙️', label: 'Admin Panel', to: '/admin' } : null,
                       { icon: '👤', label: 'My Account', to: '/account' },
-                      user?.business?.status
-                        ? { icon: '🤝', label: 'Business Portal', to: '/b2b' }
-                        : { icon: '🤝', label: 'Wholesale / For Business', to: '/business' },
+                      showB2BEntry
+                        ? (user?.business?.status
+                            ? { icon: '🤝', label: 'Business Portal', to: '/b2b' }
+                            : { icon: '🤝', label: 'Wholesale / For Business', to: '/business' })
+                        : null,
                       { icon: '📦', label: 'My Orders', to: '/orders' },
                       { icon: '❤️', label: 'Wishlist', to: '/wishlist' },
                     ].filter(Boolean).map(({ icon, label, to }) => (
@@ -679,22 +684,24 @@ export default function Navbar() {
                         </Link>
                       )}
 
-                      <Link
-                        to={user?.business?.status ? '/b2b' : '/business'}
-                        onClick={() => setMenuOpen(false)}
-                        className="mt-2.5 flex items-center justify-center gap-2 py-2.5"
-                        style={{
-                          borderRadius: 16,
-                          background: 'rgba(224,112,0,0.1)',
-                          border: '1px solid rgba(224,112,0,0.3)',
-                          color: '#b45309',
-                          fontSize: '0.82rem',
-                          fontWeight: 600,
-                          minHeight: 44,
-                        }}
-                      >
-                        {user?.business?.status ? 'Business Portal' : 'Wholesale / For Business'}
-                      </Link>
+                      {showB2BEntry && (
+                        <Link
+                          to={user?.business?.status ? '/b2b' : '/business'}
+                          onClick={() => setMenuOpen(false)}
+                          className="mt-2.5 flex items-center justify-center gap-2 py-2.5"
+                          style={{
+                            borderRadius: 16,
+                            background: 'rgba(224,112,0,0.1)',
+                            border: '1px solid rgba(224,112,0,0.3)',
+                            color: '#b45309',
+                            fontSize: '0.82rem',
+                            fontWeight: 600,
+                            minHeight: 44,
+                          }}
+                        >
+                          {user?.business?.status ? 'Business Portal' : 'Wholesale / For Business'}
+                        </Link>
+                      )}
 
                       <button
                         onClick={logout}

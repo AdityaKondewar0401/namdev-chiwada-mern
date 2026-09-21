@@ -94,6 +94,14 @@ const businessAccountSchema = new mongoose.Schema({
   approvedAt: { type: Date },
 
   statusHistory: [statusHistoryEntrySchema],
+
+  // Production safeguard (spec Part B2): a test account admins create to
+  // exercise the full flow against real (e.g. Atlas) data without mixing
+  // into real numbers. Test accounts get their own order/invoice/credit-note
+  // number series (utils/b2bNumbering.js) and are excluded from turnover,
+  // aging, and admin summary totals. The ONLY way test data is ever removed
+  // is scripts/purgeB2BTestData.js — never a retail-style delete route.
+  isTest: { type: Boolean, default: false },
 }, { timestamps: true });
 
 module.exports = mongoose.models.BusinessAccount || mongoose.model('BusinessAccount', businessAccountSchema);

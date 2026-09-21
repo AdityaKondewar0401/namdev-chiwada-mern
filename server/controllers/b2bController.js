@@ -18,6 +18,7 @@ exports.getConfig = async (req, res, next) => {
     res.json({
       success: true,
       config: {
+        enabled: businessConfig.enabled,
         allowedStateCodes: getAllowedStateCodes(),
         allowedStateNames: getAllowedStateNames(),
         minOrderValue: businessConfig.minOrderValue,

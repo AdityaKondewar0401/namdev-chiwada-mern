@@ -7,10 +7,8 @@ import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
 
-import Navbar from './components/Navbar';
-import Footer from './components/Footer';
-import WhatsAppFloat from './components/WhatsAppFloat';
 import ProtectedRoute from './components/ProtectedRoute';
+import { Layout } from './components/Layout';
 
 // Public, crawled pages load eagerly — every millisecond here is initial
 // bundle weight on the pages Google/users actually land on first.
@@ -41,6 +39,10 @@ const WishlistPage = lazy(() => import('./pages/WishlistPage'));
 const AdminPage = lazy(() => import('./pages/AdminPage'));
 const BusinessApplyPage = lazy(() => import('./pages/business/BusinessApplyPage'));
 const B2BDashboardPage = lazy(() => import('./pages/business/B2BDashboardPage'));
+const B2BQuickOrderPage = lazy(() => import('./pages/business/B2BQuickOrderPage'));
+const B2BOrdersPage = lazy(() => import('./pages/business/B2BOrdersPage'));
+const B2BOrderDetailPage = lazy(() => import('./pages/business/B2BOrderDetailPage'));
+const B2BProfilePage = lazy(() => import('./pages/business/B2BProfilePage'));
 // NamkeenDetailPage was a legacy static product-detail page that referenced
 // an undefined `PRODUCTS` global — visiting /namkeen/:id crashed with a
 // ReferenceError (hard white screen), not just a rendering bug. It's fully
@@ -49,10 +51,10 @@ const B2BDashboardPage = lazy(() => import('./pages/business/B2BDashboardPage'))
 // of rendering the broken component. See AGENT.md §9 for the prior status
 // of this page.
 import { LoginPage, RegisterPage } from './pages/AuthPages';
-import SEO from './components/SEO';
-import { SITE_NAME } from './config/seo.config';
+import NotFoundPage from './pages/NotFoundPage';
 import { B2BProvider } from './context/B2BContext';
 import B2BLayout from './components/b2b/B2BLayout';
+import B2BFeatureGate from './components/b2b/B2BFeatureGate';
 
 // Redirects the legacy /namkeen/:id URL to the real, working product page
 // instead of rendering the broken NamkeenDetailPage (see import comment
@@ -71,20 +73,6 @@ function ScrollToTop() {
   }, [pathname]);
 
   return null;
-}
-
-function Layout({ children, hideFooter = false }) {
-  return (
-    <>
-      <Navbar />
-      <main>{children}</main>
-      {!hideFooter && <Footer />}
-      <WhatsAppFloat
-        phone="919130160491"
-        message="Hi! I have a query about my order."
-      />
-    </>
-  );
 }
 
 function Providers({ children }) {
@@ -229,39 +217,119 @@ function AnimatedRoutes() {
         {/* B2B / Wholesale — /business is public + indexable (see
             BusinessLandingPage); /business/apply and /b2b require login
             but not a business account, so their own content handles the
-            "no application yet" state instead of ProtectedRoute. */}
+            "no application yet" state instead of ProtectedRoute.
+            B2BFeatureGate sits OUTSIDE ProtectedRoute so a disabled
+            feature 404s regardless of login state (spec Part B1). */}
         <Route
           path="/business"
           element={
-            <Layout>
-              <BusinessLandingPage />
-            </Layout>
+            <B2BFeatureGate>
+              <Layout>
+                <BusinessLandingPage />
+              </Layout>
+            </B2BFeatureGate>
           }
         />
 
         <Route
           path="/business/apply"
           element={
-            <ProtectedRoute>
-              <Layout>
-                <BusinessApplyPage />
-              </Layout>
-            </ProtectedRoute>
+            <B2BFeatureGate>
+              <ProtectedRoute>
+                <Layout>
+                  <BusinessApplyPage />
+                </Layout>
+              </ProtectedRoute>
+            </B2BFeatureGate>
           }
         />
 
         <Route
           path="/b2b"
           element={
-            <ProtectedRoute>
-              <Layout>
-                <B2BProvider>
-                  <B2BLayout>
-                    <B2BDashboardPage />
-                  </B2BLayout>
-                </B2BProvider>
-              </Layout>
-            </ProtectedRoute>
+            <B2BFeatureGate>
+              <ProtectedRoute>
+                <Layout>
+                  <B2BProvider>
+                    <B2BLayout>
+                      <B2BDashboardPage />
+                    </B2BLayout>
+                  </B2BProvider>
+                </Layout>
+              </ProtectedRoute>
+            </B2BFeatureGate>
+          }
+        />
+
+        {/* /b2b/* — businessOnly (any status; each page/B2BContext reads
+            live status for finer gating, e.g. Quick Order requires
+            approved) so a rejected/pending/suspended account still lands
+            on a real page instead of bouncing straight back to /b2b. */}
+        <Route
+          path="/b2b/order"
+          element={
+            <B2BFeatureGate>
+              <ProtectedRoute businessOnly>
+                <Layout>
+                  <B2BProvider>
+                    <B2BLayout>
+                      <B2BQuickOrderPage />
+                    </B2BLayout>
+                  </B2BProvider>
+                </Layout>
+              </ProtectedRoute>
+            </B2BFeatureGate>
+          }
+        />
+
+        <Route
+          path="/b2b/orders"
+          element={
+            <B2BFeatureGate>
+              <ProtectedRoute businessOnly>
+                <Layout>
+                  <B2BProvider>
+                    <B2BLayout>
+                      <B2BOrdersPage />
+                    </B2BLayout>
+                  </B2BProvider>
+                </Layout>
+              </ProtectedRoute>
+            </B2BFeatureGate>
+          }
+        />
+
+        <Route
+          path="/b2b/orders/:id"
+          element={
+            <B2BFeatureGate>
+              <ProtectedRoute businessOnly>
+                <Layout>
+                  <B2BProvider>
+                    <B2BLayout>
+                      <B2BOrderDetailPage />
+                    </B2BLayout>
+                  </B2BProvider>
+                </Layout>
+              </ProtectedRoute>
+            </B2BFeatureGate>
+          }
+        />
+
+        <Route
+          path="/b2b/profile"
+          element={
+            <B2BFeatureGate>
+              <ProtectedRoute businessOnly>
+                <Layout>
+                  <B2BProvider>
+                    <B2BLayout>
+                      <B2BProfilePage />
+                    </B2BLayout>
+                  </B2BProvider>
+                </Layout>
+              </ProtectedRoute>
+            </B2BFeatureGate>
           }
         />
 
@@ -336,26 +404,7 @@ function AnimatedRoutes() {
           path="*"
           element={
             <Layout>
-              <SEO
-                title={`Page Not Found | ${SITE_NAME}`}
-                description="The page you're looking for doesn't exist."
-                canonical="/"
-                robots="noindex,nofollow"
-              />
-              <div className="min-h-screen bg-cream flex items-center justify-center text-center px-6">
-                <div>
-                  <div className="text-8xl mb-4">🥨</div>
-                  <h1 className="font-serif font-black text-brown-dark text-3xl mb-3">
-                    Page Not Found
-                  </h1>
-                  <p className="text-brown-mid/60 mb-8">
-                    Looks like this page took a different path!
-                  </p>
-                  <a href="/" className="btn-saffron px-8 py-3.5 inline-block">
-                    Go Home
-                  </a>
-                </div>
-              </div>
+              <NotFoundPage />
             </Layout>
           }
         />

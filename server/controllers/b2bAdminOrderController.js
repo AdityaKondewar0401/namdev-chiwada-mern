@@ -1,0 +1,197 @@
+// server/controllers/b2bAdminOrderController.js
+//
+// Admin B2B order management (Phase 3): list, detail, quantity edit
+// while placed, status transitions via the state machine, credit-hold
+// override. Auto-invoice-on-dispatch and the prepaid
+// dispatch-with-dues-requires-force rule are Phase 4 additions once
+// invoice issuance exists — dispatching here just records dispatch
+// details and moves the status.
+
+const B2BOrder = require('../models/B2BOrder');
+const PriceTier = require('../models/PriceTier');
+const { priceB2BOrder } = require('../utils/b2bPricing');
+const { shouldHold } = require('../utils/b2bCredit');
+const {
+  isTransitionAllowed, getAllowedNextStatuses, REASON_REQUIRED_FOR,
+} = require('../utils/b2bOrderStatus');
+const { sendB2BOrderEdited, sendB2BOrderStatusUpdate } = require('../services/emailService');
+
+// ──────────────────────────────────────────────────────
+// GET /api/b2b/admin/orders?status&business&from&to&page
+// ──────────────────────────────────────────────────────
+exports.listOrders = async (req, res, next) => {
+  try {
+    const { status, business, from, to, page = 1, limit = 20 } = req.query;
+    const filter = {};
+    if (status) filter.status = status;
+    if (business) filter.business = business;
+    if (from || to) {
+      filter.createdAt = {};
+      if (from) filter.createdAt.$gte = new Date(from);
+      if (to) filter.createdAt.$lte = new Date(to);
+    }
+
+    const [orders, total] = await Promise.all([
+      B2BOrder.find(filter)
+        .populate('business', 'businessName isTest')
+        .sort('-createdAt')
+        .skip((page - 1) * Number(limit))
+        .limit(Number(limit)),
+      B2BOrder.countDocuments(filter),
+    ]);
+
+    res.json({ success: true, orders, total, page: Number(page), limit: Number(limit) });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ──────────────────────────────────────────────────────
+// GET /api/b2b/admin/orders/:id
+// ──────────────────────────────────────────────────────
+exports.getOrderDetail = async (req, res, next) => {
+  try {
+    const order = await B2BOrder.findById(req.params.id)
+      .populate('business', 'businessName isTest phone email user')
+      .populate('placedBy', 'name email');
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+    res.json({ success: true, order });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ──────────────────────────────────────────────────────
+// PUT /api/b2b/admin/orders/:id/items  (only while placed, reason required)
+// ──────────────────────────────────────────────────────
+exports.updateOrderItems = async (req, res, next) => {
+  try {
+    const order = await B2BOrder.findById(req.params.id).populate('business');
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+    if (order.status !== 'placed') {
+      return res.status(400).json({ success: false, message: 'Quantities can only be edited while the order is "placed".' });
+    }
+
+    const { items, reason } = req.body;
+    const account = order.business;
+    const before = order.toObject();
+
+    const tier = account.tier ? await PriceTier.findById(account.tier) : null;
+    const result = await priceB2BOrder({
+      items,
+      account: { _id: account._id, tier },
+      shippingAddress: order.shippingAddress,
+    });
+    if (!result.success) {
+      return res.status(400).json({ success: false, errors: result.errors });
+    }
+
+    order.items = result.lines.map((l) => ({
+      catalogItem: l.catalogItem, product: l.product, name: l.name, size: l.size,
+      unitsPerCase: l.unitsPerCase, cases: l.cases, units: l.units, unitPrice: l.unitPrice, lineTotal: l.lineTotal,
+    }));
+    order.totals = {
+      subtotal: result.subtotal, taxTotal: result.taxTotal, grandTotal: result.grandTotal,
+      roundOff: result.roundOff, payable: result.payable,
+    };
+    order.creditHold = await shouldHold(account, result.payable);
+    order.editHistory.push({ by: req.user._id, reason, before, after: order.toObject() });
+
+    await order.save();
+
+    try {
+      await sendB2BOrderEdited(order, account, before, order.toObject());
+    } catch (emailErr) {
+      console.error('B2B order-edited email failed to send:', emailErr.message);
+    }
+
+    res.json({ success: true, order });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ──────────────────────────────────────────────────────
+// POST /api/b2b/admin/orders/:id/status
+// Body: { status, note, reason, dispatch, force }
+// ──────────────────────────────────────────────────────
+exports.updateOrderStatus = async (req, res, next) => {
+  try {
+    const order = await B2BOrder.findById(req.params.id).populate('business');
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    const { status, note, reason, dispatch } = req.body;
+
+    if (!isTransitionAllowed(order.status, status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot move from "${order.status}" to "${status}". Allowed next: ${getAllowedNextStatuses(order.status).join(', ') || 'none (terminal status)'}.`,
+      });
+    }
+
+    if (REASON_REQUIRED_FOR.includes(status) && !reason) {
+      return res.status(400).json({ success: false, message: `A reason is required to set status to "${status}".` });
+    }
+
+    if (status === 'confirmed' && order.creditHold) {
+      return res.status(400).json({
+        success: false,
+        message: 'This order is on credit hold. Override the hold before confirming.',
+      });
+    }
+
+    if (status === 'dispatched') {
+      if (!dispatch || !dispatch.mode) {
+        return res.status(400).json({ success: false, message: 'Dispatch details (at least a mode) are required.' });
+      }
+      order.dispatch = { ...order.dispatch, ...dispatch, dispatchedAt: new Date() };
+    }
+
+    if (status === 'cancelled') order.cancelReason = reason;
+    if (status === 'rejected') order.rejectReason = reason;
+
+    order.status = status;
+    order.statusHistory.push({ status, by: req.user._id, note: note || reason });
+    await order.save();
+
+    try {
+      await sendB2BOrderStatusUpdate(order, order.business);
+    } catch (emailErr) {
+      console.error('B2B order-status email failed to send:', emailErr.message);
+    }
+
+    res.json({ success: true, order });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ──────────────────────────────────────────────────────
+// POST /api/b2b/admin/orders/:id/override-credit-hold
+// ──────────────────────────────────────────────────────
+exports.overrideCreditHold = async (req, res, next) => {
+  try {
+    const order = await B2BOrder.findById(req.params.id);
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+    if (!order.creditHold) {
+      return res.status(400).json({ success: false, message: 'This order is not on credit hold.' });
+    }
+
+    order.creditHold = false;
+    order.creditHoldOverride = { by: req.user._id, at: new Date(), note: req.body.note };
+    order.statusHistory.push({ status: order.status, by: req.user._id, note: `Credit hold overridden${req.body.note ? `: ${req.body.note}` : ''}` });
+    await order.save();
+
+    res.json({ success: true, order });
+  } catch (err) {
+    next(err);
+  }
+};

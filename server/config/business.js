@@ -36,6 +36,13 @@ const seller = Object.freeze({
 
 const businessConfig = Object.freeze({
   seller,
+  // Feature switch (Phase 3 production safeguard) — default OFF. While
+  // false, non-admins get 404 on every /api/b2b/* business-facing route
+  // and the storefront hides every B2B entry point; admins can use
+  // everything regardless, so the business can be fully set up (tiers,
+  // catalog, a test account) before going live. See middleware/business.js
+  // requireB2BEnabled and GET /api/b2b/config's `enabled` field.
+  enabled: process.env.B2B_ENABLED === 'true',
   minOrderValue: Number(process.env.B2B_MIN_ORDER_VALUE || 5000),
   adminNotifyEmail: process.env.B2B_ADMIN_NOTIFY_EMAIL || 'care@namdevchiwda.com',
   gstRegistrationThreshold: Number(process.env.GST_REGISTRATION_THRESHOLD || 4000000),

@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
 import { Phone, Mail } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import { useB2BEnabled } from "../hooks/useB2BEnabled";
 
 // Real links per the business's actual profiles/number. WhatsApp is back in
 // this row with the actual number — the floating WhatsAppFloat button is a
@@ -31,6 +33,8 @@ const SOCIALS = [
 // original core links — same real pages already linked from HomePage's
 // "Explore Namdev Chiwda" band and ProductsPage's header links, so every
 // page footer reinforces the same internal link graph.
+// "Wholesale" is appended conditionally in the component (spec Part B1 —
+// hidden for non-admins while B2B_ENABLED is false).
 const QUICK_LINKS = [
   ["Home", "/"],
   ["Products", "/products"],
@@ -38,7 +42,6 @@ const QUICK_LINKS = [
   ["Solapuri Chiwada", "/solapuri-chiwada"],
   ["Maharashtrian Snacks", "/maharashtrian-snacks"],
   ["Our Story", "/our-history"],
-  ["Wholesale", "/business"],
   ["Contact", "/contact"],
 ];
 
@@ -63,6 +66,11 @@ function ColumnLabel({ children }) {
 
 export default function Footer() {
   const year = new Date().getFullYear();
+  const { user } = useAuth();
+  const { enabled: b2bEnabled } = useB2BEnabled();
+  const quickLinks = (b2bEnabled || user?.role === 'admin')
+    ? [...QUICK_LINKS.slice(0, -1), ["Wholesale", "/business"], QUICK_LINKS[QUICK_LINKS.length - 1]]
+    : QUICK_LINKS;
 
   return (
     <footer
@@ -119,7 +127,7 @@ export default function Footer() {
             <ColumnLabel>Quick Links</ColumnLabel>
 
             <div className="flex flex-col gap-3 mt-3">
-              {QUICK_LINKS.map(([label, to]) => (
+              {quickLinks.map(([label, to]) => (
                 <Link
                   key={to}
                   to={to}

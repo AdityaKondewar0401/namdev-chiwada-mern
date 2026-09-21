@@ -182,6 +182,24 @@ export const b2bAPI = {
 
   updateMe: (data) =>
     api.put('/api/b2b/me', data),
+
+  getCatalog: () =>
+    api.get('/api/b2b/catalog'),
+
+  quoteOrder: (data) =>
+    api.post('/api/b2b/orders/quote', data),
+
+  placeOrder: (data) =>
+    api.post('/api/b2b/orders', data),
+
+  getOrders: (params) =>
+    api.get('/api/b2b/orders', { params }),
+
+  getOrder: (id) =>
+    api.get(`/api/b2b/orders/${id}`),
+
+  cancelOrder: (id, data) =>
+    api.post(`/api/b2b/orders/${id}/cancel`, data),
 };
 
 /* ===============================
@@ -223,4 +241,31 @@ export const b2bAdminAPI = {
 
   deleteTier: (id) =>
     api.delete(`/api/b2b/admin/tiers/${id}`),
+
+  listCatalogItems: () =>
+    api.get('/api/b2b/admin/catalog'),
+
+  createCatalogItem: (data) =>
+    api.post('/api/b2b/admin/catalog', data),
+
+  updateCatalogItem: (id, data) =>
+    api.put(`/api/b2b/admin/catalog/${id}`, data),
+
+  deleteCatalogItem: (id) =>
+    api.delete(`/api/b2b/admin/catalog/${id}`),
+
+  listOrders: (params) =>
+    api.get('/api/b2b/admin/orders', { params }),
+
+  getOrder: (id) =>
+    api.get(`/api/b2b/admin/orders/${id}`),
+
+  updateOrderItems: (id, data) =>
+    api.put(`/api/b2b/admin/orders/${id}/items`, data),
+
+  updateOrderStatus: (id, data) =>
+    api.post(`/api/b2b/admin/orders/${id}/status`, data),
+
+  overrideCreditHold: (id, data) =>
+    api.post(`/api/b2b/admin/orders/${id}/override-credit-hold`, data),
 };

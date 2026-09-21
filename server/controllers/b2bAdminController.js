@@ -145,6 +145,7 @@ exports.updateAccount = async (req, res, next) => {
     const fields = [
       'businessName', 'legalName', 'businessType', 'gstin', 'fssaiLicenseNo',
       'contactName', 'phone', 'email', 'tier', 'paymentTerms', 'creditLimit', 'adminNotes',
+      'isTest',
     ];
     for (const field of fields) {
       if (req.body[field] === undefined) continue;
