@@ -4,12 +4,14 @@ const router = express.Router();
 const b2bController = require('../controllers/b2bController');
 const b2bCatalogController = require('../controllers/b2bCatalogController');
 const b2bOrderController = require('../controllers/b2bOrderController');
+const b2bInvoiceController = require('../controllers/b2bInvoiceController');
 const { protect } = require('../middleware/auth');
 const { loadBusiness, requireApprovedBusiness, requireB2BEnabled } = require('../middleware/business');
 const { publicLimiter, userActionLimiter, b2bQuoteLimiter } = require('../middleware/rateLimiter');
 const { validate } = require('../middleware/validate');
 const b2bValidators = require('../validators/b2bValidators');
 const b2bOrderValidators = require('../validators/b2bOrderValidators');
+const b2bInvoiceValidators = require('../validators/b2bInvoiceValidators');
 
 // Deliberately public (no `protect`) — deviation from the spec's §7.1
 // guard column, which lists "protect" for this route. The route itself
@@ -71,5 +73,19 @@ router.post(
   [...b2bOrderValidators.orderIdParam, ...b2bOrderValidators.cancelOrder], validate,
   b2bOrderController.cancelMyOrder
 );
+
+/* =========================================
+   INVOICES + CREDIT NOTES (Phase 4)
+========================================= */
+router.get('/invoices', loadBusiness, b2bInvoiceController.getMyInvoices);
+router.get('/invoices/:id', loadBusiness, b2bInvoiceValidators.invoiceIdParam, validate, b2bInvoiceController.getMyInvoice);
+router.get('/invoices/:id/pdf', loadBusiness, b2bInvoiceValidators.invoiceIdParam, validate, b2bInvoiceController.downloadMyInvoicePdf);
+router.get('/credit-notes/:id/pdf', loadBusiness, b2bInvoiceValidators.creditNoteIdParam, validate, b2bInvoiceController.downloadMyCreditNotePdf);
+
+/* =========================================
+   LEDGER (Phase 4)
+========================================= */
+router.get('/ledger', loadBusiness, b2bInvoiceValidators.ledgerQuery, validate, b2bInvoiceController.getMyLedger);
+router.get('/ledger/export.csv', loadBusiness, b2bInvoiceValidators.ledgerQuery, validate, b2bInvoiceController.exportMyLedgerCsv);
 
 module.exports = router;

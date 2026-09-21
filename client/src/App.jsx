@@ -42,6 +42,8 @@ const B2BDashboardPage = lazy(() => import('./pages/business/B2BDashboardPage'))
 const B2BQuickOrderPage = lazy(() => import('./pages/business/B2BQuickOrderPage'));
 const B2BOrdersPage = lazy(() => import('./pages/business/B2BOrdersPage'));
 const B2BOrderDetailPage = lazy(() => import('./pages/business/B2BOrderDetailPage'));
+const B2BInvoicesPage = lazy(() => import('./pages/business/B2BInvoicesPage'));
+const B2BStatementPage = lazy(() => import('./pages/business/B2BStatementPage'));
 const B2BProfilePage = lazy(() => import('./pages/business/B2BProfilePage'));
 // NamkeenDetailPage was a legacy static product-detail page that referenced
 // an undefined `PRODUCTS` global — visiting /namkeen/:id crashed with a
@@ -308,6 +310,40 @@ function AnimatedRoutes() {
                   <B2BProvider>
                     <B2BLayout>
                       <B2BOrderDetailPage />
+                    </B2BLayout>
+                  </B2BProvider>
+                </Layout>
+              </ProtectedRoute>
+            </B2BFeatureGate>
+          }
+        />
+
+        <Route
+          path="/b2b/invoices"
+          element={
+            <B2BFeatureGate>
+              <ProtectedRoute businessOnly>
+                <Layout>
+                  <B2BProvider>
+                    <B2BLayout>
+                      <B2BInvoicesPage />
+                    </B2BLayout>
+                  </B2BProvider>
+                </Layout>
+              </ProtectedRoute>
+            </B2BFeatureGate>
+          }
+        />
+
+        <Route
+          path="/b2b/statement"
+          element={
+            <B2BFeatureGate>
+              <ProtectedRoute businessOnly>
+                <Layout>
+                  <B2BProvider>
+                    <B2BLayout>
+                      <B2BStatementPage />
                     </B2BLayout>
                   </B2BProvider>
                 </Layout>

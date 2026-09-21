@@ -6,9 +6,8 @@ import { useEffect, useRef } from 'react';
 // real <Link>s + useLocation instead of a tab-click callback, since
 // these are separate ROUTES, not tabs within one page.
 //
-// Dashboard/Quick Order/Orders/Profile were added in Phase 3. Invoices
-// and Statement still 404 via the catch-all route until Phase 4 adds
-// their pages — one-line addition there once they exist (per spec Part E).
+// Dashboard/Quick Order/Orders/Profile were added in Phase 3; Invoices
+// and Statement in Phase 4.
 const NAV_ITEMS = [
   { label: 'Dashboard', to: '/b2b' },
   { label: 'Quick Order', to: '/b2b/order' },

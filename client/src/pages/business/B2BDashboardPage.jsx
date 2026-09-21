@@ -1,7 +1,16 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import SEO from '../../components/SEO';
 import B2BStatusBadge from '../../components/b2b/B2BStatusBadge';
 import { useB2B } from '../../context/B2BContext';
+import { b2bAPI } from '../../services/api';
+
+const ORDER_STATUS_COLORS = {
+  placed: { bg: '#fef3c7', color: '#b45309' }, confirmed: { bg: '#dbeafe', color: '#1d4ed8' },
+  packed: { bg: '#ede9fe', color: '#6d28d9' }, dispatched: { bg: '#cffafe', color: '#0e7490' },
+  delivered: { bg: '#dcfce7', color: '#15803d' }, cancelled: { bg: '#fee2e2', color: '#b91c1c' },
+  rejected: { bg: '#fee2e2', color: '#b91c1c' },
+};
 
 function Money({ value }) {
   return <span>₹{Number(value || 0).toLocaleString('en-IN')}</span>;
@@ -16,6 +25,16 @@ const QUICK_LINKS = [
 
 export default function B2BDashboardPage() {
   const { business, creditSummary, loading } = useB2B();
+  const [recentOrders, setRecentOrders] = useState(null);
+
+  useEffect(() => {
+    if (business?.status !== 'approved') return undefined;
+    let cancelled = false;
+    b2bAPI.getOrders({ limit: 5 })
+      .then((res) => { if (!cancelled) setRecentOrders(res.data.orders); })
+      .catch(() => { if (!cancelled) setRecentOrders([]); });
+    return () => { cancelled = true; };
+  }, [business?.status]);
 
   if (loading || business === undefined) {
     return (
@@ -142,8 +161,49 @@ export default function B2BDashboardPage() {
       </div>
 
       <div className="card p-5">
-        <div className="text-xs font-bold uppercase tracking-wider text-brown-mid/50 mb-2">Recent orders</div>
-        <p className="text-brown-mid/60 text-sm">No orders yet. Ordering opens in the next phase of the wholesale portal.</p>
+        <div className="flex items-center justify-between mb-2.5">
+          <div className="text-xs font-bold uppercase tracking-wider text-brown-mid/50">Recent orders</div>
+          {recentOrders?.length > 0 && (
+            <Link to="/b2b/orders" className="text-xs font-semibold text-saffron">View all</Link>
+          )}
+        </div>
+
+        {recentOrders === null && (
+          <div className="flex justify-center py-6">
+            <div className="w-5 h-5 rounded-full border-2 border-saffron border-t-transparent animate-spin" />
+          </div>
+        )}
+
+        {recentOrders?.length === 0 && (
+          <p className="text-brown-mid/60 text-sm">
+            No orders yet.{' '}
+            <Link to="/b2b/order" className="text-saffron font-semibold">Place your first order</Link>.
+          </p>
+        )}
+
+        {recentOrders?.length > 0 && (
+          <div className="flex flex-col divide-y divide-brown-dark/5">
+            {recentOrders.map((o) => {
+              const c = ORDER_STATUS_COLORS[o.status] || { bg: '#f3f4f6', color: '#4b5563' };
+              return (
+                <Link key={o._id} to={`/b2b/orders/${o._id}`} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
+                  <div className="min-w-0">
+                    <div className="font-semibold text-brown-dark text-sm truncate">{o.orderNumber}</div>
+                    <div className="text-brown-mid/60 text-xs mt-0.5">
+                      {new Date(o.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2.5 shrink-0">
+                    <span className="font-semibold text-brown-dark text-sm"><Money value={o.totals?.payable} /></span>
+                    <span className="text-xs font-bold uppercase tracking-wide px-2 py-1 rounded-full" style={{ background: c.bg, color: c.color }}>
+                      {o.status}
+                    </span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

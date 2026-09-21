@@ -16,6 +16,7 @@ import UsersTab from '../components/admin/UsersTab';
 import B2BAccountsTab from '../components/admin/B2BAccountsTab';
 import B2BCatalogTab from '../components/admin/B2BCatalogTab';
 import B2BOrdersTab from '../components/admin/B2BOrdersTab';
+import B2BLedgerTab from '../components/admin/B2BLedgerTab';
 import SEO from '../components/SEO';
 import { SITE_NAME } from '../config/seo.config';
 
@@ -125,6 +126,7 @@ export default function AdminPage() {
               {activeTab === 'b2b-accounts' && <B2BAccountsTab />}
               {activeTab === 'b2b-catalog' && <B2BCatalogTab />}
               {activeTab === 'b2b-orders' && <B2BOrdersTab />}
+              {activeTab === 'b2b-ledger' && <B2BLedgerTab />}
             </motion.div>
           </div>
         </div>

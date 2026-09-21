@@ -4,12 +4,17 @@ const router = express.Router();
 const b2bAdminController = require('../controllers/b2bAdminController');
 const b2bAdminCatalogController = require('../controllers/b2bAdminCatalogController');
 const b2bAdminOrderController = require('../controllers/b2bAdminOrderController');
+const b2bAdminInvoiceController = require('../controllers/b2bAdminInvoiceController');
+const b2bAdminLedgerController = require('../controllers/b2bAdminLedgerController');
+const b2bAdminSummaryController = require('../controllers/b2bAdminSummaryController');
 const { protect, admin } = require('../middleware/auth');
 const { userActionLimiter } = require('../middleware/rateLimiter');
 const { validate } = require('../middleware/validate');
 const v = require('../validators/b2bAdminValidators');
 const vCatalog = require('../validators/b2bAdminCatalogValidators');
 const vOrder = require('../validators/b2bAdminOrderValidators');
+const vInvoice = require('../validators/b2bAdminInvoiceValidators');
+const vLedger = require('../validators/b2bAdminLedgerValidators');
 
 // Every route in this router is admin-only, and NOT gated by
 // B2B_ENABLED — admins must be able to set everything up (tiers,
@@ -52,5 +57,28 @@ router.get('/orders/:id', vOrder.orderIdParam, validate, b2bAdminOrderController
 router.put('/orders/:id/items', [...vOrder.orderIdParam, ...vOrder.updateOrderItems], validate, b2bAdminOrderController.updateOrderItems);
 router.post('/orders/:id/status', [...vOrder.orderIdParam, ...vOrder.updateOrderStatus], validate, b2bAdminOrderController.updateOrderStatus);
 router.post('/orders/:id/override-credit-hold', [...vOrder.orderIdParam, ...vOrder.overrideCreditHold], validate, b2bAdminOrderController.overrideCreditHold);
+router.post('/orders/:id/invoice', vInvoice.orderIdParam, validate, b2bAdminOrderController.issueInvoice);
+
+/* =========================================
+   INVOICES + CREDIT NOTES (Phase 4)
+========================================= */
+router.get('/invoices', vInvoice.listInvoicesQuery, validate, b2bAdminInvoiceController.listInvoices);
+router.get('/invoices/:id/pdf', vInvoice.invoiceIdParam, validate, b2bAdminInvoiceController.downloadInvoicePdf);
+router.post('/invoices/:id/credit-note', [...vInvoice.invoiceIdParam, ...vInvoice.createCreditNote], validate, b2bAdminInvoiceController.createCreditNote);
+router.get('/credit-notes/:id/pdf', vInvoice.creditNoteIdParam, validate, b2bAdminInvoiceController.downloadCreditNotePdf);
+
+/* =========================================
+   LEDGER (Phase 4)
+========================================= */
+router.get('/accounts/:id/ledger', [...vLedger.accountIdParam, ...vLedger.ledgerQuery], validate, b2bAdminLedgerController.getAccountLedger);
+router.get('/accounts/:id/ledger/export.csv', [...vLedger.accountIdParam, ...vLedger.ledgerQuery], validate, b2bAdminLedgerController.exportAccountLedgerCsv);
+router.post('/accounts/:id/payments', [...vLedger.accountIdParam, ...vLedger.recordPayment], validate, b2bAdminLedgerController.recordPayment);
+router.post('/accounts/:id/adjustments', [...vLedger.accountIdParam, ...vLedger.recordAdjustment], validate, b2bAdminLedgerController.recordAdjustment);
+router.post('/accounts/:id/opening-balance', [...vLedger.accountIdParam, ...vLedger.recordOpeningBalance], validate, b2bAdminLedgerController.recordOpeningBalance);
+
+/* =========================================
+   SUMMARY (Phase 4)
+========================================= */
+router.get('/summary', b2bAdminSummaryController.getSummary);
 
 module.exports = router;

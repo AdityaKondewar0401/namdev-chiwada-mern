@@ -3,6 +3,7 @@ import toast from 'react-hot-toast';
 import { b2bAdminAPI } from '../../services/api';
 import B2BModal from '../b2b/B2BModal';
 import B2BDisabledNotice from './B2BDisabledNotice';
+import { downloadBlobResponse } from '../../utils/downloadBlob';
 
 const STATUS_FILTERS = ['', 'placed', 'confirmed', 'packed', 'dispatched', 'delivered', 'cancelled', 'rejected'];
 const NEXT_STATUSES = {
@@ -46,6 +47,8 @@ export default function B2BOrdersTab() {
   const [statusForm, setStatusForm] = useState({ note: '', reason: '', dispatch: { mode: '' } });
   const [statusSubmitting, setStatusSubmitting] = useState(false);
   const [holdSubmitting, setHoldSubmitting] = useState(false);
+  const [invoiceSubmitting, setInvoiceSubmitting] = useState(false);
+  const [downloadingInvoice, setDownloadingInvoice] = useState(false);
 
   const fetchOrders = useCallback(() => {
     setLoading(true);
@@ -86,9 +89,47 @@ export default function B2BOrdersTab() {
       setStatusModal(null);
       refreshAfter();
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to update status');
+      const data = err.response?.data;
+      if (data?.requiresForce && window.confirm(`${data.message}\n\nDispatch anyway?`)) {
+        try {
+          const body = { status: statusModal, note: statusForm.note || undefined, dispatch: statusForm.dispatch, force: true };
+          await b2bAdminAPI.updateOrderStatus(detail._id, body);
+          toast.success('Order marked dispatched');
+          setStatusModal(null);
+          refreshAfter();
+        } catch (err2) {
+          toast.error(err2.response?.data?.message || 'Failed to update status');
+        }
+      } else {
+        toast.error(data?.message || 'Failed to update status');
+      }
     } finally {
       setStatusSubmitting(false);
+    }
+  };
+
+  const issueInvoice = async () => {
+    setInvoiceSubmitting(true);
+    try {
+      await b2bAdminAPI.issueInvoice(detail._id);
+      toast.success('Invoice issued');
+      refreshAfter();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to issue invoice');
+    } finally {
+      setInvoiceSubmitting(false);
+    }
+  };
+
+  const downloadInvoice = async () => {
+    setDownloadingInvoice(true);
+    try {
+      const res = await b2bAdminAPI.downloadInvoicePdf(detail.invoice._id);
+      downloadBlobResponse(res, `${detail.invoice.invoiceNumber.replace(/\//g, '-')}.pdf`);
+    } catch {
+      toast.error('Could not download invoice PDF');
+    } finally {
+      setDownloadingInvoice(false);
     }
   };
 
@@ -186,6 +227,21 @@ export default function B2BOrdersTab() {
               <div className="text-xs font-bold uppercase tracking-wider text-brown-mid/50 mb-1">Ship to</div>
               {detail.shippingAddress?.line1}, {detail.shippingAddress?.city}, {detail.shippingAddress?.state} {detail.shippingAddress?.pincode}
             </div>
+
+            {detail.invoice ? (
+              <div className="p-3 rounded-xl flex items-center justify-between gap-2 text-sm" style={{ background: '#fef3e0' }}>
+                <span className="font-semibold text-brown-dark">Invoice {detail.invoice.invoiceNumber}</span>
+                <button onClick={downloadInvoice} disabled={downloadingInvoice} className="text-saffron font-semibold disabled:opacity-60">
+                  {downloadingInvoice ? 'Downloading…' : 'Download PDF ↓'}
+                </button>
+              </div>
+            ) : !['placed', 'cancelled', 'rejected'].includes(detail.status) && (
+              <button onClick={issueInvoice} disabled={invoiceSubmitting}
+                className="w-full rounded-xl text-sm font-semibold text-brown-dark disabled:opacity-60"
+                style={{ minHeight: 44, background: '#fef3e0' }}>
+                {invoiceSubmitting ? 'Issuing…' : 'Issue invoice'}
+              </button>
+            )}
 
             {(NEXT_STATUSES[detail.status] || []).length > 0 && (
               <div className="flex flex-wrap gap-2 pt-2 border-t" style={{ borderColor: 'rgba(224,112,0,0.1)' }}>

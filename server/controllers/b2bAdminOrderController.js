@@ -1,20 +1,22 @@
 // server/controllers/b2bAdminOrderController.js
 //
-// Admin B2B order management (Phase 3): list, detail, quantity edit
-// while placed, status transitions via the state machine, credit-hold
-// override. Auto-invoice-on-dispatch and the prepaid
-// dispatch-with-dues-requires-force rule are Phase 4 additions once
-// invoice issuance exists — dispatching here just records dispatch
-// details and moves the status.
+// Admin B2B order management: list, detail, quantity edit while placed,
+// status transitions via the state machine, credit-hold override,
+// manual + auto invoice issuance (Phase 4).
 
+const mongoose = require('mongoose');
 const B2BOrder = require('../models/B2BOrder');
+const Invoice = require('../models/Invoice');
 const PriceTier = require('../models/PriceTier');
 const { priceB2BOrder } = require('../utils/b2bPricing');
-const { shouldHold } = require('../utils/b2bCredit');
+const { shouldHold, getOutstanding } = require('../utils/b2bCredit');
+const { round2 } = require('../utils/money');
 const {
-  isTransitionAllowed, getAllowedNextStatuses, REASON_REQUIRED_FOR,
+  isTransitionAllowed, getAllowedNextStatuses, REASON_REQUIRED_FOR, CANCEL_REQUIRES_CREDIT_NOTE_IF_INVOICED,
 } = require('../utils/b2bOrderStatus');
-const { sendB2BOrderEdited, sendB2BOrderStatusUpdate } = require('../services/emailService');
+const { issueInvoiceForOrder } = require('../utils/b2bInvoicing');
+const { applyCreditNoteToInvoice } = require('../utils/b2bCreditNote');
+const { sendB2BOrderEdited, sendB2BOrderStatusUpdate, sendB2BInvoiceIssued } = require('../services/emailService');
 
 // ──────────────────────────────────────────────────────
 // GET /api/b2b/admin/orders?status&business&from&to&page
@@ -53,7 +55,8 @@ exports.getOrderDetail = async (req, res, next) => {
   try {
     const order = await B2BOrder.findById(req.params.id)
       .populate('business', 'businessName isTest phone email user')
-      .populate('placedBy', 'name email');
+      .populate('placedBy', 'name email')
+      .populate('invoice', 'invoiceNumber status');
     if (!order) {
       return res.status(404).json({ success: false, message: 'Order not found' });
     }
@@ -116,8 +119,49 @@ exports.updateOrderItems = async (req, res, next) => {
 };
 
 // ──────────────────────────────────────────────────────
+// POST /api/b2b/admin/orders/:id/invoice  (manual issuance)
+// Spec §6.9: "Invoice may be issued manually from confirmed onward;
+// exactly one per order." Same underlying transaction dispatch uses to
+// auto-issue.
+// ──────────────────────────────────────────────────────
+exports.issueInvoice = async (req, res, next) => {
+  try {
+    const order = await B2BOrder.findById(req.params.id).populate('business');
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+    if (order.status === 'placed') {
+      return res.status(400).json({ success: false, message: 'An invoice can only be issued once the order is confirmed.' });
+    }
+
+    const invoice = await issueInvoiceForOrder(order._id, req.user._id);
+
+    try {
+      await sendB2BInvoiceIssued(invoice, order.business);
+    } catch (emailErr) {
+      console.error('B2B invoice-issued email failed to send:', emailErr.message);
+    }
+
+    res.status(201).json({ success: true, invoice });
+  } catch (err) {
+    if (err.statusCode) return res.status(err.statusCode).json({ success: false, message: err.message });
+    next(err);
+  }
+};
+
+// ──────────────────────────────────────────────────────
 // POST /api/b2b/admin/orders/:id/status
 // Body: { status, note, reason, dispatch, force }
+//
+// dispatched: auto-issues an invoice if none exists yet. For a prepaid
+// account whose outstanding balance (after this invoice) would still be
+// > 0, this is blocked unless `force: true` is sent (the admin UI shows
+// a confirm dialog first) — spec §6.9.
+//
+// cancelled from confirmed/packed with an existing invoice: the order
+// status change and the credit note (+ its ledger credit) commit in one
+// transaction, per spec §6.9 — handled as its own branch below rather
+// than falling through to the generic single-document save.
 // ──────────────────────────────────────────────────────
 exports.updateOrderStatus = async (req, res, next) => {
   try {
@@ -126,7 +170,7 @@ exports.updateOrderStatus = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Order not found' });
     }
 
-    const { status, note, reason, dispatch } = req.body;
+    const { status, note, reason, dispatch, force } = req.body;
 
     if (!isTransitionAllowed(order.status, status)) {
       return res.status(400).json({
@@ -146,10 +190,63 @@ exports.updateOrderStatus = async (req, res, next) => {
       });
     }
 
+    // ── cancelled, from an already-invoiced confirmed/packed order:
+    // combined transaction, separate response path ──
+    if (status === 'cancelled' && CANCEL_REQUIRES_CREDIT_NOTE_IF_INVOICED.includes(order.status) && order.invoice) {
+      const session = await mongoose.startSession();
+      try {
+        await session.withTransaction(async () => {
+          const invoice = await Invoice.findById(order.invoice).session(session);
+          if (invoice) await applyCreditNoteToInvoice(invoice, reason, req.user._id, session);
+
+          order.status = status;
+          order.cancelReason = reason;
+          order.statusHistory.push({ status, by: req.user._id, note: note || reason });
+          await order.save({ session });
+        });
+      } catch (txErr) {
+        if (txErr.statusCode) return res.status(txErr.statusCode).json({ success: false, message: txErr.message });
+        throw txErr;
+      } finally {
+        session.endSession();
+      }
+
+      try {
+        await sendB2BOrderStatusUpdate(order, order.business);
+      } catch (emailErr) {
+        console.error('B2B order-status email failed to send:', emailErr.message);
+      }
+      return res.json({ success: true, order });
+    }
+
     if (status === 'dispatched') {
       if (!dispatch || !dispatch.mode) {
         return res.status(400).json({ success: false, message: 'Dispatch details (at least a mode) are required.' });
       }
+
+      if (!order.invoice) {
+        if (order.business.paymentTerms === 'prepaid') {
+          const currentOutstanding = await getOutstanding(order.business._id);
+          const projectedOutstanding = round2(currentOutstanding + order.totals.payable);
+          if (projectedOutstanding > 0 && !force) {
+            return res.status(400).json({
+              success: false,
+              requiresForce: true,
+              message: `This is a prepaid account with an outstanding balance of ₹${projectedOutstanding.toLocaleString('en-IN')} after this invoice. Confirm to dispatch anyway.`,
+            });
+          }
+        }
+
+        const invoice = await issueInvoiceForOrder(order._id, req.user._id);
+        order.invoice = invoice._id;
+
+        try {
+          await sendB2BInvoiceIssued(invoice, order.business);
+        } catch (emailErr) {
+          console.error('B2B invoice-issued email failed to send:', emailErr.message);
+        }
+      }
+
       order.dispatch = { ...order.dispatch, ...dispatch, dispatchedAt: new Date() };
     }
 
@@ -168,6 +265,7 @@ exports.updateOrderStatus = async (req, res, next) => {
 
     res.json({ success: true, order });
   } catch (err) {
+    if (err.statusCode) return res.status(err.statusCode).json({ success: false, message: err.message });
     next(err);
   }
 };

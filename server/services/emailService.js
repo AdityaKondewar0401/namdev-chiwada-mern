@@ -465,6 +465,58 @@ async function sendB2BOrderStatusUpdate(order, business) {
   await sendViaResend({ to, subject: `${copy.heading} — ${order.orderNumber}`, html });
 }
 
+/*
+  ───────────────────────────────────────────────────────────
+  B2B invoice/payment emails (Phase 4). Same shell, same best-effort
+  convention as everything above.
+  ───────────────────────────────────────────────────────────
+*/
+async function sendB2BInvoiceIssued(invoice, business) {
+  const to = business?.user?.email || business?.email;
+  if (!to) return;
+  const testTag = business.isTest ? ' [TEST]' : '';
+  const html = b2bEmailShell({
+    eyebrow: 'INVOICE ISSUED' + testTag,
+    heading: `Invoice ${invoice.invoiceNumber}`,
+    bodyHtml: `Your invoice for ${business.businessName || ''} is ready.
+      <div style="margin-top:10px; font-size:13px;">
+        <div>Amount: <strong>₹${invoice.totals.payable.toLocaleString('en-IN')}</strong></div>
+        <div style="margin-top:2px;">Due date: ${new Date(invoice.dueDate).toLocaleDateString('en-IN')}</div>
+      </div>`,
+    ctaText: 'View invoices',
+    ctaUrl: `${B2B_CLIENT_URL}/b2b/invoices`,
+  });
+  await sendViaResend({ to, subject: `Invoice ${invoice.invoiceNumber}${testTag} — Namdev Chiwda`, html });
+}
+
+async function sendB2BPaymentRecorded(business, ledgerEntry) {
+  const to = business?.user?.email || business?.email;
+  if (!to) return;
+  const html = b2bEmailShell({
+    eyebrow: 'PAYMENT RECORDED',
+    heading: 'We’ve recorded your payment',
+    bodyHtml: `A payment of <strong>₹${ledgerEntry.credit.toLocaleString('en-IN')}</strong> was recorded on your account
+      ${ledgerEntry.reference ? ` (ref: ${ledgerEntry.reference})` : ''}.`,
+    ctaText: 'View statement',
+    ctaUrl: `${B2B_CLIENT_URL}/b2b/statement`,
+  });
+  await sendViaResend({ to, subject: 'Payment recorded — Namdev Chiwda', html });
+}
+
+async function sendB2BCreditNoteIssued(creditNote, invoice, business) {
+  const to = business?.user?.email || business?.email;
+  if (!to) return;
+  const html = b2bEmailShell({
+    eyebrow: 'CREDIT NOTE ISSUED',
+    heading: `Credit note ${creditNote.creditNoteNumber}`,
+    bodyHtml: `A credit note was issued against invoice ${invoice.invoiceNumber} for <strong>₹${creditNote.totals.payable.toLocaleString('en-IN')}</strong>.
+      <div style="margin-top:10px; font-size:13px; color:#7a3300;"><strong>Reason:</strong> ${creditNote.reason}</div>`,
+    ctaText: 'View statement',
+    ctaUrl: `${B2B_CLIENT_URL}/b2b/statement`,
+  });
+  await sendViaResend({ to, subject: `Credit note ${creditNote.creditNoteNumber} — Namdev Chiwda`, html });
+}
+
 module.exports = {
   sendOrderConfirmation,
   sendB2BApplicationReceived,
@@ -474,4 +526,7 @@ module.exports = {
   sendB2BOrderPlaced,
   sendB2BOrderEdited,
   sendB2BOrderStatusUpdate,
+  sendB2BInvoiceIssued,
+  sendB2BPaymentRecorded,
+  sendB2BCreditNoteIssued,
 };

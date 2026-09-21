@@ -200,6 +200,28 @@ export const b2bAPI = {
 
   cancelOrder: (id, data) =>
     api.post(`/api/b2b/orders/${id}/cancel`, data),
+
+  getInvoices: () =>
+    api.get('/api/b2b/invoices'),
+
+  getInvoice: (id) =>
+    api.get(`/api/b2b/invoices/${id}`),
+
+  // PDF/CSV downloads use the shared axios instance (carries the JWT via
+  // its request interceptor) with responseType "blob" — a plain <a href>
+  // can't authenticate, since the token lives in localStorage, not a
+  // cookie. Callers turn the blob into an object URL to trigger the save.
+  downloadInvoicePdf: (id) =>
+    api.get(`/api/b2b/invoices/${id}/pdf`, { responseType: 'blob' }),
+
+  downloadCreditNotePdf: (id) =>
+    api.get(`/api/b2b/credit-notes/${id}/pdf`, { responseType: 'blob' }),
+
+  getLedger: (params) =>
+    api.get('/api/b2b/ledger', { params }),
+
+  downloadLedgerCsv: (params) =>
+    api.get('/api/b2b/ledger/export.csv', { params, responseType: 'blob' }),
 };
 
 /* ===============================
@@ -268,4 +290,37 @@ export const b2bAdminAPI = {
 
   overrideCreditHold: (id, data) =>
     api.post(`/api/b2b/admin/orders/${id}/override-credit-hold`, data),
+
+  issueInvoice: (orderId) =>
+    api.post(`/api/b2b/admin/orders/${orderId}/invoice`),
+
+  listInvoices: (params) =>
+    api.get('/api/b2b/admin/invoices', { params }),
+
+  downloadInvoicePdf: (id) =>
+    api.get(`/api/b2b/admin/invoices/${id}/pdf`, { responseType: 'blob' }),
+
+  createCreditNote: (invoiceId, data) =>
+    api.post(`/api/b2b/admin/invoices/${invoiceId}/credit-note`, data),
+
+  downloadCreditNotePdf: (id) =>
+    api.get(`/api/b2b/admin/credit-notes/${id}/pdf`, { responseType: 'blob' }),
+
+  getAccountLedger: (accountId, params) =>
+    api.get(`/api/b2b/admin/accounts/${accountId}/ledger`, { params }),
+
+  downloadAccountLedgerCsv: (accountId, params) =>
+    api.get(`/api/b2b/admin/accounts/${accountId}/ledger/export.csv`, { params, responseType: 'blob' }),
+
+  recordPayment: (accountId, data) =>
+    api.post(`/api/b2b/admin/accounts/${accountId}/payments`, data),
+
+  recordAdjustment: (accountId, data) =>
+    api.post(`/api/b2b/admin/accounts/${accountId}/adjustments`, data),
+
+  recordOpeningBalance: (accountId, data) =>
+    api.post(`/api/b2b/admin/accounts/${accountId}/opening-balance`, data),
+
+  getSummary: () =>
+    api.get('/api/b2b/admin/summary'),
 };

@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import SEO from '../../components/SEO';
 import B2BModal from '../../components/b2b/B2BModal';
 import { b2bAPI } from '../../services/api';
+import { downloadBlobResponse } from '../../utils/downloadBlob';
 
 function formatDate(d) {
   return d ? new Date(d).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
@@ -22,6 +23,7 @@ export default function B2BOrderDetailPage() {
   const [cancelReason, setCancelReason] = useState('');
   const [cancelling, setCancelling] = useState(false);
   const [reordering, setReordering] = useState(false);
+  const [downloadingInvoice, setDownloadingInvoice] = useState(false);
 
   const fetchOrder = useCallback(() => {
     setLoading(true);
@@ -62,6 +64,18 @@ export default function B2BOrderDetailPage() {
       toast.error('Could not reorder — please add items manually');
     } finally {
       setReordering(false);
+    }
+  };
+
+  const downloadInvoice = async () => {
+    setDownloadingInvoice(true);
+    try {
+      const res = await b2bAPI.downloadInvoicePdf(order.invoice._id);
+      downloadBlobResponse(res, `${order.invoice.invoiceNumber.replace(/\//g, '-')}.pdf`);
+    } catch {
+      toast.error('Could not download invoice PDF');
+    } finally {
+      setDownloadingInvoice(false);
     }
   };
 
@@ -147,13 +161,9 @@ export default function B2BOrderDetailPage() {
           {order.invoice && (
             <div className="card p-4 flex items-center justify-between">
               <div className="text-sm font-semibold text-brown-dark">Invoice {order.invoice.invoiceNumber}</div>
-              <a
-                href={`${import.meta.env.VITE_API_URL}/api/b2b/invoices/${order.invoice._id}/pdf`}
-                target="_blank" rel="noopener noreferrer"
-                className="text-saffron font-semibold text-sm"
-              >
-                Download PDF →
-              </a>
+              <button onClick={downloadInvoice} disabled={downloadingInvoice} className="text-saffron font-semibold text-sm disabled:opacity-60">
+                {downloadingInvoice ? 'Downloading…' : 'Download PDF →'}
+              </button>
             </div>
           )}
         </div>
