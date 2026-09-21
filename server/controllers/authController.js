@@ -2,6 +2,7 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
 const { recordFailure, recordSuccess } = require('../middleware/accountRateLimiter');
+const BusinessAccount = require('../models/BusinessAccount');
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -13,8 +14,24 @@ const signToken = (id) => {
   );
 };
 
+// Best-effort lookup used to attach `business: { status } | null` to the
+// safe user object (B2B_PORTAL_SPEC.md §7). Never throws — a lookup
+// failure here must never break register/login/Google login, so it's
+// swallowed and logged, falling back to null exactly as if the user had
+// no business account.
+const getBusinessSummary = async (userId) => {
+  try {
+    const account = await BusinessAccount.findOne({ user: userId }).select('status').lean();
+    return account ? { status: account.status } : null;
+  } catch (err) {
+    console.error('BusinessAccount lookup failed while building the auth response:', err.message);
+    return null;
+  }
+};
+
 const sendTokenResponse = async (user, statusCode, res) => {
   const token = signToken(user._id);
+  const business = await getBusinessSummary(user._id);
 
   res.status(statusCode).json({
     success: true,
@@ -28,6 +45,7 @@ const sendTokenResponse = async (user, statusCode, res) => {
       avatar: user.avatar,
       marketingConsent: user.marketingConsent,
       createdAt: user.createdAt,
+      business,
     },
   });
 };
@@ -239,7 +257,11 @@ exports.getMe = async (req, res, next) => {
       .select('-password')
       .populate('wishlist', 'name img price');
 
-    res.json({ success: true, user });
+    const business = await getBusinessSummary(req.user._id);
+    const userObj = user.toObject();
+    userObj.business = business;
+
+    res.json({ success: true, user: userObj });
   } catch (err) {
     next(err);
   }

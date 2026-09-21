@@ -1,6 +1,7 @@
 import {
   LayoutDashboard, ShoppingBag, Plus, Package, Tag, Users,
   Clock, CheckCircle2, Settings2, Truck, PackageCheck, XCircle, CreditCard, Banknote,
+  Building2, Percent,
 } from 'lucide-react';
 
 // ─────────────────────────────────────────────
@@ -20,6 +21,8 @@ export const TABS = [
   { id: 'orders', icon: Package, label: 'Customer Orders', group: 'store' },
   { id: 'promos', icon: Tag, label: 'Promo Codes', group: 'store' },
   { id: 'users', icon: Users, label: 'Users', group: 'store' },
+  { id: 'b2b-accounts', icon: Building2, label: 'Business Accounts', group: 'b2b' },
+  { id: 'b2b-catalog', icon: Percent, label: 'Wholesale Pricing', group: 'b2b' },
 ];
 
 export const CATEGORIES = ['mild', 'spicy', 'special'];

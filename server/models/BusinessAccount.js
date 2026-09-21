@@ -42,13 +42,19 @@ const businessAccountSchema = new mongoose.Schema({
   // Optional — collected and format/checksum-validated (utils/gstin.js)
   // for records and future use, but has no tax effect while
   // SELLER_GST_MODE=unregistered (see utils/taxMode.js).
+  //
+  // Deliberately NO `default: null` here: a sparse index only excludes
+  // documents where the field is genuinely ABSENT, not documents where
+  // it's present with value null — Mongoose would otherwise stamp every
+  // gstin-less account with an explicit `null`, and the SECOND such
+  // account would collide on this unique index. Callers must omit the
+  // key entirely (or unset it) rather than assigning null/''.
   gstin: {
     type: String,
     uppercase: true,
     trim: true,
-    default: null,
     unique: true,
-    sparse: true, // multiple accounts with no GSTIN must not collide on a plain unique index
+    sparse: true,
   },
   fssaiLicenseNo: { type: String, trim: true }, // the BUYER's own license, if any - not the seller's
 

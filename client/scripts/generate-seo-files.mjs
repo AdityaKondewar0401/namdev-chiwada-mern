@@ -73,6 +73,7 @@ const STATIC_PAGES = [
   { path: '/maharashtrian-snacks', changefreq: 'monthly', priority: '0.8' },
   { path: '/our-history', changefreq: 'monthly', priority: '0.6' },
   { path: '/about', changefreq: 'monthly', priority: '0.6' },
+  { path: '/business', changefreq: 'monthly', priority: '0.6' },
   { path: '/contact', changefreq: 'monthly', priority: '0.5' },
 ];
 
@@ -151,6 +152,8 @@ Disallow: /checkout
 Disallow: /orders
 Disallow: /login
 Disallow: /register
+Disallow: /business/apply
+Disallow: /b2b
 
 Sitemap: ${SITE_URL}/sitemap.xml
 `;

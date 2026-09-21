@@ -38,6 +38,7 @@ const QUICK_LINKS = [
   ["Solapuri Chiwada", "/solapuri-chiwada"],
   ["Maharashtrian Snacks", "/maharashtrian-snacks"],
   ["Our Story", "/our-history"],
+  ["Wholesale", "/business"],
   ["Contact", "/contact"],
 ];
 

@@ -199,6 +199,162 @@ async function sendOrderConfirmation(order, userEmail) {
   });
 }
 
+/*
+  ───────────────────────────────────────────────────────────
+  B2B onboarding emails (Phase 2). Same Resend transport and the same
+  visual language as sendOrderConfirmation above (dark brand header,
+  warm card body, dark footer with the WhatsApp contact + FSSAI line),
+  via one shared shell instead of four near-duplicate HTML blocks.
+
+  Best-effort, same convention as sendOrderConfirmation's own call site
+  in orderCreation.js: callers wrap these in try/catch so a failed send
+  never fails the action that triggered it (applying, approving,
+  rejecting, suspending).
+  ───────────────────────────────────────────────────────────
+*/
+const B2B_CLIENT_URL = process.env.CLIENT_URL || 'https://namdev-chiwada-mern.vercel.app';
+
+function b2bEmailShell({ eyebrow, heading, bodyHtml, ctaText, ctaUrl }) {
+  return `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>${heading}</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  body { margin:0; padding:0; background:#f2e4c8; font-family:'Poppins', Arial, Helvetica, sans-serif; }
+  table { border-collapse:collapse; }
+  img { border:0; display:block; }
+  a { text-decoration:none; }
+  .wrapper { width:100%; background:radial-gradient(circle at 50% 0%, #fbe7bd 0%, #f2e4c8 55%); padding:32px 16px; }
+  .container { max-width:520px; margin:0 auto; background:#fffdf7; border-radius:24px; overflow:hidden; box-shadow:0 20px 45px rgba(45,26,0,0.16); }
+  @media only screen and (max-width:480px) {
+    .wrapper { padding:18px 10px; }
+    .pad { padding-left:20px !important; padding-right:20px !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+<table role="presentation" width="100%"><tr><td align="center">
+<table role="presentation" class="container" width="520" style="width:520px;">
+  <tr>
+    <td style="background:#2d1a00; padding:20px 24px; text-align:center;">
+      <img src="${LOGO_URL}" alt="Namdev Chiwda" width="120" style="display:inline-block; border-radius:14px;" />
+      <span style="color:#f0cc5a; font-size:19px; font-weight:700; letter-spacing:0.1em; vertical-align:middle; margin-left:12px;">NAMDEV CHIWDA</span>
+    </td>
+  </tr>
+  <tr>
+    <td class="pad" style="padding:34px 32px 10px; text-align:center;">
+      <div style="font-size:11px; font-weight:800; letter-spacing:0.1em; color:#c8902a; margin-bottom:10px;">${eyebrow}</div>
+      <div style="font-size:22px; font-weight:800; color:#2d1a00; line-height:1.3;">${heading}</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="pad" style="padding:14px 32px 8px; color:#5a4326; font-size:14px; line-height:1.7;">
+      ${bodyHtml}
+    </td>
+  </tr>
+  ${ctaUrl ? `
+  <tr>
+    <td class="pad" style="padding:14px 32px 34px;">
+      <table role="presentation" width="100%"><tr>
+        <td style="border-radius:999px; background:linear-gradient(135deg,#ff9a2e,#e07000); text-align:center; box-shadow:0 10px 22px rgba(224,112,0,0.3);">
+          <a href="${ctaUrl}" style="display:block; color:#fff; font-weight:800; font-size:14px; padding:15px; letter-spacing:0.02em;">${ctaText} →</a>
+        </td>
+      </tr></table>
+    </td>
+  </tr>` : '<tr><td style="height:20px;"></td></tr>'}
+  <tr>
+    <td style="background:#2d1a00; padding:22px 24px; text-align:center;">
+      <div style="color:rgba(255,255,255,0.55); font-size:11px; line-height:1.6;">
+        Questions? WhatsApp <a href="https://wa.me/919130160491" style="color:#ff9010; font-weight:700;">+91 91301 60491</a>
+      </div>
+      <div style="color:rgba(255,255,255,0.35); font-size:10px; margin-top:8px;">FSSAI Lic. No: 21526041003460</div>
+    </td>
+  </tr>
+</table>
+</td></tr></table>
+</div>
+</body>
+</html>`;
+}
+
+async function sendB2BApplicationReceived(business, user) {
+  const applicantHtml = b2bEmailShell({
+    eyebrow: 'WHOLESALE APPLICATION',
+    heading: 'We’ve received your application',
+    bodyHtml: `Thanks for applying for a Namdev Chiwda wholesale account, ${business.businessName}. Our team will review your details and get back to you shortly.`,
+    ctaText: 'View application status',
+    ctaUrl: `${B2B_CLIENT_URL}/b2b`,
+  });
+
+  const sends = [];
+  if (user?.email) {
+    sends.push(sendViaResend({ to: user.email, subject: 'Wholesale application received — Namdev Chiwda', html: applicantHtml }));
+  }
+
+  const adminEmail = process.env.B2B_ADMIN_NOTIFY_EMAIL || 'care@namdevchiwda.com';
+  const adminHtml = b2bEmailShell({
+    eyebrow: 'NEW APPLICATION',
+    heading: `New wholesale application: ${business.businessName}`,
+    bodyHtml: `${business.businessName} (${business.businessType}) just applied for a wholesale account. Contact: ${business.contactName || user?.name || '—'} · ${business.phone || user?.email || '—'}.`,
+    ctaText: 'Review in admin panel',
+    ctaUrl: `${B2B_CLIENT_URL}/admin`,
+  });
+  sends.push(sendViaResend({ to: adminEmail, subject: `New wholesale application — ${business.businessName}`, html: adminHtml }));
+
+  // Best-effort per-recipient: one failing (e.g. a bad applicant email)
+  // must never suppress the other.
+  const results = await Promise.allSettled(sends);
+  const failed = results.find((r) => r.status === 'rejected');
+  if (failed) throw failed.reason;
+}
+
+async function sendB2BApplicationApproved(business, user) {
+  if (!user?.email) return;
+  const html = b2bEmailShell({
+    eyebrow: 'APPLICATION APPROVED',
+    heading: `You're approved, ${business.businessName}!`,
+    bodyHtml: 'Your Namdev Chiwda wholesale account is now active. You can view wholesale pricing and place orders from your business dashboard.',
+    ctaText: 'Go to business dashboard',
+    ctaUrl: `${B2B_CLIENT_URL}/b2b`,
+  });
+  await sendViaResend({ to: user.email, subject: 'Your wholesale account is approved — Namdev Chiwda', html });
+}
+
+async function sendB2BApplicationRejected(business, user) {
+  if (!user?.email) return;
+  const reasonHtml = business.rejectionReason
+    ? `<div style="margin-top:10px; padding:12px 14px; background:#fef3e0; border-radius:12px; font-size:13px; color:#7a3300;"><strong>Reason:</strong> ${business.rejectionReason}</div>`
+    : '';
+  const html = b2bEmailShell({
+    eyebrow: 'APPLICATION UPDATE',
+    heading: 'Your wholesale application was not approved',
+    bodyHtml: `We're unable to approve your wholesale application for ${business.businessName} at this time.${reasonHtml}<div style="margin-top:10px;">You're welcome to update your details and re-apply.</div>`,
+    ctaText: 'Re-apply',
+    ctaUrl: `${B2B_CLIENT_URL}/business/apply`,
+  });
+  await sendViaResend({ to: user.email, subject: 'Update on your wholesale application — Namdev Chiwda', html });
+}
+
+async function sendB2BAccountSuspended(business, user) {
+  if (!user?.email) return;
+  const html = b2bEmailShell({
+    eyebrow: 'ACCOUNT SUSPENDED',
+    heading: 'Your wholesale account has been suspended',
+    bodyHtml: `Your Namdev Chiwda wholesale account for ${business.businessName} has been temporarily suspended. Please contact us for details.`,
+    ctaText: 'Contact us',
+    ctaUrl: `${B2B_CLIENT_URL}/contact`,
+  });
+  await sendViaResend({ to: user.email, subject: 'Your wholesale account has been suspended — Namdev Chiwda', html });
+}
+
 module.exports = {
   sendOrderConfirmation,
+  sendB2BApplicationReceived,
+  sendB2BApplicationApproved,
+  sendB2BApplicationRejected,
+  sendB2BAccountSuspended,
 };

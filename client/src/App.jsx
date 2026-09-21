@@ -27,6 +27,9 @@ import ChiwadaPage from './pages/ChiwadaPage';
 import SolapuriChiwadaPage from './pages/SolapuriChiwadaPage';
 import MaharashtrianSnacksPage from './pages/MaharashtrianSnacksPage';
 import OurHistoryPage from './pages/OurHistoryPage';
+// Public, indexable B2B landing page — loads eagerly like the SEO pages
+// above, since it's the acquisition entry point for the wholesale funnel.
+import BusinessLandingPage from './pages/business/BusinessLandingPage';
 
 // Authenticated-only pages (never seen by a first-time visitor or a
 // crawler) are code-split out of the main bundle — this is what was
@@ -36,6 +39,8 @@ const OrdersPage = lazy(() => import('./pages/OrdersPage'));
 const AccountPage = lazy(() => import('./pages/AccountPage'));
 const WishlistPage = lazy(() => import('./pages/WishlistPage'));
 const AdminPage = lazy(() => import('./pages/AdminPage'));
+const BusinessApplyPage = lazy(() => import('./pages/business/BusinessApplyPage'));
+const B2BDashboardPage = lazy(() => import('./pages/business/B2BDashboardPage'));
 // NamkeenDetailPage was a legacy static product-detail page that referenced
 // an undefined `PRODUCTS` global — visiting /namkeen/:id crashed with a
 // ReferenceError (hard white screen), not just a rendering bug. It's fully
@@ -46,6 +51,8 @@ const AdminPage = lazy(() => import('./pages/AdminPage'));
 import { LoginPage, RegisterPage } from './pages/AuthPages';
 import SEO from './components/SEO';
 import { SITE_NAME } from './config/seo.config';
+import { B2BProvider } from './context/B2BContext';
+import B2BLayout from './components/b2b/B2BLayout';
 
 // Redirects the legacy /namkeen/:id URL to the real, working product page
 // instead of rendering the broken NamkeenDetailPage (see import comment
@@ -218,6 +225,45 @@ function AnimatedRoutes() {
 
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+
+        {/* B2B / Wholesale — /business is public + indexable (see
+            BusinessLandingPage); /business/apply and /b2b require login
+            but not a business account, so their own content handles the
+            "no application yet" state instead of ProtectedRoute. */}
+        <Route
+          path="/business"
+          element={
+            <Layout>
+              <BusinessLandingPage />
+            </Layout>
+          }
+        />
+
+        <Route
+          path="/business/apply"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <BusinessApplyPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/b2b"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <B2BProvider>
+                  <B2BLayout>
+                    <B2BDashboardPage />
+                  </B2BLayout>
+                </B2BProvider>
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
 
         {/* Protected Routes */}
         <Route

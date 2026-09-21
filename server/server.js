@@ -129,6 +129,8 @@ app.use('/api/wishlist', require('./routes/wishlist'));
 app.use('/api/payment', require('./routes/payment'));
 app.use('/api/shipping', require('./routes/shipping'));
 app.use('/api/whatsapp', require('./routes/whatsapp'));
+app.use('/api/b2b/admin', require('./routes/b2bAdmin'));
+app.use('/api/b2b',       require('./routes/b2b'));
 
 // ── Health Check ───────────────────────────────────────
 app.get('/api/health', (req, res) => {

@@ -388,6 +388,9 @@ export default function Navbar() {
                     {[
                       user?.role === 'admin' ? { icon: '⚙️', label: 'Admin Panel', to: '/admin' } : null,
                       { icon: '👤', label: 'My Account', to: '/account' },
+                      user?.business?.status
+                        ? { icon: '🤝', label: 'Business Portal', to: '/b2b' }
+                        : { icon: '🤝', label: 'Wholesale / For Business', to: '/business' },
                       { icon: '📦', label: 'My Orders', to: '/orders' },
                       { icon: '❤️', label: 'Wishlist', to: '/wishlist' },
                     ].filter(Boolean).map(({ icon, label, to }) => (
@@ -675,6 +678,23 @@ export default function Navbar() {
                           Admin Panel
                         </Link>
                       )}
+
+                      <Link
+                        to={user?.business?.status ? '/b2b' : '/business'}
+                        onClick={() => setMenuOpen(false)}
+                        className="mt-2.5 flex items-center justify-center gap-2 py-2.5"
+                        style={{
+                          borderRadius: 16,
+                          background: 'rgba(224,112,0,0.1)',
+                          border: '1px solid rgba(224,112,0,0.3)',
+                          color: '#b45309',
+                          fontSize: '0.82rem',
+                          fontWeight: 600,
+                          minHeight: 44,
+                        }}
+                      >
+                        {user?.business?.status ? 'Business Portal' : 'Wholesale / For Business'}
+                      </Link>
 
                       <button
                         onClick={logout}
