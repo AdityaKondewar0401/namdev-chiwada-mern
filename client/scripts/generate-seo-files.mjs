@@ -59,12 +59,22 @@ const API_BASE = (process.env.VITE_API_URL || 'https://namdev-backend.onrender.c
 
 const IS_PREVIEW = process.env.VERCEL_ENV === 'preview';
 
+// Build-time-only feature switch for the sitemap (spec Part B1) — kept
+// deliberately separate from the runtime GET /api/b2b/config `enabled`
+// flag the app checks at request time. Vite only exposes VITE_-prefixed
+// vars to the client bundle, and this script runs at build time (Node,
+// not Vite), so it reads process.env directly like every other var here.
+const B2B_ENABLED_AT_BUILD = process.env.VITE_B2B_ENABLED === 'true';
+
 // Canonical, indexable, static public pages. Deliberately excludes every
 // authenticated route (/account, /wishlist, /cart, /checkout, /orders),
 // /admin, /login, /register, the legacy /namkeen/:id redirect, and the
 // destructive-admin-only /products/seed API concern — none of those should
 // ever appear in a sitemap. See AGENT.md §7 for the full route table this
-// was cross-checked against.
+// was cross-checked against. /business is included only when B2B is
+// enabled at build time — otherwise the page itself is also noindex
+// (see BusinessLandingPage.jsx's SEO robots prop), so listing it here
+// would just be a broken promise to crawlers.
 const STATIC_PAGES = [
   { path: '/', changefreq: 'weekly', priority: '1.0' },
   { path: '/products', changefreq: 'daily', priority: '0.9' },
@@ -73,6 +83,7 @@ const STATIC_PAGES = [
   { path: '/maharashtrian-snacks', changefreq: 'monthly', priority: '0.8' },
   { path: '/our-history', changefreq: 'monthly', priority: '0.6' },
   { path: '/about', changefreq: 'monthly', priority: '0.6' },
+  ...(B2B_ENABLED_AT_BUILD ? [{ path: '/business', changefreq: 'monthly', priority: '0.6' }] : []),
   { path: '/contact', changefreq: 'monthly', priority: '0.5' },
 ];
 
@@ -151,6 +162,8 @@ Disallow: /checkout
 Disallow: /orders
 Disallow: /login
 Disallow: /register
+Disallow: /business/apply
+Disallow: /b2b
 
 Sitemap: ${SITE_URL}/sitemap.xml
 `;

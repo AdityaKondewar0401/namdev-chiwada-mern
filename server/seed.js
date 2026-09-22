@@ -1,12 +1,11 @@
 // seed.js
 // Place this file inside the "server" folder (same level as package.json)
 //
-// Run with:  railway run node seed.js
-// This connects to the SAME MongoDB your live Railway backend uses
-// (because `railway run` injects Railway's environment variables,
-// including MONGO_URI, into this script).
+// Run with production env vars in effect (e.g. a local .env pointed at
+// the live MONGO_URI, or your deployment platform's shell/CLI) so this
+// connects to the SAME MongoDB your live backend uses.
 
-require('dotenv').config(); // safe to keep — railway run will override with live env vars anyway
+require('dotenv').config(); // safe to keep — production env vars, if set, take precedence anyway
 
 const mongoose = require('mongoose');
 const Product = require('./models/Product');       // server/models/Product.js
