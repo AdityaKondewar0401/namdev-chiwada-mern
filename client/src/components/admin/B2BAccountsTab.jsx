@@ -22,13 +22,6 @@ const BUSINESS_TYPES = [
   { value: 'other', label: 'Other' },
 ];
 
-const PAYMENT_TERMS = [
-  { value: 'prepaid', label: 'Prepaid' },
-  { value: 'net7', label: 'Net 7' },
-  { value: 'net15', label: 'Net 15' },
-  { value: 'net30', label: 'Net 30' },
-];
-
 function formatDate(d) {
   return d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
 }
@@ -51,7 +44,7 @@ export default function B2BAccountsTab() {
   const [detailLoading, setDetailLoading] = useState(false);
 
   const [createOpen, setCreateOpen] = useState(false);
-  const [createForm, setCreateForm] = useState({ email: '', businessName: '', businessType: '', tier: '', paymentTerms: 'prepaid', creditLimit: '' });
+  const [createForm, setCreateForm] = useState({ email: '', businessName: '', businessType: '', tier: '', advancePercent: 100, creditLimit: '' });
   const [createErrors, setCreateErrors] = useState({});
   const [createSubmitting, setCreateSubmitting] = useState(false);
   const [duplicateInfo, setDuplicateInfo] = useState(null);
@@ -109,11 +102,12 @@ export default function B2BAccountsTab() {
       await b2bAdminAPI.createAccount({
         ...createForm,
         tier: createForm.tier || undefined,
+        advancePercent: createForm.advancePercent === '' ? undefined : Number(createForm.advancePercent),
         creditLimit: createForm.creditLimit === '' ? undefined : Number(createForm.creditLimit),
       });
       toast.success('Business account created');
       setCreateOpen(false);
-      setCreateForm({ email: '', businessName: '', businessType: '', tier: '', paymentTerms: 'prepaid', creditLimit: '' });
+      setCreateForm({ email: '', businessName: '', businessType: '', tier: '', advancePercent: 100, creditLimit: '' });
       fetchAccounts();
     } catch (err) {
       const status = err.response?.status;
@@ -138,7 +132,7 @@ export default function B2BAccountsTab() {
   const openAction = (type, account) => {
     setActionModal({ type, account });
     setActionForm(type === 'approve'
-      ? { tier: tiers.find((t) => t.isDefault)?._id || '', paymentTerms: 'prepaid', creditLimit: '', note: '' }
+      ? { tier: tiers.find((t) => t.isDefault)?._id || '', advancePercent: 100, creditLimit: '', note: '' }
       : { reason: '', note: '' });
   };
 
@@ -151,7 +145,7 @@ export default function B2BAccountsTab() {
       if (type === 'approve') {
         await b2bAdminAPI.approveAccount(account._id, {
           tier: actionForm.tier,
-          paymentTerms: actionForm.paymentTerms,
+          advancePercent: Number(actionForm.advancePercent),
           creditLimit: actionForm.creditLimit === '' ? 0 : Number(actionForm.creditLimit),
           note: actionForm.note || undefined,
         });
@@ -320,7 +314,7 @@ export default function B2BAccountsTab() {
               <div><span className="text-brown-mid/50">Type</span><div className="font-semibold text-brown-dark">{detail.business.businessType}</div></div>
               <div><span className="text-brown-mid/50">GSTIN</span><div className="font-semibold text-brown-dark">{detail.business.gstin || '—'}</div></div>
               <div><span className="text-brown-mid/50">Tier</span><div className="font-semibold text-brown-dark">{detail.business.tier?.name || '—'}</div></div>
-              <div><span className="text-brown-mid/50">Payment terms</span><div className="font-semibold text-brown-dark">{detail.business.paymentTerms}</div></div>
+              <div><span className="text-brown-mid/50">Advance</span><div className="font-semibold text-brown-dark">{detail.business.advancePercent}% at order, rest in 14 days</div></div>
             </div>
 
             <button
@@ -431,11 +425,9 @@ export default function B2BAccountsTab() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-brown-dark mb-1.5">Payment terms</label>
-              <select className="form-input text-base"
-                value={createForm.paymentTerms} onChange={(e) => setCreateForm((f) => ({ ...f, paymentTerms: e.target.value }))}>
-                {PAYMENT_TERMS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-              </select>
+              <label className="block text-sm font-semibold text-brown-dark mb-1.5">Advance %</label>
+              <input type="number" inputMode="numeric" min="0" max="100" className="form-input text-base"
+                value={createForm.advancePercent} onChange={(e) => setCreateForm((f) => ({ ...f, advancePercent: e.target.value }))} />
             </div>
           </div>
           <div>
@@ -443,6 +435,7 @@ export default function B2BAccountsTab() {
             <input type="number" inputMode="numeric" min="0" className="form-input text-base"
               value={createForm.creditLimit} onChange={(e) => setCreateForm((f) => ({ ...f, creditLimit: e.target.value }))} />
           </div>
+          <p className="text-xs text-brown-mid/50 -mt-1">Advance % is collected via Razorpay when the order is placed. The rest is due 14 days later.</p>
           <button type="submit" disabled={createSubmitting} className="btn-saffron disabled:opacity-60" style={{ minHeight: 48 }}>
             {createSubmitting ? 'Creating…' : 'Create account'}
           </button>
@@ -486,11 +479,10 @@ export default function B2BAccountsTab() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-brown-dark mb-1.5">Payment terms *</label>
-                  <select className="form-input text-base" required
-                    value={actionForm.paymentTerms} onChange={(e) => setActionForm((f) => ({ ...f, paymentTerms: e.target.value }))}>
-                    {PAYMENT_TERMS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-                  </select>
+                  <label className="block text-sm font-semibold text-brown-dark mb-1.5">Advance % *</label>
+                  <input type="number" inputMode="numeric" min="0" max="100" required className="form-input text-base"
+                    value={actionForm.advancePercent} onChange={(e) => setActionForm((f) => ({ ...f, advancePercent: e.target.value }))} />
+                  <p className="text-xs text-brown-mid/50 mt-1">Collected via Razorpay at order placement. The rest is due 14 days later.</p>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-brown-dark mb-1.5">Credit limit (₹)</label>

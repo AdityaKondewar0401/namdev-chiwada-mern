@@ -15,7 +15,12 @@ const { nextInvoiceNumber } = require('./b2bNumbering');
 const { getTaxMode, documentTitle, supplierTaxNote } = require('./taxMode');
 const { amountInWordsINR } = require('./money');
 
-const TERM_DAYS = { prepaid: 0, net7: 7, net15: 15, net30: 30 };
+// The remainder (payable minus the advance collected at placement) is due
+// a fixed 14 days after ORDER PLACEMENT, not from whenever the invoice
+// itself gets issued (typically later, at dispatch) - so this is computed
+// off order.createdAt, the same constant utils/b2bOrderCreation.js uses
+// for the order's own `remainingDueDate`, and never varies per business.
+const REMAINDER_DUE_DAYS = 14;
 
 function httpError(message, statusCode) {
   const err = new Error(message);
@@ -53,8 +58,7 @@ async function issueInvoiceForOrder(orderId, issuedByUserId) {
       const business = order.business;
       const { number: invoiceNumber, financialYear } = await nextInvoiceNumber(business.isTest, new Date(), session);
 
-      const termDays = TERM_DAYS[business.paymentTerms] ?? 0;
-      const dueDate = new Date(Date.now() + termDays * 24 * 60 * 60 * 1000);
+      const dueDate = new Date(order.createdAt.getTime() + REMAINDER_DUE_DAYS * 24 * 60 * 60 * 1000);
 
       const [invoice] = await Invoice.create([{
         invoiceNumber,
@@ -124,4 +128,4 @@ async function issueInvoiceForOrder(orderId, issuedByUserId) {
   return createdInvoice;
 }
 
-module.exports = { issueInvoiceForOrder, TERM_DAYS };
+module.exports = { issueInvoiceForOrder, REMAINDER_DUE_DAYS };

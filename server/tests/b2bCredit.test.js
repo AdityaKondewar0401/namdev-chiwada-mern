@@ -24,11 +24,11 @@ before(async () => {
 
   prepaidAccount = await BusinessAccount.create({
     user: prepaidUser._id, businessName: '__TEST__ Prepaid Biz', businessType: 'retailer',
-    status: 'approved', paymentTerms: 'prepaid', creditLimit: 0,
+    status: 'approved', advancePercent: 100, creditLimit: 0,
   });
   creditAccount = await BusinessAccount.create({
     user: user._id, businessName: '__TEST__ Credit Biz', businessType: 'retailer',
-    status: 'approved', paymentTerms: 'net15', creditLimit: 10000,
+    status: 'approved', advancePercent: 0, creditLimit: 10000,
   });
 
   order = await B2BOrder.create({
@@ -45,7 +45,6 @@ before(async () => {
     totals: { subtotal: 2880, taxTotal: 0, grandTotal: 2880, roundOff: 0, payable: 2880 },
     status: 'placed',
     statusHistory: [{ status: 'placed', by: user._id }],
-    paymentTermsSnapshot: 'net15',
   });
 
   await LedgerEntry.create({
@@ -84,8 +83,19 @@ test('getCreditSummary combines outstanding, open orders, and credit limit corre
   assert.equal(summary.availableCredit, 10000 - 2500 - 2880); // 4620
 });
 
-test('shouldHold: prepaid accounts never hold at placement regardless of amount', async () => {
-  assert.equal(await shouldHold(prepaidAccount, 999999), false);
+test('shouldHold: a fully-advance-paid order has zero amount at risk, so it never holds', async () => {
+  // A 100%-advance account's remaining (post-advance) amount at risk is
+  // always 0 for any order size, since the whole payable was already
+  // collected via Razorpay before the order could be created.
+  assert.equal(await shouldHold(prepaidAccount, 0), false);
+});
+
+test('shouldHold: no more blanket bypass - a nonzero amount at risk can hold even for a former "prepaid" account', async () => {
+  // Proves the old `if (paymentTerms === 'prepaid') return false` bypass
+  // is really gone, not just that the zero-risk case still passes.
+  // prepaidAccount has creditLimit: 0, so any positive amount at risk
+  // exceeds it.
+  assert.equal(await shouldHold(prepaidAccount, 1), true);
 });
 
 test('shouldHold: credit account holds once outstanding + open + new order exceeds the limit', async () => {

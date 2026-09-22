@@ -91,20 +91,7 @@ export default function B2BOrdersTab() {
       setStatusModal(null);
       refreshAfter();
     } catch (err) {
-      const data = err.response?.data;
-      if (data?.requiresForce && window.confirm(`${data.message}\n\nDispatch anyway?`)) {
-        try {
-          const body = { status: statusModal, note: statusForm.note || undefined, dispatch: statusForm.dispatch, force: true };
-          await b2bAdminAPI.updateOrderStatus(detail._id, body);
-          toast.success('Order marked dispatched');
-          setStatusModal(null);
-          refreshAfter();
-        } catch (err2) {
-          toast.error(err2.response?.data?.message || 'Failed to update status');
-        }
-      } else {
-        toast.error(data?.message || 'Failed to update status');
-      }
+      toast.error(err.response?.data?.message || 'Failed to update status');
     } finally {
       setStatusSubmitting(false);
     }
