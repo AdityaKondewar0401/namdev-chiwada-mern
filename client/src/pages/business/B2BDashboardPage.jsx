@@ -26,13 +26,15 @@ const QUICK_LINKS = [
 export default function B2BDashboardPage() {
   const { business, creditSummary, loading } = useB2B();
   const [recentOrders, setRecentOrders] = useState(null);
+  const [recentOrdersError, setRecentOrdersError] = useState(false);
 
   useEffect(() => {
     if (business?.status !== 'approved') return undefined;
     let cancelled = false;
+    setRecentOrdersError(false);
     b2bAPI.getOrders({ limit: 5 })
       .then((res) => { if (!cancelled) setRecentOrders(res.data.orders); })
-      .catch(() => { if (!cancelled) setRecentOrders([]); });
+      .catch(() => { if (!cancelled) { setRecentOrders([]); setRecentOrdersError(true); } });
     return () => { cancelled = true; };
   }, [business?.status]);
 
@@ -174,7 +176,11 @@ export default function B2BDashboardPage() {
           </div>
         )}
 
-        {recentOrders?.length === 0 && (
+        {recentOrders?.length === 0 && recentOrdersError && (
+          <p className="text-red-600 text-sm">Couldn't load recent orders. Please refresh the page.</p>
+        )}
+
+        {recentOrders?.length === 0 && !recentOrdersError && (
           <p className="text-brown-mid/60 text-sm">
             No orders yet.{' '}
             <Link to="/b2b/order" className="text-saffron font-semibold">Place your first order</Link>.

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Wallet, Package, BarChart3, Clock, ShoppingBag, Star, AlertTriangle, LayoutGrid, CheckCircle2 } from 'lucide-react';
 import { CATEGORIES, CATEGORY_COLORS, STATUS_OPTIONS, STATUS_CONFIG } from './adminConstants';
 import { MiniBarChart, SegmentedBar } from './charts';
@@ -6,6 +6,53 @@ import { MiniBarChart, SegmentedBar } from './charts';
 // the shared `StatTile`/`Panel` primitives in AdminUI.jsx (identical
 // props), aliased here so nothing below this line needs to change.
 import { StatTile as KpiCard, Panel as PanelCard } from './AdminUI';
+import { b2bAdminAPI } from '../../services/api';
+
+function Money({ value }) { return <span>₹{Number(value || 0).toLocaleString('en-IN')}</span>; }
+
+// Whole-business GST registration watch (retail + wholesale combined) —
+// spec Part I / §13 explicitly permits this card on the retail dashboard.
+// Fetches its own data (the only panel here that does) so it degrades
+// silently instead of breaking the rest of the dashboard if the B2B
+// summary endpoint is unavailable — this figure is informational, not
+// load-bearing for anything else on the page.
+function GstThresholdPanel() {
+  const [turnover, setTurnover] = useState(null);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    b2bAdminAPI.getSummary()
+      .then((res) => { if (!cancelled) setTurnover(res.data.summary.turnover); })
+      .catch(() => { if (!cancelled) setFailed(true); });
+    return () => { cancelled = true; };
+  }, []);
+
+  if (failed || !turnover) return null;
+
+  const pct = Math.min(100, turnover.percentOfThreshold);
+
+  return (
+    <PanelCard
+      title="FY Turnover vs. GST Registration Threshold"
+      action={<span className="text-xs font-bold" style={{ color: pct >= 90 ? '#dc2626' : '#7a3300' }}>{turnover.percentOfThreshold}%</span>}
+    >
+      <div className="w-full h-2.5 rounded-full overflow-hidden mb-2.5" style={{ background: '#fef3e0' }}>
+        <div className="h-full rounded-full" style={{
+          width: `${pct}%`,
+          background: pct >= 90 ? '#dc2626' : 'linear-gradient(135deg,#e07000,#ff9010)',
+        }} />
+      </div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-xs text-brown-mid/60">
+        <span>Retail <Money value={turnover.retail} /> + Wholesale <Money value={turnover.wholesale} /> = <strong className="text-brown-dark"><Money value={turnover.total} /></strong></span>
+        <span>Threshold <Money value={turnover.threshold} /></span>
+      </div>
+      {pct >= 90 && (
+        <p className="text-xs font-semibold mt-2" style={{ color: '#b91c1c' }}>Approaching the GST registration threshold — talk to your CA soon.</p>
+      )}
+    </PanelCard>
+  );
+}
 
 // ─────────────────────────────────────────────
 // DashboardTab — REDESIGNED
@@ -125,6 +172,8 @@ export default function DashboardTab({ products, orders }) {
           />
         </div>
       </div>
+
+      <GstThresholdPanel />
 
       {/* KPI row 2 — Catalog */}
       <div>

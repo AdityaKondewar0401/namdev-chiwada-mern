@@ -27,12 +27,14 @@ export default function B2BLedgerTab() {
   /* ── Summary ─────────────────────────────────────────────── */
   const [summary, setSummary] = useState(null);
   const [summaryLoading, setSummaryLoading] = useState(true);
+  const [summaryError, setSummaryError] = useState(false);
 
   const fetchSummary = useCallback(() => {
     setSummaryLoading(true);
+    setSummaryError(false);
     b2bAdminAPI.getSummary()
       .then((res) => setSummary(res.data.summary))
-      .catch(() => toast.error('Failed to load B2B summary'))
+      .catch(() => { toast.error('Failed to load B2B summary'); setSummaryError(true); })
       .finally(() => setSummaryLoading(false));
   }, []);
 
@@ -67,6 +69,7 @@ export default function B2BLedgerTab() {
   /* ── Selected account's statement ───────────────────────── */
   const [statement, setStatement] = useState(null);
   const [statementLoading, setStatementLoading] = useState(false);
+  const [statementError, setStatementError] = useState(false);
   const [range, setRange] = useState({ from: '', to: '' });
   const [appliedRange, setAppliedRange] = useState({ from: '', to: '' });
   const [downloadingCsv, setDownloadingCsv] = useState(false);
@@ -74,9 +77,10 @@ export default function B2BLedgerTab() {
   const fetchStatement = useCallback(() => {
     if (!selectedAccount) return;
     setStatementLoading(true);
+    setStatementError(false);
     b2bAdminAPI.getAccountLedger(selectedAccount._id, { from: appliedRange.from || undefined, to: appliedRange.to || undefined })
       .then((res) => setStatement(res.data))
-      .catch(() => toast.error('Failed to load statement'))
+      .catch(() => { toast.error('Failed to load statement'); setStatementError(true); })
       .finally(() => setStatementLoading(false));
   }, [selectedAccount, appliedRange]);
 
@@ -84,6 +88,7 @@ export default function B2BLedgerTab() {
     setRange({ from: '', to: '' });
     setAppliedRange({ from: '', to: '' });
     setStatement(null);
+    setStatementError(false);
   }, [selectedAccount]);
 
   useEffect(() => { fetchStatement(); }, [fetchStatement]);
@@ -208,6 +213,8 @@ export default function B2BLedgerTab() {
       {/* ── Summary cards ─────────────────────────────────────── */}
       {summaryLoading ? (
         <div className="py-8 text-center text-brown-mid/50 text-sm">Loading summary…</div>
+      ) : summaryError ? (
+        <div className="py-8 text-center text-red-600 text-sm">Couldn't load the summary. Please refresh.</div>
       ) : summary && (
         <div className="flex flex-col gap-4 mb-6">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -248,7 +255,7 @@ export default function B2BLedgerTab() {
                   background: turnoverPct >= 90 ? '#dc2626' : 'linear-gradient(135deg,#e07000,#ff9010)',
                 }} />
               </div>
-              <div className="flex items-center justify-between mt-2 text-xs text-brown-mid/60">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mt-2 text-xs text-brown-mid/60">
                 <span>Retail <Money value={turnover.retail} /> + Wholesale <Money value={turnover.wholesale} /> = <strong className="text-brown-dark"><Money value={turnover.total} /></strong></span>
                 <span>Threshold <Money value={turnover.threshold} /></span>
               </div>
@@ -296,6 +303,7 @@ export default function B2BLedgerTab() {
 
         <form onSubmit={runSearch} className="flex gap-2 mb-3">
           <input
+            aria-label="Search business name"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search business name…"
@@ -341,12 +349,12 @@ export default function B2BLedgerTab() {
 
             <form onSubmit={applyRange} className="flex flex-col sm:flex-row items-stretch sm:items-end gap-2 mb-4">
               <div className="flex-1">
-                <label className="block text-xs font-semibold text-brown-dark mb-1">From</label>
-                <input type="date" className="form-input text-base" value={range.from} onChange={(e) => setRange((r) => ({ ...r, from: e.target.value }))} />
+                <label htmlFor="ledger-from" className="block text-xs font-semibold text-brown-dark mb-1">From</label>
+                <input id="ledger-from" type="date" className="form-input text-base" value={range.from} onChange={(e) => setRange((r) => ({ ...r, from: e.target.value }))} />
               </div>
               <div className="flex-1">
-                <label className="block text-xs font-semibold text-brown-dark mb-1">To</label>
-                <input type="date" className="form-input text-base" value={range.to} onChange={(e) => setRange((r) => ({ ...r, to: e.target.value }))} />
+                <label htmlFor="ledger-to" className="block text-xs font-semibold text-brown-dark mb-1">To</label>
+                <input id="ledger-to" type="date" className="form-input text-base" value={range.to} onChange={(e) => setRange((r) => ({ ...r, to: e.target.value }))} />
               </div>
               <button type="submit" className="rounded-xl text-sm font-semibold text-brown-dark px-4 flex-shrink-0" style={{ minHeight: 44, background: '#fef3e0' }}>Apply</button>
               <button type="button" onClick={downloadCsv} disabled={downloadingCsv || statementLoading} className="rounded-xl text-sm font-semibold text-brown-dark px-4 flex-shrink-0 disabled:opacity-60" style={{ minHeight: 44, background: '#fef3e0' }}>
@@ -354,8 +362,10 @@ export default function B2BLedgerTab() {
               </button>
             </form>
 
-            {statementLoading || !statement ? (
+            {statementLoading ? (
               <div className="py-8 text-center text-brown-mid/50 text-sm">Loading statement…</div>
+            ) : statementError || !statement ? (
+              <div className="py-8 text-center text-red-600 text-sm">Couldn't load the statement. Please try again.</div>
             ) : (
               <div>
                 <div className="flex items-center justify-between py-2.5 border-t" style={{ borderColor: 'rgba(224,112,0,0.1)' }}>
@@ -451,8 +461,8 @@ export default function B2BLedgerTab() {
         <form onSubmit={submitAction} className="flex flex-col gap-4" noValidate>
           {actionModal === 'adjustment' && (
             <div>
-              <label className="block text-sm font-semibold text-brown-dark mb-1.5">Type *</label>
-              <select className="form-input text-base" value={actionForm.type} onChange={(e) => setActionForm((f) => ({ ...f, type: e.target.value }))}>
+              <label htmlFor="action-type" className="block text-sm font-semibold text-brown-dark mb-1.5">Type *</label>
+              <select id="action-type" className="form-input text-base" value={actionForm.type} onChange={(e) => setActionForm((f) => ({ ...f, type: e.target.value }))}>
                 <option value="credit">Credit (reduces outstanding)</option>
                 <option value="debit">Debit (increases outstanding)</option>
               </select>
@@ -462,15 +472,15 @@ export default function B2BLedgerTab() {
             <p className="text-sm text-brown-mid/60">A positive amount means the account owes this much; negative means they have a credit balance. This can only be recorded once, before any other ledger entries exist.</p>
           )}
           <div>
-            <label className="block text-sm font-semibold text-brown-dark mb-1.5">Amount (₹) *</label>
-            <input type="number" inputMode="decimal" step="0.01" className="form-input text-base" required
+            <label htmlFor="action-amount" className="block text-sm font-semibold text-brown-dark mb-1.5">Amount (₹) *</label>
+            <input id="action-amount" type="number" inputMode="decimal" step="0.01" className="form-input text-base" required
               value={actionForm.amount} onChange={(e) => setActionForm((f) => ({ ...f, amount: e.target.value }))} />
           </div>
           {actionModal === 'payment' && (
             <>
               <div>
-                <label className="block text-sm font-semibold text-brown-dark mb-1.5">Method *</label>
-                <select className="form-input text-base" value={actionForm.method} onChange={(e) => setActionForm((f) => ({ ...f, method: e.target.value }))}>
+                <label htmlFor="action-method" className="block text-sm font-semibold text-brown-dark mb-1.5">Method *</label>
+                <select id="action-method" className="form-input text-base" value={actionForm.method} onChange={(e) => setActionForm((f) => ({ ...f, method: e.target.value }))}>
                   <option value="upi">UPI</option>
                   <option value="neft_rtgs">NEFT / RTGS</option>
                   <option value="cash">Cash</option>
@@ -480,18 +490,18 @@ export default function B2BLedgerTab() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-brown-dark mb-1.5">Reference (UTR / cheque no.)</label>
-                <input className="form-input text-base" value={actionForm.reference} onChange={(e) => setActionForm((f) => ({ ...f, reference: e.target.value }))} />
+                <label htmlFor="action-reference" className="block text-sm font-semibold text-brown-dark mb-1.5">Reference (UTR / cheque no.)</label>
+                <input id="action-reference" className="form-input text-base" value={actionForm.reference} onChange={(e) => setActionForm((f) => ({ ...f, reference: e.target.value }))} />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-brown-dark mb-1.5">Date</label>
-                <input type="date" className="form-input text-base" value={actionForm.date} onChange={(e) => setActionForm((f) => ({ ...f, date: e.target.value }))} />
+                <label htmlFor="action-date" className="block text-sm font-semibold text-brown-dark mb-1.5">Date</label>
+                <input id="action-date" type="date" className="form-input text-base" value={actionForm.date} onChange={(e) => setActionForm((f) => ({ ...f, date: e.target.value }))} />
               </div>
             </>
           )}
           <div>
-            <label className="block text-sm font-semibold text-brown-dark mb-1.5">Note</label>
-            <textarea className="form-input text-base" rows={2} value={actionForm.note} onChange={(e) => setActionForm((f) => ({ ...f, note: e.target.value }))} />
+            <label htmlFor="action-note" className="block text-sm font-semibold text-brown-dark mb-1.5">Note</label>
+            <textarea id="action-note" className="form-input text-base" rows={2} value={actionForm.note} onChange={(e) => setActionForm((f) => ({ ...f, note: e.target.value }))} />
           </div>
           <button type="submit" disabled={actionSubmitting} className="btn-saffron disabled:opacity-60" style={{ minHeight: 48 }}>
             {actionSubmitting ? 'Saving…' : 'Save'}
@@ -504,8 +514,8 @@ export default function B2BLedgerTab() {
         <form onSubmit={submitCreditNote} className="flex flex-col gap-4" noValidate>
           <p className="text-sm text-brown-mid/60">This fully reverses the invoice's ₹{creditNoteModal ? Number(creditNoteModal.totals?.payable || 0).toLocaleString('en-IN') : 0} outstanding and cannot be undone. Partial credit notes aren't supported.</p>
           <div>
-            <label className="block text-sm font-semibold text-brown-dark mb-1.5">Reason *</label>
-            <textarea className="form-input text-base" rows={3} required value={creditNoteReason} onChange={(e) => setCreditNoteReason(e.target.value)} />
+            <label htmlFor="credit-note-reason" className="block text-sm font-semibold text-brown-dark mb-1.5">Reason *</label>
+            <textarea id="credit-note-reason" className="form-input text-base" rows={3} required value={creditNoteReason} onChange={(e) => setCreditNoteReason(e.target.value)} />
           </div>
           <button type="submit" disabled={creditNoteSubmitting || creditNoteReason.trim().length < 3}
             className="rounded-full font-bold text-white disabled:opacity-60" style={{ minHeight: 48, background: '#dc2626' }}>

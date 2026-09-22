@@ -42,6 +42,7 @@ export default function B2BOrdersTab() {
   const [detailId, setDetailId] = useState(null);
   const [detail, setDetail] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState(false);
 
   const [statusModal, setStatusModal] = useState(null); // target status string
   const [statusForm, setStatusForm] = useState({ note: '', reason: '', dispatch: { mode: '' } });
@@ -63,13 +64,14 @@ export default function B2BOrdersTab() {
   const openDetail = (id) => {
     setDetailId(id);
     setDetail(null);
+    setDetailError(false);
     setDetailLoading(true);
     b2bAdminAPI.getOrder(id)
       .then((res) => setDetail(res.data.order))
-      .catch(() => toast.error('Failed to load order'))
+      .catch(() => { toast.error('Failed to load order'); setDetailError(true); })
       .finally(() => setDetailLoading(false));
   };
-  const closeDetail = () => { setDetailId(null); setDetail(null); };
+  const closeDetail = () => { setDetailId(null); setDetail(null); setDetailError(false); };
   const refreshAfter = () => { fetchOrders(); if (detailId) openDetail(detailId); };
 
   const openStatusModal = (status) => {
@@ -190,8 +192,10 @@ export default function B2BOrdersTab() {
       )}
 
       <B2BModal open={!!detailId} onClose={closeDetail} title="B2B Order" widthClass="sm:max-w-lg">
-        {detailLoading || !detail ? (
+        {detailLoading ? (
           <div className="py-10 text-center text-brown-mid/50 text-sm">Loading…</div>
+        ) : detailError || !detail ? (
+          <div className="py-10 text-center text-red-600 text-sm">Couldn't load this order. Please try again.</div>
         ) : (
           <div className="flex flex-col gap-4">
             <div className="flex items-start justify-between gap-3">

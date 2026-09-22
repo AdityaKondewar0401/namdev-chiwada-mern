@@ -63,7 +63,7 @@ export default function B2BStatementPage() {
       <h1 className="font-serif font-black text-brown-dark text-xl sm:text-2xl mb-4">Statement</h1>
 
       {creditSummary && (
-        <div className="grid grid-cols-3 gap-3 mb-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
           <div className="card p-4">
             <div className="text-xs font-semibold uppercase tracking-wide text-brown-mid/50">Outstanding</div>
             <div className="font-serif font-black text-brown-dark text-lg mt-1"><Money value={creditSummary.outstanding} /></div>
@@ -72,7 +72,7 @@ export default function B2BStatementPage() {
             <div className="text-xs font-semibold uppercase tracking-wide text-brown-mid/50">Available credit</div>
             <div className="font-serif font-black text-brown-dark text-lg mt-1"><Money value={creditSummary.availableCredit} /></div>
           </div>
-          <div className="card p-4">
+          <div className="card p-4 col-span-2 sm:col-span-1">
             <div className="text-xs font-semibold uppercase tracking-wide text-brown-mid/50">Credit limit</div>
             <div className="font-serif font-black text-brown-dark text-lg mt-1"><Money value={creditSummary.creditLimit} /></div>
           </div>
@@ -81,12 +81,12 @@ export default function B2BStatementPage() {
 
       <form onSubmit={applyRange} className="card p-4 flex flex-col sm:flex-row items-stretch sm:items-end gap-3 mb-4">
         <div className="flex-1">
-          <label className="block text-xs font-semibold text-brown-dark mb-1.5">From</label>
-          <input type="date" className="form-input text-base" value={range.from} onChange={(e) => setRange((r) => ({ ...r, from: e.target.value }))} />
+          <label htmlFor="statement-from" className="block text-xs font-semibold text-brown-dark mb-1.5">From</label>
+          <input id="statement-from" type="date" className="form-input text-base" value={range.from} onChange={(e) => setRange((r) => ({ ...r, from: e.target.value }))} />
         </div>
         <div className="flex-1">
-          <label className="block text-xs font-semibold text-brown-dark mb-1.5">To</label>
-          <input type="date" className="form-input text-base" value={range.to} onChange={(e) => setRange((r) => ({ ...r, to: e.target.value }))} />
+          <label htmlFor="statement-to" className="block text-xs font-semibold text-brown-dark mb-1.5">To</label>
+          <input id="statement-to" type="date" className="form-input text-base" value={range.to} onChange={(e) => setRange((r) => ({ ...r, to: e.target.value }))} />
         </div>
         <button type="submit" className="rounded-xl text-sm font-semibold text-brown-dark flex-shrink-0" style={{ minHeight: 48, background: '#fef3e0', padding: '0 20px' }}>
           Apply
