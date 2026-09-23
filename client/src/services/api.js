@@ -189,6 +189,9 @@ export const b2bAPI = {
   quoteOrder: (data) =>
     api.post('/api/b2b/orders/quote', data),
 
+  createAdvancePaymentOrder: (data) =>
+    api.post('/api/b2b/orders/payment/create-order', data),
+
   placeOrder: (data) =>
     api.post('/api/b2b/orders', data),
 
@@ -293,6 +296,12 @@ export const b2bAdminAPI = {
 
   issueInvoice: (orderId) =>
     api.post(`/api/b2b/admin/orders/${orderId}/invoice`),
+
+  createShipment: (orderId) =>
+    api.post(`/api/b2b/admin/orders/${orderId}/create-shipment`),
+
+  cancelShipment: (orderId, data) =>
+    api.post(`/api/b2b/admin/orders/${orderId}/cancel-shipment`, data),
 
   listInvoices: (params) =>
     api.get('/api/b2b/admin/invoices', { params }),

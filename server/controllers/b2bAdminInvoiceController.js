@@ -5,6 +5,7 @@ const CreditNote = require('../models/CreditNote');
 const { renderInvoicePdf, renderCreditNotePdf } = require('../services/invoicePdfService');
 const { issueCreditNoteForInvoice } = require('../utils/b2bCreditNote');
 const { sendB2BCreditNoteIssued } = require('../services/emailService');
+const { advanceNoteFor } = require('../utils/b2bInvoicing');
 
 exports.listInvoices = async (req, res, next) => {
   try {
@@ -25,12 +26,12 @@ exports.listInvoices = async (req, res, next) => {
 
 exports.downloadInvoicePdf = async (req, res, next) => {
   try {
-    const invoice = await Invoice.findById(req.params.id).populate('order', 'orderNumber paymentTermsSnapshot');
+    const invoice = await Invoice.findById(req.params.id).populate('order', 'orderNumber advancePercent advanceAmount');
     if (!invoice) return res.status(404).json({ success: false, message: 'Invoice not found' });
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `inline; filename="${invoice.invoiceNumber.replace(/\//g, '-')}.pdf"`);
-    renderInvoicePdf(invoice, { orderNumber: invoice.order?.orderNumber, paymentTerms: invoice.order?.paymentTermsSnapshot }).pipe(res);
+    renderInvoicePdf(invoice, { orderNumber: invoice.order?.orderNumber, advanceNote: advanceNoteFor(invoice.order) }).pipe(res);
   } catch (err) {
     next(err);
   }

@@ -39,9 +39,12 @@ exports.updateOrderStatus = [
   body('dispatch.trackingUrl').optional({ values: 'falsy' }).isString().trim().isLength({ max: 500 }),
   body('dispatch.expectedDeliveryDate').optional({ values: 'falsy' }).isISO8601().withMessage('expectedDeliveryDate must be a valid date'),
   body('dispatch.notes').optional({ values: 'falsy' }).isString().trim().isLength({ max: 500 }),
-  body('force').optional().isBoolean(),
 ];
 
 exports.overrideCreditHold = [
   body('note').optional({ values: 'falsy' }).isString().trim().isLength({ max: 500 }),
+];
+
+exports.cancelShipment = [
+  body('remarks').optional({ values: 'falsy' }).isString().trim().isLength({ max: 500 }).withMessage('remarks must be at most 500 characters'),
 ];

@@ -94,9 +94,9 @@ function drawBuyerBlock(doc, buyer, shipTo, y) {
   }
 }
 
-function drawMeta(doc, { dueDate, orderNumber, paymentTerms }, y) {
+function drawMeta(doc, { dueDate, orderNumber, advanceNote }, y) {
   doc.fillColor(BRAND_BROWN).fontSize(9).font('Helvetica-Bold').text('Order:', 40, y).font('Helvetica').text(orderNumber || '-', 100, y);
-  doc.font('Helvetica-Bold').text('Payment terms:', 40, y + 14).font('Helvetica').text((paymentTerms || '-').toUpperCase(), 130, y + 14);
+  doc.font('Helvetica-Bold').text('Advance:', 40, y + 14).font('Helvetica').text(advanceNote || '-', 100, y + 14);
   doc.font('Helvetica-Bold').text('Due date:', 40, y + 28).font('Helvetica').text(formatDate(dueDate), 100, y + 28);
 }
 
@@ -174,7 +174,7 @@ function renderInvoicePdf(invoice, extra = {}) {
   drawHeader(doc, invoice.documentTitle, invoice.invoiceNumber, invoice.issuedAt);
   drawSellerBlock(doc, invoice.seller, 120);
   drawBuyerBlock(doc, invoice.buyer, invoice.shipTo, 120);
-  drawMeta(doc, { dueDate: invoice.dueDate, orderNumber: extra.orderNumber, paymentTerms: extra.paymentTerms }, 220);
+  drawMeta(doc, { dueDate: invoice.dueDate, orderNumber: extra.orderNumber, advanceNote: extra.advanceNote }, 220);
   const afterTable = drawLinesTable(doc, invoice.lines, 258);
   const afterTotals = drawTotals(doc, invoice.totals, invoice.amountInWords, afterTable + 8);
   const afterBank = drawBankDetails(doc, invoice.seller.bank, afterTotals + 10);

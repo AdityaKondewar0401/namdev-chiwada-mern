@@ -7,10 +7,25 @@ import B2BModal from '../../components/b2b/B2BModal';
 import B2BStatusBadge from '../../components/b2b/B2BStatusBadge';
 import { useAuth } from '../../context/AuthContext';
 import { useB2B } from '../../context/B2BContext';
-import { b2bAPI } from '../../services/api';
+import api, { b2bAPI } from '../../services/api';
+import { SITE_NAME } from '../../config/seo.config';
 
 function draftKey(userId) { return `nc_b2b_draft_${userId}`; }
 function Money({ value }) { return <span>₹{Number(value || 0).toLocaleString('en-IN')}</span>; }
+
+// Same idempotent loader as CheckoutPage.jsx's own local copy - small
+// enough (and framework-loading, not business logic) that duplicating it
+// here beats adding a shared util both pages would need to import.
+function loadRazorpayScript() {
+  return new Promise((resolve) => {
+    if (window.Razorpay) return resolve(true);
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+}
 
 export default function B2BQuickOrderPage() {
   const { user } = useAuth();
@@ -115,15 +130,21 @@ export default function B2BQuickOrderPage() {
   const minOrderValue = config?.minOrderValue || 0;
   const progress = minOrderValue > 0 ? Math.min(100, ((quote?.subtotal || 0) / minOrderValue) * 100) : 100;
 
-  const submitOrder = async () => {
+  const onOrderPlaced = (order) => {
+    if (user?._id) { try { localStorage.removeItem(draftKey(user._id)); } catch { /* ignore */ } }
+    setDraft({});
+    toast.success('Order placed!');
+    refresh();
+    navigate(`/b2b/orders/${order._id}`);
+  };
+
+  // 0%-advance accounts (pure credit) place directly, same as before -
+  // nothing to charge, so no Razorpay involved at all.
+  const placeOrderDirect = async () => {
     setPlacing(true);
     try {
       const res = await b2bAPI.placeOrder({ items, shippingAddressId, buyerNotes: buyerNotes || undefined });
-      if (user?._id) { try { localStorage.removeItem(draftKey(user._id)); } catch { /* ignore */ } }
-      setDraft({});
-      toast.success('Order placed!');
-      refresh();
-      navigate(`/b2b/orders/${res.data.order._id}`);
+      onOrderPlaced(res.data.order);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Could not place order');
       if (Array.isArray(err.response?.data?.errors)) setQuoteErrors(err.response.data.errors);
@@ -132,6 +153,78 @@ export default function B2BQuickOrderPage() {
       setConfirmOpen(false);
     }
   };
+
+  // Mirrors CheckoutPage.jsx's handleRazorpayPayment: create a Razorpay
+  // order for the ADVANCE only, open Checkout, verify via the existing
+  // (unchanged) /api/payment/verify, then place the order with proof of
+  // that verified payment attached.
+  const payAdvanceAndPlaceOrder = async () => {
+    setPlacing(true);
+    try {
+      const loaded = await loadRazorpayScript();
+      if (!loaded) { toast.error('Failed to load payment gateway.'); setPlacing(false); return; }
+
+      const payRes = await b2bAPI.createAdvancePaymentOrder({ items, shippingAddressId });
+      const { order_id, amount, currency } = payRes.data;
+
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount, currency,
+        name: SITE_NAME,
+        description: `Advance payment — ${business.businessName}`,
+        image: `${window.location.origin}/images/logo.png`,
+        order_id,
+        handler: async function (response) {
+          try {
+            const verifyRes = await api.post('/api/payment/verify', {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            });
+            if (verifyRes.data.success) {
+              const res = await b2bAPI.placeOrder({
+                items, shippingAddressId, buyerNotes: buyerNotes || undefined,
+                razorpayOrderId: response.razorpay_order_id,
+              });
+              onOrderPlaced(res.data.order);
+            } else {
+              toast.error('Payment verification failed.');
+            }
+          } catch (err) {
+            toast.error(err.response?.data?.message || 'Payment verification failed.');
+          } finally {
+            setPlacing(false);
+          }
+        },
+        prefill: {
+          name: business.contactName || user?.name || '',
+          contact: business.phone || '',
+          email: business.email || user?.email || '',
+        },
+        notes: { business: business.businessName },
+        theme: { color: '#e07000' },
+        modal: { ondismiss: function () { setPlacing(false); } },
+      };
+
+      // Hand off to Razorpay's own modal now, rather than after
+      // success/failure — stacking our confirm dialog behind theirs would
+      // just be confusing. Dismissing Razorpay's popup leaves the user on
+      // the main Quick Order page, free to reopen "Review & place order".
+      setConfirmOpen(false);
+
+      const rzp = new window.Razorpay(options);
+      rzp.on('payment.failed', function (response) {
+        toast.error(response.error?.description || 'Payment failed');
+        setPlacing(false);
+      });
+      rzp.open();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not start payment.');
+      setPlacing(false);
+    }
+  };
+
+  const submitOrder = () => (quote?.advanceAmount > 0 ? payAdvanceAndPlaceOrder() : placeOrderDirect());
 
   if (business === undefined) return null;
   if (business === null || business.status !== 'approved') {
@@ -275,13 +368,31 @@ export default function B2BQuickOrderPage() {
             <span>Total payable</span>
             <span><Money value={quote?.payable} /></span>
           </div>
+          {quote?.advanceAmount > 0 ? (
+            <div className="flex flex-col gap-1.5 text-sm rounded-xl p-3" style={{ background: '#fef3e0' }}>
+              <div className="flex items-center justify-between">
+                <span className="text-brown-mid/70">Pay now ({quote.advancePercent}% advance)</span>
+                <span className="font-bold text-brown-dark"><Money value={quote.advanceAmount} /></span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-brown-mid/70">Due in 14 days</span>
+                <span className="font-semibold text-brown-dark"><Money value={quote.remainingAmount} /></span>
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-brown-mid/60">No advance payment required — the full amount is on credit.</div>
+          )}
           {quote?.wouldHold && (
             <div className="p-3 rounded-xl text-sm" style={{ background: '#fef2f2', color: '#991b1b' }}>
               This order will be placed on credit hold and needs admin approval before it's confirmed.
             </div>
           )}
           <button onClick={submitOrder} disabled={placing} className="btn-saffron disabled:opacity-60" style={{ minHeight: 48 }}>
-            {placing ? 'Placing order…' : 'Place order'}
+            {placing
+              ? 'Processing…'
+              : quote?.advanceAmount > 0
+                ? `Pay ₹${Number(quote.advanceAmount).toLocaleString('en-IN')} & place order`
+                : 'Place order'}
           </button>
         </div>
       </B2BModal>
@@ -298,6 +409,11 @@ function SummaryPanel({ quoting, quote, totalCases, totalUnits, minOrderValue, p
       <div className="flex justify-between font-bold text-brown-dark text-base border-t pt-3" style={{ borderColor: 'rgba(224,112,0,0.1)' }}>
         <span>Total</span><span>{quoting ? '…' : <Money value={quote?.payable} />}</span>
       </div>
+      {!quoting && quote?.advanceAmount > 0 && (
+        <div className="flex justify-between text-xs text-brown-mid/60 -mt-2">
+          <span>Pay now ({quote.advancePercent}%)</span><span className="font-semibold text-brown-dark"><Money value={quote.advanceAmount} /></span>
+        </div>
+      )}
 
       {minOrderValue > 0 && (
         <div>

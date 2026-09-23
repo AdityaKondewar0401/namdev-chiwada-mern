@@ -158,6 +158,19 @@ export default function B2BOrderDetailPage() {
             </div>
           )}
 
+          {order.courier?.awbNumber && (
+            <div className="card p-4">
+              <div className="text-xs font-bold uppercase tracking-wider text-brown-mid/50 mb-2">Shipment tracking</div>
+              <div className="text-sm text-brown-dark flex flex-col gap-1">
+                <div>AWB: <strong>{order.courier.awbNumber}</strong></div>
+                <div className="capitalize">Status: {order.courier.statusDisplay || order.courier.status || 'Booked'}</div>
+                {order.courier.trackingUrl && (
+                  <a href={order.courier.trackingUrl} target="_blank" rel="noopener noreferrer" className="text-saffron font-semibold">Track shipment →</a>
+                )}
+              </div>
+            </div>
+          )}
+
           {order.invoice && (
             <div className="card p-4 flex items-center justify-between">
               <div className="text-sm font-semibold text-brown-dark">Invoice {order.invoice.invoiceNumber}</div>

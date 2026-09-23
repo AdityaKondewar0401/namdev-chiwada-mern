@@ -10,6 +10,7 @@ const Invoice = require('../models/Invoice');
 const PriceTier = require('../models/PriceTier');
 const { priceB2BOrder } = require('../utils/b2bPricing');
 const { shouldHold } = require('../utils/b2bCredit');
+const { round2 } = require('../utils/money');
 const {
   isTransitionAllowed, getAllowedNextStatuses, REASON_REQUIRED_FOR, CANCEL_REQUIRES_CREDIT_NOTE_IF_INVOICED,
 } = require('../utils/b2bOrderStatus');
@@ -100,7 +101,14 @@ exports.updateOrderItems = async (req, res, next) => {
       subtotal: result.subtotal, taxTotal: result.taxTotal, grandTotal: result.grandTotal,
       roundOff: result.roundOff, payable: result.payable,
     };
-    order.creditHold = await shouldHold(account, result.payable);
+    // advanceAmount was already collected via Razorpay at placement and
+    // never changes here - only what's still owed does. If the edit
+    // drops payable below what's already been paid, nothing further is
+    // due (the resulting credit is still fully visible in the Ledger's
+    // own derived balance, not lost - just not shown as a negative
+    // "remaining" here).
+    order.remainingAmount = Math.max(0, round2(result.payable - order.advanceAmount));
+    order.creditHold = await shouldHold(account, order.remainingAmount);
     order.editHistory.push({ by: req.user._id, reason, before, after: order.toObject() });
 
     await order.save();

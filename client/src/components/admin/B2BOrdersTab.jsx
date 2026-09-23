@@ -50,6 +50,7 @@ export default function B2BOrdersTab() {
   const [holdSubmitting, setHoldSubmitting] = useState(false);
   const [invoiceSubmitting, setInvoiceSubmitting] = useState(false);
   const [downloadingInvoice, setDownloadingInvoice] = useState(false);
+  const [shipmentSubmitting, setShipmentSubmitting] = useState(false);
 
   const fetchOrders = useCallback(() => {
     setLoading(true);
@@ -132,6 +133,34 @@ export default function B2BOrdersTab() {
       toast.error(err.response?.data?.message || 'Failed to override hold');
     } finally {
       setHoldSubmitting(false);
+    }
+  };
+
+  const createShipment = async () => {
+    setShipmentSubmitting(true);
+    try {
+      await b2bAdminAPI.createShipment(detail._id);
+      toast.success('Shipment booked with Shadowfax');
+      refreshAfter();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to create shipment');
+      refreshAfter(); // the AWB attempt's error, if any, is persisted on the order
+    } finally {
+      setShipmentSubmitting(false);
+    }
+  };
+
+  const cancelShipment = async () => {
+    if (!window.confirm('Cancel this Shadowfax shipment?')) return;
+    setShipmentSubmitting(true);
+    try {
+      await b2bAdminAPI.cancelShipment(detail._id, {});
+      toast.success('Shipment cancelled');
+      refreshAfter();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to cancel shipment');
+    } finally {
+      setShipmentSubmitting(false);
     }
   };
 
@@ -218,6 +247,34 @@ export default function B2BOrdersTab() {
               <div className="text-xs font-bold uppercase tracking-wider text-brown-mid/50 mb-1">Ship to</div>
               {detail.shippingAddress?.line1}, {detail.shippingAddress?.city}, {detail.shippingAddress?.state} {detail.shippingAddress?.pincode}
             </div>
+
+            {detail.courier?.awbNumber ? (
+              <div className="p-3 rounded-xl text-sm" style={{ background: '#fef3e0' }}>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-semibold text-brown-dark">AWB {detail.courier.awbNumber}</span>
+                  <span className="text-xs text-brown-mid/60 capitalize">{detail.courier.statusDisplay || detail.courier.status || 'Booked'}</span>
+                </div>
+                <div className="flex items-center justify-between gap-2 mt-1.5">
+                  {detail.courier.trackingUrl ? (
+                    <a href={detail.courier.trackingUrl} target="_blank" rel="noopener noreferrer" className="text-saffron font-semibold text-xs">Track shipment →</a>
+                  ) : <span />}
+                  <button onClick={cancelShipment} disabled={shipmentSubmitting} className="text-red-600 font-semibold text-xs disabled:opacity-60">
+                    {shipmentSubmitting ? 'Working…' : 'Cancel shipment'}
+                  </button>
+                </div>
+              </div>
+            ) : detail.status === 'dispatched' ? (
+              <div className="flex flex-col gap-1.5">
+                <button onClick={createShipment} disabled={shipmentSubmitting}
+                  className="w-full rounded-xl text-sm font-semibold text-brown-dark disabled:opacity-60"
+                  style={{ minHeight: 44, background: '#fef3e0' }}>
+                  {shipmentSubmitting ? 'Booking…' : 'Create Shadowfax shipment'}
+                </button>
+                {detail.courier?.error && (
+                  <div className="p-2.5 rounded-xl text-xs" style={{ background: '#fef2f2', color: '#991b1b' }}>{detail.courier.error}</div>
+                )}
+              </div>
+            ) : null}
 
             {detail.invoice ? (
               <div className="p-3 rounded-xl flex items-center justify-between gap-2 text-sm" style={{ background: '#fef3e0' }}>

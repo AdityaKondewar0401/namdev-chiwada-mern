@@ -45,6 +45,7 @@ before(async () => {
     totals: { subtotal: 2880, taxTotal: 0, grandTotal: 2880, roundOff: 0, payable: 2880 },
     status: 'placed',
     statusHistory: [{ status: 'placed', by: user._id }],
+    advancePercent: 0, advanceAmount: 0, remainingAmount: 2880,
   });
 
   await LedgerEntry.create({

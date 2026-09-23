@@ -10,6 +10,7 @@
 // catalog/account data after the fact (spec §12).
 
 const mongoose = require('mongoose');
+const courierSchema = require('./schemas/courierSchema');
 
 const orderItemSchema = new mongoose.Schema({
   catalogItem: { type: mongoose.Schema.Types.ObjectId, ref: 'WholesaleCatalogItem', required: true },
@@ -91,7 +92,27 @@ const b2bOrderSchema = new mongoose.Schema({
     note: { type: String, trim: true },
   },
 
-  paymentTermsSnapshot: { type: String },
+  // ── Advance/remainder payment (replaces the old paymentTerms model) ──
+  // advancePercent is a snapshot of business.advancePercent at the
+  // moment this order was placed (later admin changes to the account
+  // must never retroactively change what an existing order owed).
+  // advanceAmount was collected via a real, verified Razorpay payment
+  // BEFORE this order could be created (see utils/b2bOrderCreation.js) -
+  // unless advancePercent is 0, in which case no payment was collected
+  // and razorpayOrderId/razorpayPaymentId are left unset. remainingAmount
+  // is always payable - advanceAmount exactly (never independently
+  // rounded), due remainingDueDate (order placement + 14 days, fixed for
+  // every business - see utils/b2bInvoicing.js REMAINDER_DUE_DAYS) and
+  // collected manually via the Ledger when it actually arrives.
+  advancePercent:   { type: Number, required: true },
+  advanceAmount:    { type: Number, required: true, default: 0 },
+  remainingAmount:  { type: Number, required: true, default: 0 },
+  remainingDueDate: { type: Date },
+  // Sparse+unique, same reasoning as models/Order.js: a 0%-advance order
+  // never sets this, but no two orders should ever claim the same
+  // Razorpay order.
+  razorpayOrderId:   { type: String, index: { unique: true, sparse: true } },
+  razorpayPaymentId: { type: String },
 
   buyerNotes: { type: String, trim: true },
   adminNotes: { type: String, trim: true },
@@ -108,6 +129,14 @@ const b2bOrderSchema = new mongoose.Schema({
     expectedDeliveryDate: { type: Date },
     notes: { type: String, trim: true },
   },
+
+  // ── Real Shadowfax shipment (separate from the manual `dispatch` info
+  // above, which stays as free-text transporter/LR/vehicle notes an
+  // admin can fill in regardless of whether a real AWB was ever booked).
+  // Always admin-triggered via "Create Shipment" (b2bShippingController),
+  // never automatic on order placement. Same shape as models/Order.js's
+  // courier field, kept current by the shared Shadowfax webhook. ──
+  courier: { type: courierSchema, default: () => ({}) },
 
   invoice: { type: mongoose.Schema.Types.ObjectId, ref: 'Invoice', default: null },
 

@@ -28,6 +28,13 @@ function httpError(message, statusCode) {
   return err;
 }
 
+// Shared by both invoice-PDF download controllers so the "Advance:" line
+// on the PDF can't drift between the business-facing and admin copies.
+function advanceNoteFor(order) {
+  if (!order || !(order.advanceAmount > 0)) return 'Full amount on credit';
+  return `${order.advancePercent}% paid (Rs. ${order.advanceAmount.toLocaleString('en-IN')})`;
+}
+
 /**
  * @param {string} orderId
  * @param {string} issuedByUserId - the admin (or system, for
@@ -58,7 +65,11 @@ async function issueInvoiceForOrder(orderId, issuedByUserId) {
       const business = order.business;
       const { number: invoiceNumber, financialYear } = await nextInvoiceNumber(business.isTest, new Date(), session);
 
-      const dueDate = new Date(order.createdAt.getTime() + REMAINDER_DUE_DAYS * 24 * 60 * 60 * 1000);
+      // order.remainingDueDate is the single source of truth (set once
+      // at placement in utils/b2bOrderCreation.js). The fallback only
+      // matters for an order placed before that field existed.
+      const dueDate = order.remainingDueDate
+        || new Date(order.createdAt.getTime() + REMAINDER_DUE_DAYS * 24 * 60 * 60 * 1000);
 
       const [invoice] = await Invoice.create([{
         invoiceNumber,
@@ -128,4 +139,4 @@ async function issueInvoiceForOrder(orderId, issuedByUserId) {
   return createdInvoice;
 }
 
-module.exports = { issueInvoiceForOrder, REMAINDER_DUE_DAYS };
+module.exports = { issueInvoiceForOrder, REMAINDER_DUE_DAYS, advanceNoteFor };
