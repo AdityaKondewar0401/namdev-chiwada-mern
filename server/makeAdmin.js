@@ -1,7 +1,7 @@
 // makeAdmin.js
 // Place this file inside the "server" folder (same level as package.json)
 //
-// Run with production env vars in effect: node makeAdmin.js youremail@example.com
+// Run with:  railway run node makeAdmin.js youremail@example.com
 //
 // This promotes an existing user to admin by setting role: 'admin'
 
@@ -13,7 +13,7 @@ const User = require('./models/User');
 async function makeAdmin(email) {
   if (!email) {
     console.error('❌ Please provide an email address.');
-    console.error('   Usage: node makeAdmin.js youremail@example.com');
+    console.error('   Usage: railway run node makeAdmin.js youremail@example.com');
     process.exit(1);
   }
 

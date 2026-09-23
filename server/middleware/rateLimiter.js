@@ -77,14 +77,3 @@ exports.whatsappWebhookLimiter = buildLimiter({
   max: rateLimitConfig.ip.whatsappWebhook.max,
   message: 'Too many webhook requests from this source.',
 });
-
-// ── Additive, separate tier: POST /api/b2b/orders/quote only. Stacked
-// ON TOP OF userActionLimiter (both apply), not a replacement — see
-// config/rateLimits.js for why the Quick Order page's debounced
-// re-quoting needs its own budget. Same per-user keying as userAction.
-exports.b2bQuoteLimiter = buildLimiter({
-  windowMs: rateLimitConfig.ip.b2bQuote.windowMs,
-  max: rateLimitConfig.ip.b2bQuote.max,
-  message: 'Too many pricing requests. Please slow down and try again shortly.',
-  keyGenerator: (req) => (req.user?._id ? String(req.user._id) : ipKeyGenerator(req.ip)),
-});

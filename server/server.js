@@ -17,7 +17,7 @@ const app = express();
 // context about which request or code path caused it. These two handlers
 // make sure EVERY error gets a full stack trace in the server logs no
 // matter where it originated, then exits so the process manager
-// (Render) restarts to a clean state rather than continuing to run with
+// (Railway) restarts to a clean state rather than continuing to run with
 // potentially corrupted internal state.
 process.on('uncaughtException', (err) => {
   console.error('❌ Uncaught Exception (process will exit):', err.stack || err);
@@ -30,12 +30,12 @@ process.on('unhandledRejection', (reason) => {
 });
 
 // ── Trust proxy ────────────────────────────────────────
-// Render (and most PaaS hosts) sit behind a reverse proxy, so the real
+// Railway (and most PaaS hosts) sit behind a reverse proxy, so the real
 // client IP arrives in X-Forwarded-For rather than as the raw socket
 // address. Without this, express-rate-limit's per-IP limiters would key
 // on the proxy's IP for every request — meaning ALL users would share
 // one rate-limit bucket. `1` trusts exactly one hop (the platform's own
-// proxy), which is the correct/safe value for Render-style single-proxy
+// proxy), which is the correct/safe value for Railway-style single-proxy
 // deployments. Configurable in case the topology changes later (e.g.
 // behind an additional CDN/load balancer, which would need `2`).
 app.set('trust proxy', Number(process.env.TRUST_PROXY_HOPS || 1));
@@ -129,8 +129,6 @@ app.use('/api/wishlist', require('./routes/wishlist'));
 app.use('/api/payment', require('./routes/payment'));
 app.use('/api/shipping', require('./routes/shipping'));
 app.use('/api/whatsapp', require('./routes/whatsapp'));
-app.use('/api/b2b/admin', require('./routes/b2bAdmin'));
-app.use('/api/b2b',       require('./routes/b2b'));
 
 // ── Health Check ───────────────────────────────────────
 app.get('/api/health', (req, res) => {

@@ -18,7 +18,6 @@ import { TABS } from './adminConstants';
 // ─────────────────────────────────────────────
 
 const storeTabs = TABS.filter((t) => t.group === 'store');
-const b2bTabs = TABS.filter((t) => t.group === 'b2b');
 
 function TabButton({ tab, activeTab, onTabChange, productsCount, variant }) {
   const isActive = activeTab === tab.id;
@@ -73,13 +72,10 @@ function TabButton({ tab, activeTab, onTabChange, productsCount, variant }) {
 export default function AdminNav({ activeTab, onTabChange, productsCount }) {
   return (
     <>
-      {/* MOBILE / TABLET: horizontal scrollable pill tab bar (both groups, one row) */}
+      {/* MOBILE / TABLET: horizontal scrollable pill tab bar */}
       <div className="lg:hidden -mx-4 px-4 pb-1 overflow-x-auto">
         <div className="flex items-center gap-2 w-max">
           {storeTabs.map((tab) => (
-            <TabButton key={tab.id} tab={tab} activeTab={activeTab} onTabChange={onTabChange} productsCount={productsCount} variant="pill" />
-          ))}
-          {b2bTabs.map((tab) => (
             <TabButton key={tab.id} tab={tab} activeTab={activeTab} onTabChange={onTabChange} productsCount={productsCount} variant="pill" />
           ))}
         </div>
@@ -96,13 +92,6 @@ export default function AdminNav({ activeTab, onTabChange, productsCount }) {
         <div className="px-4 pt-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-brown-mid/40">Store</div>
         <div className="p-2 pt-0">
           {storeTabs.map((tab) => (
-            <TabButton key={tab.id} tab={tab} activeTab={activeTab} onTabChange={onTabChange} productsCount={productsCount} variant="sidebar" />
-          ))}
-        </div>
-
-        <div className="px-4 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-brown-mid/40">Wholesale</div>
-        <div className="p-2 pt-0">
-          {b2bTabs.map((tab) => (
             <TabButton key={tab.id} tab={tab} activeTab={activeTab} onTabChange={onTabChange} productsCount={productsCount} variant="sidebar" />
           ))}
         </div>

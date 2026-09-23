@@ -322,18 +322,8 @@ Routes are declared in `client/src/App.jsx`.
 | `/chiwada` | Public | `ChiwadaPage` | SEO landing page targeting the keyword "chiwada". |
 | `/solapuri-chiwada` | Public | `SolapuriChiwadaPage` | SEO landing page targeting "solapuri chiwada". Includes visible FAQ + `FAQPage` JSON-LD. |
 | `/maharashtrian-snacks` | Public | `MaharashtrianSnacksPage` | SEO landing page targeting "maharashtrian snacks". |
-| `/business` | Public | `BusinessLandingPage` | Public, indexable B2B acquisition page — loads eagerly like the SEO pages. Wrapped in `B2BFeatureGate` (404s for non-admins while `B2B_ENABLED` is off — see §31). |
-| `/business/apply` | Auth | `BusinessApplyPage` | Wholesale application form. `B2BFeatureGate` outside `ProtectedRoute` (login not required to see the gate itself). |
-| `/b2b` | `businessOnly` | `B2BDashboardPage` | Status gate (no application / pending / rejected / suspended / approved) + credit summary + recent orders, inside `B2BProvider`/`B2BLayout`. |
-| `/b2b/order` | `businessOnly` | `B2BQuickOrderPage` | Approved-only quick order (grouped catalog, live quote, mobile sticky summary bar). |
-| `/b2b/orders`, `/b2b/orders/:id` | `businessOnly` | `B2BOrdersPage`, `B2BOrderDetailPage` | Order list/detail, status timeline, cancel (while `placed`), reorder, invoice PDF download. |
-| `/b2b/invoices` | `businessOnly` | `B2BInvoicesPage` | Own invoices, PDF download. |
-| `/b2b/statement` | `businessOnly` | `B2BStatementPage` | Own ledger statement with date-range filter, credit summary, CSV export. |
-| `/b2b/profile` | `businessOnly` | `B2BProfilePage` | Edit own business profile / shipping addresses. |
 | `/namkeen/:id` | Public legacy | `NamkeenRedirect` (in `App.jsx`) | Redirects to `/products/:id` via `<Navigate replace>`. `NamkeenDetailPage.jsx` is now unreferenced dead code. Do not extend. |
-| `*` | Public | `NotFoundPage` | Branded not-found page (extracted component, `pages/NotFoundPage.jsx`) inside `Layout`, with `<SEO robots="noindex,nofollow">`. Also what `B2BFeatureGate` renders for a gated route. |
-
-`/b2b/*` routes are `ProtectedRoute businessOnly` (any application status — each page/`B2BContext` reads live status for finer gating, e.g. Quick Order requires `approved`) wrapped OUTSIDE by `B2BFeatureGate`, so a disabled feature 404s regardless of login state. See §31 for the full B2B Wholesale Portal writeup.
+| `*` | Public | inline 404 | Branded not-found page inside `Layout`, with `<SEO robots="noindex,nofollow">`. |
 
 The four SEO landing pages are genuine long-form content pages (what-it-is, how-it's-made, heritage tie-in, product links, FAQs), not thin doorway pages. All heritage facts reuse the same true information already on `AboutPage`/`OurHistoryPage`.
 
@@ -566,7 +556,7 @@ For multipart upload through Axios, `ProductFormTab` calls `api.post('/api/uploa
 9. Adds global `errorHandler`.
 10. Connects MongoDB before listening.
 
-`server.js` also sets `app.set('trust proxy', TRUST_PROXY_HOPS || 1)` (required for correct per-IP rate-limit keying behind Render's proxy) and registers `process.on('uncaughtException'/'unhandledRejection')` handlers that log and exit for a clean restart.
+`server.js` also sets `app.set('trust proxy', TRUST_PROXY_HOPS || 1)` (required for correct per-IP rate-limit keying behind Railway's proxy) and registers `process.on('uncaughtException'/'unhandledRejection')` handlers that log and exit for a clean restart.
 
 Middleware:
 
@@ -697,10 +687,6 @@ All upload routes require `protect` and `admin`.
 | POST | `/api/upload` | Admin | Single file field `image`. |
 | POST | `/api/upload/multiple` | Admin | Multiple file field `images`, max 4. |
 | DELETE | `/api/upload/:publicId` | Admin | Deletes one Cloudinary asset by route param. Public IDs with `/` need deliberate encoding/routing work. |
-
-### B2B (Wholesale)
-
-`/api/b2b/*` (business-facing, `router.use(protect, userActionLimiter, requireB2BEnabled)`) and `/api/b2b/admin/*` (admin-only, `router.use(protect, userActionLimiter, admin)`, NOT gated by `B2B_ENABLED`) are a separate, self-contained subsystem — full route list, request/response shapes, and every model/util/component behind them are documented in §31 rather than duplicated in this table (the same treatment §28 gives the Shadowfax routes). The one exception is `GET /api/b2b/config`, which is deliberately public (`publicLimiter`, no `protect`) so the logged-out `/business` landing page can read real delivery-region text and the `enabled` flag.
 
 ## 14. Database Entities and Relationships
 
@@ -1023,17 +1009,17 @@ gold-pale: #fdf3c8
 leaf: #2d5a1b
 ```
 
-Fonts loaded in `index.html` (one Google Fonts `<link>`):
+Fonts loaded in `index.html`:
 
+- Cormorant Garamond
 - Playfair Display
 - DM Sans
 - Poppins
 - Noto Serif Devanagari
 - Tiro Devanagari Marathi
 - Gotu
-- Lora
 
-Checkout uses inline CSS with `fontFamily: "'Lora', Georgia, serif"` — `Lora` is loaded (see trap 16). "Cormorant Garamond" was removed from `index.html`'s font link after a full-codebase search confirmed nothing referenced it (no `font-cormorant` Tailwind class, no literal font-family string) — it was pure dead weight.
+Checkout uses inline CSS with `fontFamily: "'Lora', Georgia, serif"`, but `Lora` is not loaded in `index.html`. It currently falls back unless the font link is expanded.
 
 Reusable CSS classes in `index.css`:
 
@@ -1102,7 +1088,7 @@ RESEND_API_KEY=...
 
 # Rate limiting — all optional, sane fallbacks live in server/config/rateLimits.js.
 # Retuning any of these needs no code change or logic redeploy.
-TRUST_PROXY_HOPS=1                     # reverse-proxy hops to trust for the real client IP (Render = 1)
+TRUST_PROXY_HOPS=1                     # reverse-proxy hops to trust for the real client IP (Railway = 1)
 RATE_LIMIT_IP_AUTH_WINDOW_MS=900000    # Tier 1 (auth): window + max per IP
 RATE_LIMIT_IP_AUTH_MAX=20
 RATE_LIMIT_IP_PUBLIC_WINDOW_MS=60000   # Tier 2 (public reads)
@@ -1162,7 +1148,7 @@ node makeAdmin.js user@example.com
 
 Deployment config:
 
-- The backend now deploys on Render (see `client/vite.config.js`'s dev proxy target, `https://namdev-backend.onrender.com`, and §20's `VITE_API_URL`). `server/railway.toml` (Nixpacks, start command `node server.js`) is a leftover from an earlier Railway deployment — verify with the user before relying on or removing it.
+- `server/railway.toml` uses Nixpacks, no build command, start command `node server.js`.
 - `client/vercel.json` is only an SPA fallback rewrite. It is not an API proxy.
 
 There are no configured test, lint, or formatter scripts in the package manifests.
@@ -1232,7 +1218,7 @@ Server:
 5. Guest cart is not merged into server cart on login. Server cart replaces local state.
 6. `logout` does not clear `nc_cart`, so the last loaded cart can remain in localStorage.
 7. Server cart add trusts client-sent size and price after product existence check. Validate product size/price server-side before any pricing-security change.
-8. ~~`Order.items` schema uses `weight`, while UI/email reads `item.size` and `placeOrder` passes cart items with `size`.~~ FIXED (verified while building the B2B portal, §31): `models/Order.js`'s item schema now has both `size` (current, matches `Cart.items`) and `weight` (kept only for older orders that used it). `utils/orderCreation.js`'s `createOrderForUser` — the shared core `orderController.placeOrder` and the WhatsApp bot both call — explicitly maps `size: item.size` when creating an order, never `weight`.
+8. `Order.items` schema uses `weight`, while UI/email reads `item.size` and `placeOrder` passes cart items with `size`. Fix as a coordinated migration.
 9. ~~`ProductDetailPage` dispatches a `pdp-sticky-bar` event and `App` passes props to `WhatsAppFloat`, but `WhatsAppFloat` ignores both.~~ FIXED: `WhatsAppFloat` now listens for `pdp-sticky-bar` and honors its `phone`/`message` props. It also now hides itself on `/checkout`, since its fixed `bottom-24 right-5` position previously overlapped CheckoutPage's full-width mobile sticky Pay bar.
 10. Product detail copy still says free delivery at INR 500, while pricing utilities and cart/checkout use INR 499.
 11. Default promo names are protected from deletion but not seeded automatically.
@@ -1458,7 +1444,7 @@ Both were added in a later security pass and now apply across the API.
 Config: `server/config/rateLimits.js` — every threshold is read from `.env`
 with a fallback (see §20 for the full var list), so ops can retune without a
 code change. `server.js` sets `app.set('trust proxy', TRUST_PROXY_HOPS || 1)`
-so per-IP keys use the real client IP behind Render's proxy.
+so per-IP keys use the real client IP behind Railway's proxy.
 
 **Per-IP tiers** (`server/middleware/rateLimiter.js`, `express-rate-limit`,
 in-memory per process):
@@ -1533,205 +1519,3 @@ yet (§24 trap 25).
 3. For a new credential/account route, also add an `accountLimiter(purpose)`
    and a `rateLimitConfig.account.<purpose>` block, and call
    `recordFailure`/`recordSuccess` in the controller.
-
-## 31. B2B Wholesale Portal
-
-A parallel, deliberately separate wholesale ordering system for approved business buyers (retailers, sweet shops, distributors, supermarkets, caterers) — its own models, routes, and frontend section, built on top of the retail app rather than inside it. Full functional spec: `docs/B2B_PORTAL_SPEC.md`. Retail behavior is unchanged everywhere except the small, explicit set of shared files below.
-
-### Overview
-
-- Buyer-side: apply for an account → admin approves with a pricing tier, payment terms, and a credit limit → place tiered-price orders against a small wholesale catalog → track status → download invoices → view a running ledger/statement.
-- Admin-side: review/approve/reject/suspend accounts, manage price tiers and the wholesale catalog, manage orders through a status workflow, issue invoices and credit notes, record payments/adjustments, and watch FY turnover against the GST registration threshold.
-- No GST is charged anywhere today (`SELLER_GST_MODE=unregistered` — the business holds an FSSAI license, not a GST registration). Every document, screen, email, and CSV says so explicitly; see "Tax mode" below.
-- Retail (`Product`, `Order`, `Cart`, checkout, retail admin) is completely untouched by this system — B2B has its own order model, its own admin tabs, and its own pricing/credit logic. The two systems share only the `User` document (one extra field, see Data model) and a handful of UI mount points.
-
-### Feature switch (production safeguard)
-
-The whole business-facing surface can be hidden behind one flag before launch, so the portal can be fully built and admin-configured (tiers, catalog, a test account) in production without being publicly visible or discoverable.
-
-- `businessConfig.enabled` (`server/config/business.js`) reads `B2B_ENABLED` (default `false`, i.e. **fails closed**).
-- `requireB2BEnabled` (`server/middleware/business.js`) — mounted via `router.use(protect, userActionLimiter, requireB2BEnabled)` at the top of `routes/b2b.js` (after `GET /config`, which is exempt so the frontend can read the flag). While disabled, every business-facing `/api/b2b/*` route 404s (`Route <url> not found` — indistinguishable from a route that doesn't exist) for anyone whose `req.user.role !== 'admin'`. Admins always pass.
-- `routes/b2bAdmin.js` is **not** gated by this flag at all — admins need full access to set everything up before flipping the switch.
-- Client: `useB2BEnabled()` (`client/src/hooks/useB2BEnabled.js`) — module-level cached + in-flight-deduped fetch of `GET /api/b2b/config`, fails closed (`enabled: false`) on any error. `B2BFeatureGate` (`client/src/components/b2b/B2BFeatureGate.jsx`) wraps `/business`, `/business/apply`, and every `/b2b/*` route in `App.jsx`, rendering the exact same `<Layout><NotFoundPage/></Layout>` a truly-missing route would show when `!enabled && user?.role !== 'admin'`. `Navbar`/`Footer`/`DistributorshipBand` each compute `showB2B = enabled || user?.role === 'admin'` before rendering their B2B entry point/CTA. `B2BDisabledNotice` (`components/admin/B2BDisabledNotice.jsx`) shows a small "hidden from customers" banner at the top of every admin B2B tab while the flag is off.
-- A **separate**, build-time-only `VITE_B2B_ENABLED` (client `.env`) controls two things unrelated to the runtime flag above: whether `/business` is added to `generate-seo-files.mjs`'s sitemap, and a defense-in-depth `noindex` fallback on `BusinessLandingPage` when it's `false`. Keep both flags in sync when actually launching.
-
-### isTest accounts and the purge script
-
-An admin can mark any `BusinessAccount.isTest = true` (toggle in `B2BAccountsTab`'s detail drawer, or `PUT /api/b2b/admin/accounts/:id { isTest }`) to exercise the full order → invoice → payment → credit-note flow against real (e.g. Atlas) infrastructure without polluting real numbers:
-
-- Test accounts get their own document-numbering series — `utils/b2bNumbering.js` prefixes order/invoice/credit-note numbers `TST-O-`/`TST/`/`TSC/` instead of the real `B2B-`/`NCB/`/`NCC/`, backed by separate `_test`-suffixed `Counter` documents, so a burst of test invoices never consumes a real sequence number.
-- `b2bAdminSummaryController.getSummary` and `utils/turnover.js`'s wholesale turnover both explicitly exclude `isTest: true` accounts from outstanding, aging, and FY-turnover totals (`BusinessAccount.find({..., isTest: {$ne: true}})` / `{$nin: testAccountIds}`).
-- `B2BStatusBadge` renders a purple "TEST" chip next to the status pill wherever it's used; `B2BOrdersTab`/`B2BLedgerTab` show the same chip on orders/invoices belonging to a test account.
-- `server/scripts/purgeB2BTestData.js` (`npm run b2b:purge-test` / `-- --confirm`) is the **only** sanctioned exception to the append-only-ledger / immutable-invoice rules below — and only for `isTest` data. Dry-run by default (prints exactly what would be deleted, deletes nothing); `--confirm` deletes every `B2BOrder`/`Invoice`/`CreditNote`/`LedgerEntry` belonging to an `isTest` account, the accounts themselves, and their `_test` `Counter`s. Never touches non-test `BusinessAccount`s, `PriceTier`, `WholesaleCatalogItem`, `Users`, `Products`, or retail `Order`s. Uses plain `deleteMany` (no transaction needed), so — unlike invoice issuance below — it works fine against a standalone (non-replica-set) local `MONGO_URI`.
-
-### Data model (`server/models/`)
-
-| Model | Purpose |
-| --- | --- |
-| `BusinessAccount.js` | One per `User` (1:1, unique `user`). Application + approval workflow (`status`: pending/approved/rejected/suspended), `tier`, `paymentTerms`, `creditLimit`, billing + shipping addresses, `isTest`. `gstin` is unique+sparse — callers must omit/unset the key rather than assign `null` (a stored `null` would defeat the sparse index — see trap below). |
-| `PriceTier.js` | Named discount tiers (e.g. STANDARD, DISTRIBUTOR) — a flat `discountPercent` off `WholesaleCatalogItem.basePricePerUnit`, exactly one `isDefault: true` at a time (`utils/b2bTiers.js` enforces this). No tiers are seeded — created through the admin UI. |
-| `WholesaleCatalogItem.js` | The **only** place a B2B price ever lives (never on `Product`) — `product` + `size` (unique pair, matching one of `product.sizes[].weight` or `product.weight`), `unitsPerCase`, `moqCases`, `basePricePerUnit`, optional per-tier `tierOverrides[]`, `hsnCode` (stored for a possible future GST mode, never displayed today). |
-| `B2BOrder.js` | Deliberately separate from retail `Order` — different fields (cases, dispatch/LR, credit hold, invoice link) and a different status workflow. Items/billing/shipping are snapshots taken at placement time, never re-read live later. |
-| `Invoice.js` | **Immutable** once created — every field (seller config, buyer, lines, totals, tax mode) is a point-in-time snapshot, so a past invoice reads correctly even after the seller later registers for GST. Corrections happen only through a `CreditNote`, never an edit. |
-| `CreditNote.js` | v1 = full-cancellation only (one per invoice, unique `invoice` index) — no partial credit notes. Same immutable-snapshot principle as `Invoice`. |
-| `LedgerEntry.js` | **Append-only** — no update/delete route exists anywhere except the purge script above. A business's outstanding balance is always `sum(debit) - sum(credit)` over these, never a stored running total, so it can never drift. `type`: opening_balance / invoice / payment / credit_note / adjustment. |
-| `Counter.js` | Shared atomic-increment backer for every sequential document number (`findOneAndUpdate({_id}, {$inc:{seq:1}}, {upsert:true, new:true, session})` — proven gapless/unique under 20 concurrent issuances in `tests/b2bInvoicing.test.js`). One counter document per series, e.g. `invoice:26-27` / `invoice:26-27_test`. |
-
-`User.js` gained exactly one thing for B2B: `GET /api/auth/me`'s safe-user object now includes the caller's `business` status summary (read by `B2BContext` to keep the cached `AuthContext` user in sync — see Frontend below).
-
-### Server-side logic (`server/utils/`)
-
-| File | Responsibility |
-| --- | --- |
-| `money.js` | `round2`, `roundToRupee` (rupee round-off with a signed adjustment line), `amountInWordsINR` (Indian lakh/crore numbering). Every B2B rupee amount goes through this — never rounded inline. |
-| `taxMode.js` | Single place every B2B code path asks "what does tax look like right now." Only `unregistered` is implemented; an unsupported `SELLER_GST_MODE` throws at `require` time (server boot), not at first order. `documentTitle('invoice'|'credit_note')` → plain "Invoice"/"Credit Note" (never "Tax Invoice"). `computeLineTax` → always `{taxAmount: 0}` today. `supplierTaxNote()` → the sanctioned disclosure string. |
-| `gstin.js` | GSTIN format + checksum validation — used only to validate a **buyer's** optional GSTIN and pre-fill their state; has no tax effect while unregistered. |
-| `indianStates.js` | The published GST state/UT code table (2-digit prefixes). |
-| `financialYear.js` | IST (UTC+5:30, no DST) financial-year math — `getFinancialYear`, `getFinancialYearRange`, `formatDocNumber` (asserts ≤16 chars). Computed in IST explicitly because Render runs in UTC and a naive calculation would misfile the last ~5.5h of each IST day. |
-| `b2bRegion.js` | Delivery-state allowlist (`isAllowedDeliveryState`, `getAllowedStateNames`) — see "Delivery region" below. |
-| `b2bPricing.js` | `priceB2BOrder` — the single source of truth for quote/place/admin-edit totals (MOQ, min order value, delivery-state, stock, tier price resolution). Client-sent prices/totals are never trusted; always re-derived here. |
-| `b2bCredit.js` | `getOutstanding` (derived from `LedgerEntry`), `getOpenOrderValue`, `getOverdueSummary` (FIFO credit allocation across unpaid invoices), `getCreditSummary`, `shouldHold` (prepaid never holds at placement — checked at dispatch instead). |
-| `b2bOrderStatus.js` | The order state machine as a pure transition graph (`placed → confirmed → packed → dispatched → delivered`, plus `cancelled`/`rejected` branches) — see below. |
-| `b2bTiers.js` | `enforceSingleDefaultTier`, `isTierInUse` (blocks hard-delete of a tier still referenced by an account or catalog override). |
-| `b2bNumbering.js` | `nextB2BOrderNumber`, `nextInvoiceNumber`, `nextCreditNoteNumber` — real vs. `_test` series selection baked in here (see isTest above). |
-| `b2bInvoicing.js` | `issueInvoiceForOrder` — the transactional invoice-issuance core (see below). |
-| `b2bCreditNote.js` | `applyCreditNoteToInvoice` (session-agnostic core, callable inside an already-open transaction) + `issueCreditNoteForInvoice` (standalone, own transaction). |
-| `b2bStatement.js` | `buildStatement` (opening balance + running-balance entries + closing balance for a date range) + `statementToCsv` — shared by both the business-facing and admin ledger endpoints. |
-| `turnover.js` | `getFinancialYearTurnover` — read-only retail + wholesale FY revenue vs. `GST_REGISTRATION_THRESHOLD`, `isTest` accounts excluded from the wholesale figure. |
-
-### Tax mode and the "no GST" rule
-
-While `SELLER_GST_MODE=unregistered` (the only implemented mode), **no GST wording, percentage, or column may appear anywhere in B2B UI, email, CSV, or PDF** — enforced by routing every tax-facing string through `utils/taxMode.js` rather than hardcoding it. The sanctioned exceptions, all deliberate: the buyer's own optional GSTIN capture field (record-keeping only, no tax effect); `WholesaleCatalogItem.hsnCode` (admin-only, stored for a possible future GST mode, never rendered to a buyer); the supplier's own disclosure line on every invoice/credit-note PDF and the public `/business` FAQ ("Supplier not registered under GST. GST not charged."); and the admin-only FY-turnover-vs-threshold watch (`B2BLedgerTab`, `DashboardTab`'s `GstThresholdPanel`), which is explicitly *about* the GST registration threshold and needs to say so. A full-codebase grep for `GST|HSN|tax|incl|excl` across every B2B client file, `emailService.js`, the PDF service, and the CSV exporter turned up nothing outside this list (verified in Phase 5).
-
-Phase 6 (not built, only when explicitly asked): `SELLER_GST_MODE=regular` — per-item GST rate, CGST+SGST vs IGST by place of supply, "Tax Invoice" title, seller GSTIN + HSN columns/summary on PDFs, tax-exclusive pricing option, widened `B2B_ALLOWED_STATE_CODES`. Existing unregistered-mode invoices must remain unchanged (they're immutable snapshots) — a mode change only affects invoices issued after the switch.
-
-### Delivery region restriction
-
-B2B orders (quote, placement, and admin quantity-edits) are restricted to `B2B_ALLOWED_STATE_CODES` (default `27` = Maharashtra only) via `utils/b2bRegion.js`'s `isAllowedDeliveryState(shippingAddress.stateCode)`, checked inside `b2bPricing.priceB2BOrder` — not just in the UI. Rationale: while unregistered, inter-state supply of goods generally requires GST registration, so cross-state B2B shipping is deliberately out of scope until Phase 6. Retail checkout is unaffected — it has no such restriction.
-
-### Order state machine (`utils/b2bOrderStatus.js`)
-
-```text
-placed -> confirmed -> packed -> dispatched -> delivered
-placed -> rejected
-placed/confirmed/packed -> cancelled
-```
-
-Pure allowed/forbidden transition graph, DB-free and unit-tested in isolation; all side effects (credit-hold blocking on `confirmed`, auto-invoice-on-`dispatched`, credit-note-on-`cancelled`-after-invoicing) live in `b2bAdminOrderController.updateOrderStatus`, which consults the graph before doing anything else. `rejected`/`cancelled` require a `reason` string (`REASON_REQUIRED_FOR`). Cancelling from `confirmed`/`packed` when the order already has an invoice (`CANCEL_REQUIRES_CREDIT_NOTE_IF_INVOICED`) runs the credit-note creation and the order-status change as **one transaction**, not two separate writes.
-
-### Invoicing, credit notes, and the ledger
-
-- **Auto-issuance on dispatch**: `updateOrderStatus`'s `dispatched` branch calls `issueInvoiceForOrder` if the order has no invoice yet. For a **prepaid** account whose outstanding balance would still be > 0 after this invoice, this is blocked (`400 { requiresForce: true, message }`) unless the request includes `force: true` — the admin UI (`B2BOrdersTab`) shows a native `window.confirm()` with the server's message and retries with `force: true` on accept, matching this codebase's existing `window.confirm` convention (`AdminPage`, `OrdersTab`, `B2BCatalogTab`, `B2BProfilePage`). Non-prepaid (net7/15/30) accounts never need force — credit terms are expected to carry an outstanding balance.
-- **Manual issuance**: `POST /api/b2b/admin/orders/:id/invoice` — any status from `confirmed` onward, one invoice per order (enforced by `Invoice.order`'s unique index).
-- **`issueInvoiceForOrder`** (`utils/b2bInvoicing.js`) runs inside `mongoose.startSession().withTransaction(...)`: loads the order, throws if already invoiced or not yet `confirmed`/`packed`/`dispatched`, allocates the next invoice number (real or `_test` series), snapshots seller+buyer+lines+totals+`amountInWords`+`dueDate` (term days by `paymentTerms`), creates the `Invoice`, writes one `LedgerEntry` (`type: 'invoice'`, `debit: payable`), and links `order.invoice`. Throws loudly (500) if `businessConfig.seller.legalName` or `.fssaiLicenseNo` is blank (`REQUIRED_FOR_INVOICING` in `config/business.js`) — the rest of the portal works fine without seller details filled in; only actual invoice issuance enforces them.
-- **Credit notes** (`utils/b2bCreditNote.js`): full-cancellation only, amount always equals the invoice's `totals.payable` regardless of payments already received against it (so a credit note after a partial payment correctly leaves the account with a **credit** balance, not zero). Writes one `LedgerEntry` (`type: 'credit_note'`, `credit: payable`), flips `invoice.status` to `cancelled`. A second credit-note attempt on an already-cancelled invoice is rejected (`400`).
-- **Ledger writes** (admin only, `b2bAdminLedgerController.js`): `recordPayment` (amount, method, optional reference/date/note), `recordAdjustment` (debit or credit, note required), `recordOpeningBalance` (once only, before any other entry exists for that account — enforced with a plain existence check, not a transaction, since there's no concurrent-write race worth guarding here).
-- **Why transactions matter here, and the local-dev caveat**: invoice issuance and credit-note issuance each touch 2–3 documents (the doc itself, a `LedgerEntry`, and the source order/invoice status) that must commit atomically. `mongoose.startSession()/withTransaction()` requires a MongoDB **replica set** — this app's own local dev `MONGO_URI` (`mongodb://127.0.0.1:27017/...`) is a plain **standalone** instance with no transaction support, deliberately left unchanged (not this codebase's decision to make). See Testing strategy below for how this is worked around for both automated tests and manual local verification.
-
-### PDF generation (`services/invoicePdfService.js`, `pdfkit`)
-
-`renderInvoicePdf(invoice, extra)` / `renderCreditNotePdf(creditNote, invoice)` render purely from the stored immutable snapshot — never re-read live catalog/account data. No GST/HSN columns anywhere; the FSSAI number is prominent; the supplier's not-registered-under-GST note is always printed in the footer; `documentTitle` is `.toUpperCase()`'d at render time. Logo loaded from `client/public/images/logo.png` if present, text-only header otherwise.
-
-**Testing note**: pdfkit embeds/subsets even the standard 14 fonts, so a rendered PDF's text is never recoverable as literal ASCII from the raw byte stream (confirmed directly — stream compression was not the obstacle). `tests/b2bInvoicing.test.js` therefore asserts correctness against the `Invoice`/`CreditNote` document's stored fields (this file's actual data source) plus a render-succeeds smoke test on byte length/content-type, and the visual layout was additionally confirmed by hand (generate a real sample PDF, read it with a PDF-capable tool).
-
-### Turnover watch (`utils/turnover.js`, read-only)
-
-Informational only — never changes retail or B2B behavior. `getFinancialYearTurnover(fy)` sums retail `Order` revenue (COD delivered + ONLINE paid, non-cancelled) and wholesale `Invoice.totals.payable` minus `CreditNote.totals.payable` (both excluding `isTest` accounts) for the given FY, against `GST_REGISTRATION_THRESHOLD`. Surfaced in two places: `B2BLedgerTab` (admin B2B tab) and a compact `GstThresholdPanel` on the retail `DashboardTab` (so it's visible without navigating into the B2B section — GST liability applies to the whole business, not just wholesale) — the latter fetches its own data independently and fails silently (renders nothing) if the summary endpoint errors, so it can never break the rest of the retail dashboard.
-
-### API routes
-
-`/api/b2b/*` — business-facing. `router.use(protect, userActionLimiter, requireB2BEnabled)` except `GET /config` (public, `publicLimiter`).
-
-| Method | Path | Notes |
-| --- | --- | --- |
-| GET | `/config` | Public. `{ enabled, allowedStateCodes, allowedStateNames, minOrderValue, taxNote }`. |
-| GET | `/me` | Own `BusinessAccount` (or `null`) + `creditSummary` if approved. |
-| POST | `/apply` | Create/re-apply (only while no account or `status: rejected`; `409` otherwise). |
-| PUT | `/me` | Update own profile/shipping addresses; `businessName`/`gstin`/`billingAddress` locked once out of `pending`. |
-| GET | `/catalog` | `loadBusiness, requireApprovedBusiness`. Tier-priced catalog for the caller. |
-| POST | `/orders/quote` | `requireApprovedBusiness`, extra `b2bQuoteLimiter`. Server-priced preview, never charges. |
-| POST | `/orders` | `requireApprovedBusiness`. Places the order (`status: placed`). |
-| GET | `/orders`, `/orders/:id` | `loadBusiness` only (any status) — own orders, newest first / by id. |
-| POST | `/orders/:id/cancel` | Only while `status: placed`; `reason` required. |
-| GET | `/invoices`, `/invoices/:id`, `/invoices/:id/pdf` | Own invoices (scoped to `req.business._id` — structurally IDOR-safe, no route takes an arbitrary business id). |
-| GET | `/credit-notes/:id/pdf` | Own credit notes. |
-| GET | `/ledger`, `/ledger/export.csv` | `?from&to` (ISO dates) — own statement / CSV. |
-
-`/api/b2b/admin/*` — admin-only. `router.use(protect, userActionLimiter, admin)`, not gated by `B2B_ENABLED`.
-
-| Method | Path | Notes |
-| --- | --- | --- |
-| GET/POST | `/accounts`, `/accounts/:id` | List (status/search/paginated), create-for-existing-user (`409` friendly duplicate response), detail. |
-| PUT | `/accounts/:id` | Includes `isTest` toggle. |
-| POST | `/accounts/:id/approve\|reject\|suspend\|reactivate` | Approve requires `tier`+`paymentTerms`; reject/suspend take a note/reason. |
-| GET/POST/PUT/DELETE | `/tiers`, `/tiers/:id` | Price tier CRUD. Delete blocked if in use (`b2bTiers.isTierInUse`). |
-| GET/POST/PUT/DELETE | `/catalog`, `/catalog/:id` | Catalog item CRUD. Delete blocked if the item was ever ordered. |
-| GET | `/orders`, `/orders/:id` | List (status/business/date/paginated) / detail (any business). |
-| PUT | `/orders/:id/items` | Only while `placed`; re-prices server-side; `reason` required; logged to `order.editHistory`. |
-| POST | `/orders/:id/status` | Body `{status, note, reason, dispatch, force}` — the state-machine + auto-invoice + credit-note-on-cancel logic. |
-| POST | `/orders/:id/override-credit-hold` | Clears `creditHold`, logs who/when/why. |
-| POST | `/orders/:id/invoice` | Manual invoice issuance. |
-| GET | `/invoices`, `/invoices/:id/pdf` | `?business&from&to` filter. |
-| POST | `/invoices/:id/credit-note` | `reason` required. |
-| GET | `/credit-notes/:id/pdf` | |
-| GET | `/accounts/:id/ledger`, `/accounts/:id/ledger/export.csv` | `?from&to` — any account's statement / CSV. |
-| POST | `/accounts/:id/payments\|adjustments\|opening-balance` | Ledger writes — see above. |
-| GET | `/summary` | Pending applications, orders-by-status, total outstanding + aging buckets + top outstanding accounts (all `isTest`-excluded), FY turnover, `testAccountCount`. |
-
-### Frontend
-
-- **Pages** (`client/src/pages/business/`): `BusinessLandingPage` (public, indexable), `BusinessApplyPage`, `B2BDashboardPage` (status gate + credit summary + recent orders), `B2BQuickOrderPage` (grouped catalog, 400ms-debounced live quote, mobile sticky summary bar, `nc_b2b_draft_<userId>` localStorage draft), `B2BOrdersPage`/`B2BOrderDetailPage` (status timeline, cancel, reorder-via-draft, invoice PDF download), `B2BInvoicesPage`, `B2BStatementPage` (date-range filter, CSV export), `B2BProfilePage`.
-- **Shared components** (`client/src/components/b2b/`): `B2BLayout` (sub-nav — pill bar on mobile, sidebar on desktop), `B2BModal` (bottom-sheet on mobile / centered on desktop, used by every B2B/admin-B2B modal), `B2BStatusBadge` (status pill + optional TEST chip), `B2BFeatureGate`, `CaseStepper` (deliberately separate from retail `QuantityStepper` — cases, not units).
-- **Context**: `B2BContext`/`B2BProvider` (`client/src/context/B2BContext.jsx`) — mounted only inside the `/b2b` route tree (not the global provider chain), holds `business`/`creditSummary`/`config`/`loading` for every `/b2b/*` page so each page doesn't refetch `GET /me` independently; syncs the cached `AuthContext` user's business status via its existing `saveUser()` (never edits `AuthContext.jsx` itself) when the live status differs.
-- **Admin tabs** (`client/src/components/admin/`): `B2BAccountsTab`, `B2BCatalogTab` (tiers + wholesale catalog items), `B2BOrdersTab` (status actions, dispatch-with-force confirm, issue-invoice), `B2BLedgerTab` (FY-turnover-vs-threshold card, aging buckets, top-outstanding shortcut, account search/statement, payment/adjustment/opening-balance modals, invoice list + credit-note issuance), `B2BDisabledNotice`. Wired into `adminConstants.js` (`TABS`, `group: 'b2b'`), `AdminNav.jsx` (separate "Wholesale" section), `AdminPage.jsx` (tab render switch).
-- **`downloadBlobResponse`** (`client/src/utils/downloadBlob.js`): every PDF/CSV download goes through the shared `api` axios instance with `responseType: 'blob'` (carries the JWT via its request interceptor) and this helper turns the blob into a temporary object URL to trigger the browser save — a plain `<a href="/api/...">` **cannot** authenticate, since the token lives in `localStorage`, not a cookie.
-- **`api.js`**: `b2bAPI` (business-facing) and `b2bAdminAPI` (admin) — full method lists mirror the route tables above 1:1.
-
-### Testing strategy
-
-`server/tests/b2b*.test.js` + `taxMode.test.js`/`gstin.test.js`/`financialYear.test.js`/`money.test.js`/`business.middleware.test.js` — all plain `node:test` (`node --test` / `npm test`), no new test dependency except where noted. Most run against the app's real `MONGO_URI` (fine — they don't need transactions). The **one** exception: `tests/b2bInvoicing.test.js` (invoice issuance, dispatch-triggered auto-invoice, credit notes, payments, statement math, 20-concurrent-invoice-numbering) needs real multi-document transactions, which the local standalone `MONGO_URI` can't provide (see above) — it spins up an isolated, disposable single-node replica set via `tests/helpers/memoryReplSet.js` (`mongodb-memory-server`, the only new devDependency besides `pdfkit`) instead of connecting to the app's real database. `startReplSet()`/`stopReplSet()` in `before`/`after`. This pattern is also the correct way to manually verify transactional B2B flows against a local dev server without a real MongoDB replica set — point a throwaway `server.js` process's `MONGO_URI` at a `MongoMemoryReplSet.create(...)` instance instead of the real local Mongo.
-
-**`node:test` gotcha**: `beforeEach`/`afterEach` apply to the entire file's implicit top-level suite regardless of where they're declared in the file — not scoped only to tests declared after them. Give hooks/fixtures added mid-file their own dedicated users/data rather than assuming isolation from earlier tests, and wrap test bodies in `try/finally` for cleanup so one failed assertion can't skip cleanup and poison a later test.
-
-### Environment variables
-
-Server (`.env`, see `.env.example` for the full annotated template):
-
-```dotenv
-B2B_ENABLED=false                      # master switch — see Feature switch above
-SELLER_GST_MODE=unregistered           # only supported value today
-SELLER_LEGAL_NAME=                     # required before invoices can be issued (REQUIRED_FOR_INVOICING)
-SELLER_TRADE_NAME=Namdev Chiwda
-SELLER_FSSAI_LICENSE=                  # required before invoices can be issued
-SELLER_ADDRESS_LINE1=
-SELLER_ADDRESS_LINE2=
-SELLER_CITY=Solapur
-SELLER_STATE_CODE=27
-SELLER_PINCODE=
-SELLER_PHONE=
-SELLER_EMAIL=care@namdevchiwda.com
-SELLER_BANK_NAME=                      # bank block is optional — invoice just omits the payment-details footer if blank
-SELLER_BANK_ACCOUNT_NAME=
-SELLER_BANK_ACCOUNT_NO=
-SELLER_BANK_IFSC=
-SELLER_UPI_ID=
-B2B_ALLOWED_STATE_CODES=27             # comma-separated 2-digit GST state codes
-B2B_MIN_ORDER_VALUE=5000
-B2B_ADMIN_NOTIFY_EMAIL=care@namdevchiwda.com
-GST_REGISTRATION_THRESHOLD=4000000
-RATE_LIMIT_IP_B2B_QUOTE_WINDOW_MS=60000  # extra per-user limiter on POST /orders/quote, on top of Tier 3
-RATE_LIMIT_IP_B2B_QUOTE_MAX=120
-```
-
-Client (`.env`):
-
-```dotenv
-VITE_B2B_ENABLED=false   # build-time only — sitemap inclusion + BusinessLandingPage noindex fallback (see Feature switch above)
-```
-
-### B2B-specific traps and gotchas
-
-28. `BusinessAccount.gstin` must never be assigned `null` — a sparse unique index only excludes genuinely-*absent* keys, not present-with-`null` ones. Every controller write path omits/unsets the key instead (`gstin: gstin || undefined`, or leaving it out of the payload entirely). Applies to any future sparse-unique field added to this or any model.
-29. Name fields across this app (`authValidators`'s `/^[\p{L}\p{M}\s.'-]+$/u`) reject digits — a test fixture or seed name like "Phase 3 Admin" fails validation; spell numbers out ("Phase Three Admin") in test data.
-30. `mongoose.startSession()/withTransaction()` will throw "Transaction numbers are only allowed on a replica set member or mongos" against this app's real local dev `MONGO_URI` (a standalone instance) — this is expected, not a bug in the transactional invoice/credit-note code; see Testing strategy above for the workaround.
-31. A rendered invoice/credit-note PDF's text is not recoverable as literal ASCII from the raw byte stream (pdfkit embeds/subsets fonts regardless of compression) — don't reach for text-extraction assertions in new PDF tests; assert against the source document's stored fields instead.

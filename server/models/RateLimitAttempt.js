@@ -5,7 +5,7 @@
 // pair, e.g. key = "login:aditya@example.com".
 //
 // Stored in Mongo rather than in-memory because:
-//   - it must survive a process restart (Render can restart the service)
+//   - it must survive a process restart (Railway can restart the dyno)
 //   - express-rate-limit's own IP limiter is intentionally separate and
 //     in-memory — this collection is only for the account-keyed backoff,
 //     a much smaller volume of writes (one per failed auth attempt).
