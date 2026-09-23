@@ -1,15 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import SEO from '../../components/SEO';
+import PageWrapper from '../../components/PageWrapper';
 import B2BModal from '../../components/b2b/B2BModal';
+import Money from '../../components/b2b/Money';
+import { formatDateTime as formatDate } from '../../utils/b2bFormat';
 import { b2bAPI } from '../../services/api';
 import { downloadBlobResponse } from '../../utils/downloadBlob';
-
-function formatDate(d) {
-  return d ? new Date(d).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
-}
-function Money({ value }) { return <span>₹{Number(value || 0).toLocaleString('en-IN')}</span>; }
 
 const STATUS_STEPS = ['placed', 'confirmed', 'packed', 'dispatched', 'delivered'];
 
@@ -86,7 +85,7 @@ export default function B2BOrderDetailPage() {
   const currentStepIndex = STATUS_STEPS.indexOf(order.status);
 
   return (
-    <div>
+    <PageWrapper>
       <SEO title={`Order ${order.orderNumber}`} canonical={`/b2b/orders/${id}`} robots="noindex,nofollow" />
 
       <div className="flex items-start justify-between gap-3 flex-wrap mb-4">
@@ -115,7 +114,15 @@ export default function B2BOrderDetailPage() {
                 <span className="text-[10px] text-brown-mid/60 capitalize whitespace-nowrap">{step}</span>
               </div>
               {i < STATUS_STEPS.length - 1 && (
-                <div className="w-8 sm:w-12 h-0.5 mx-1" style={{ background: i < currentStepIndex ? '#e07000' : '#fef3e0' }} />
+                <div className="w-8 sm:w-12 h-0.5 mx-1 overflow-hidden" style={{ background: '#fef3e0' }}>
+                  <motion.div
+                    className="h-full origin-left"
+                    style={{ background: '#e07000' }}
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: i < currentStepIndex ? 1 : 0 }}
+                    transition={{ duration: 0.4, delay: 0.15 + i * 0.08, ease: [0.32, 0.72, 0, 1] }}
+                  />
+                </div>
               )}
             </div>
           ))}
@@ -153,6 +160,19 @@ export default function B2BOrderDetailPage() {
                 {order.dispatch.vehicleNumber && <div>Vehicle: {order.dispatch.vehicleNumber}</div>}
                 {order.dispatch.trackingUrl && (
                   <a href={order.dispatch.trackingUrl} target="_blank" rel="noopener noreferrer" className="text-saffron font-semibold">Track shipment →</a>
+                )}
+              </div>
+            </div>
+          )}
+
+          {order.courier?.awbNumber && (
+            <div className="card p-4">
+              <div className="text-xs font-bold uppercase tracking-wider text-brown-mid/50 mb-2">Shipment tracking</div>
+              <div className="text-sm text-brown-dark flex flex-col gap-1">
+                <div>AWB: <strong>{order.courier.awbNumber}</strong></div>
+                <div className="capitalize">Status: {order.courier.statusDisplay || order.courier.status || 'Booked'}</div>
+                {order.courier.trackingUrl && (
+                  <a href={order.courier.trackingUrl} target="_blank" rel="noopener noreferrer" className="text-saffron font-semibold">Track shipment →</a>
                 )}
               </div>
             </div>
@@ -208,6 +228,6 @@ export default function B2BOrderDetailPage() {
           </button>
         </div>
       </B2BModal>
-    </div>
+    </PageWrapper>
   );
 }

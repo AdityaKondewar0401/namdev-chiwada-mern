@@ -25,10 +25,10 @@
 | D5 | Pricing tiers | Tiers apply a % discount on the base wholesale price (e.g. `STANDARD` 0%, `DISTRIBUTOR` 8%). Optional per-tier fixed price override per catalog item. |
 | D6 | Ordering unit | Buyers order in **cases** (e.g. 1 case = 24 × 200g). Each catalog item has `unitsPerCase` and `moqCases`. |
 | D7 | Minimum order value | ₹5,000 (env `B2B_MIN_ORDER_VALUE`). |
-| D8 | Payment terms | Per account: `prepaid`, `net7`, `net15`, `net30`. Credit accounts have a `creditLimit`. |
-| D9 | Over credit limit | Order is **accepted but flagged `creditHold`**. Admin must explicitly override before confirming. Never silently reject. |
-| D10 | Payments in v1 | Recorded **manually by admin** (UPI / NEFT-RTGS / cash / cheque). Online Razorpay payment of dues is optional later (Phase 6). |
-| D11 | Fulfilment | B2B orders are **not** sent to Shadowfax. Dispatch is manual (own vehicle / transporter / courier / buyer pickup) with LR/vehicle details recorded. Reason: Shadowfax is capped at 7kg per order and bulk orders exceed this. |
+| D8 | Advance/remainder payment | Per account: a single `advancePercent` (0-100, replaces the earlier fixed `prepaid`/`net7`/`net15`/`net30` terms). `advancePercent`% of the payable is collected via **real Razorpay** at order placement; the rest (`remainingAmount`) is due a fixed 14 days later for every account, tracked via `remainingDueDate`. Credit accounts (any `advancePercent`) have a `creditLimit`. See §6.13. |
+| D9 | Over credit limit | Order is **accepted but flagged `creditHold`**, checked against `remainingAmount` (post-advance), not the full payable. Admin must explicitly override before confirming. Never silently reject. |
+| D10 | Payments | Advance: real Razorpay at order placement (§6.13), same `VerifiedPayment` model and verification flow retail checkout uses. Remainder: recorded **manually by admin** (UPI / NEFT-RTGS / cash / cheque) via the existing Ledger — no auto-charge later. |
+| D11 | Fulfilment | B2B orders CAN get a real Shadowfax AWB (§6.14) — admin-triggered ("Create Shipment") once `dispatched`, never automatic on placement. The manual dispatch fields (own vehicle / transporter / courier / buyer pickup, LR/vehicle details) still exist independently and are always available regardless of whether a real shipment was booked. No B2B-specific weight cap is enforced pre-flight (unlike retail's 7kg cap) — a real Shadowfax rejection, if any, surfaces as a normal booking error. |
 | D12 | Stock | No quantity-level inventory in v1. Respect the existing `Product.inStock` flag. Admin reviews availability at confirmation (admin can edit quantities while the order is `placed`). |
 | D13 | Document numbering | Invoices `NCB/{FY}/{seq}` e.g. `NCB/26-27/00001`; credit notes `NCC/{FY}/{seq}`. Sequential per Indian financial year (April–March), resets each FY, kept ≤ 16 characters so the same series stays valid after GST registration. |
 | D14 | Delivery region | `B2B_ALLOWED_STATE_CODES=27` (Maharashtra). Businesses anywhere can apply, but only shipping addresses in allowed states can be used to place orders. |
@@ -107,7 +107,7 @@ Build a wholesale portal where approved businesses can see wholesale pricing, pl
 - `status`: enum `pending | approved | rejected | suspended`, default `pending`, indexed
 - `rejectionReason`, `adminNotes`
 - `tier`: ObjectId → PriceTier
-- `paymentTerms`: enum `prepaid | net7 | net15 | net30`, default `prepaid`
+- `advancePercent`: Number 0–100, required, default 100 (see D8/§6.13)
 - `creditLimit`: Number, default 0
 - `approvedBy`, `approvedAt`
 - `statusHistory`: `[{ status, by, at, note }]`
@@ -143,9 +143,10 @@ Build a wholesale portal where approved businesses can see wholesale pricing, pl
 - `status`: enum `placed | confirmed | packed | dispatched | delivered | cancelled | rejected`, indexed
 - `statusHistory`: `[{ status, by, at, note }]`
 - `creditHold`: Boolean; `creditHoldOverride`: `{ by, at, note }`
-- `paymentTermsSnapshot`
+- `advancePercent` (snapshot of the account's value at placement), `advanceAmount`, `remainingAmount` (= `payable - advanceAmount`, never independently rounded), `remainingDueDate` (placement + 14 days), `razorpayOrderId` (sparse unique), `razorpayPaymentId` — see §6.13
 - `buyerNotes`, `adminNotes`, `cancelReason`, `rejectReason`
-- `dispatch`: `{ mode: own_vehicle | transporter | courier | pickup, transporterName, lrNumber, vehicleNumber, trackingUrl, dispatchedAt, expectedDeliveryDate, notes }`
+- `dispatch`: `{ mode: own_vehicle | transporter | courier | pickup, transporterName, lrNumber, vehicleNumber, trackingUrl, dispatchedAt, expectedDeliveryDate, notes }` — manual, free-text; independent of `courier` below
+- `courier`: real Shadowfax shipment state (`provider, awbNumber, shadowfaxOrderId, status, statusDisplay, trackingUrl, actualWeightGrams, cancelReason, error, lastSyncedAt, history[]`) — same shape as retail `Order.courier`, via the shared `models/schemas/courierSchema.js`. See §6.14.
 - `invoice`: ObjectId → Invoice
 - `editHistory`: `[{ by, at, reason, before, after }]`
 - timestamps
@@ -160,7 +161,7 @@ Build a wholesale portal where approved businesses can see wholesale pricing, pl
 - `lines`: snapshot (S.No, description, size, cases, units, unit price, line total)
 - `totals`: same shape as order
 - `amountInWords`: "Rupees ... Only" (Indian numbering)
-- `dueDate` (issuedAt + terms days; prepaid = issuedAt)
+- `dueDate` (= the order's own `remainingDueDate` — placement + 14 days, fixed for every account; falls back to `order.createdAt` + 14 days only for an order placed before that field existed)
 - `status`: `issued | cancelled`; `creditNote`: ObjectId → CreditNote
 
 ### 5.6 `CreditNote.js`
@@ -218,7 +219,7 @@ As described in Section 4. In `unregistered` mode: `computeLineTax` returns `{ t
 ### 6.8 `utils/b2bCredit.js`
 `getCreditSummary(businessId)` → `{ outstanding, openOrderValue (placed/confirmed/packed, not yet invoiced), creditLimit, availableCredit, overdueAmount, oldestOverdueDays }`. Overdue = invoices past `dueDate` not covered by credits (FIFO allocation by date).
 
-`shouldHold(account, orderPayable)`: for credit terms, hold if `outstanding + openOrderValue + orderPayable > creditLimit` or any invoice is overdue by more than 30 days. `prepaid` never holds at placement (checked at dispatch, 6.9).
+`shouldHold(account, amountAtRisk)`: hold if `outstanding + openOrderValue + amountAtRisk > creditLimit` or any invoice is overdue by more than 30 days — no special-casing by advance percentage. Callers pass whatever amount is genuinely still at risk: the full payable before an order exists (quote preview), or `remainingAmount` (`payable - advanceAmount`) once one does, since the advance is already guaranteed paid via Razorpay before the order can be created. A 100%-advance order's `remainingAmount` is 0, so it naturally never holds — the same outcome the old `prepaid` bypass produced, without needing a special case.
 
 ### 6.9 Order state machine (`utils/b2bOrderStatus.js`)
 ```
@@ -231,8 +232,9 @@ dispatched → delivered
 confirmed / packed → cancelled (admin; if invoiced, a credit note is created in the same transaction)
 ```
 - Invoice may be issued manually from `confirmed` onward; exactly one per order.
-- Prepaid accounts: moving to `dispatched` with outstanding > 0 (after this invoice) returns a warning that requires `force: true` from the admin UI with a confirm dialog; record it in `statusHistory`.
-- Admin quantity edits only in `placed`; re-price via `priceB2BOrder`, recompute `creditHold`, append `editHistory`, notify the buyer.
+- The old "prepaid account with outstanding dues requires `force: true` to dispatch" mechanism is gone — structurally impossible now that every order's advance is pre-verified via Razorpay at creation, not checked after the fact.
+- Once `dispatched`, admin can additionally book a real Shadowfax shipment ("Create Shipment") — separate action, not required to reach `dispatched` itself. See §6.14.
+- Admin quantity edits only in `placed`; re-price via `priceB2BOrder`, recompute `remainingAmount = max(0, newPayable - advanceAmount)` and `creditHold` off that (the already-collected advance never changes), append `editHistory`, notify the buyer.
 
 ### 6.10 Invoice issuance
 In one transaction: fail with a clear error if `SELLER_FSSAI_LICENSE` or `SELLER_LEGAL_NAME` is missing; get the next number from Counter for the IST FY; build snapshots (seller, buyer, ship-to, lines, totals, `taxMode`, `documentTitle`, `supplierTaxNote`), `amountInWords`, `dueDate`; create `Invoice`; create `LedgerEntry` (type `invoice`, debit = `totals.payable`); set `order.invoice`.
@@ -241,7 +243,7 @@ In one transaction: fail with a clear error if `SELLER_FSSAI_LICENSE` or `SELLER
 A4 document built with `pdfkit` from the stored snapshot only:
 - Title from `documentTitle` (**"INVOICE"** — never "Tax Invoice").
 - Seller block: legal/trade name, address, phone, email, **"FSSAI Lic. No.: …"** prominently.
-- Invoice number, date, due date, order number, payment terms.
+- Invoice number, date, due date, order number, an "Advance:" line (e.g. "40% paid (₹4,000)" or "Full amount on credit" for a 0%-advance order) in place of the old payment-terms line.
 - "Bill To" (business name, GSTIN if the buyer has one, address) and "Ship To".
 - Line table: S.No, Description (name + size), Cases, Units, Rate per unit, Amount.
 - Subtotal, round-off, **Total payable**, amount in words.
@@ -254,6 +256,28 @@ Invoices show the seller address. That's fine even though the public site hides 
 
 ### 6.12 Turnover watch (`utils/turnover.js`, read-only)
 `getFinancialYearTurnover(fy)` = Σ retail `Order.total` (status not `cancelled`, created within the IST FY; count COD orders only when `delivered` and online orders when `paymentStatus === 'paid'`) + Σ B2B invoice `payable` minus credit notes in the FY. Returns `{ retail, wholesale, total, threshold, percentOfThreshold }`. Read-only queries on `Order`; no retail code changes.
+
+### 6.13 Advance/remainder payment (`utils/b2bOrderCreation.js`, `b2bPaymentController.js`)
+
+Mirrors retail checkout's real-money invariants exactly — same `VerifiedPayment` model, same HMAC verification, same atomic double-spend guard, same "server recomputes and cross-checks the amount, never trusts the client" rule.
+
+- `POST /orders/payment/create-order` (`createAdvancePaymentOrder`): re-prices via `priceB2BOrder`, computes `advanceAmount = round2(payable × advancePercent / 100)`, creates a Razorpay order for that amount (paise) and a `VerifiedPayment` row — the same collection/model retail's `paymentController.createPaymentOrder` writes to, reused completely unmodified. `400` if `advanceAmount` would round to below ₹1 (nothing to collect for a 0%-advance account — place directly instead).
+- The client verifies via the **existing, unmodified** `POST /api/payment/verify` — no B2B-specific verify endpoint exists.
+- `createB2BOrderForUser` (called from `placeOrder`) is the only place a verified B2B payment gets consumed into an order:
+  1. If `advanceAmount > 0`: load the `VerifiedPayment` by the client-supplied `razorpayOrderId`, check ownership/verified/not-yet-consumed, cross-check `verifiedPayment.amount` against a freshly-recomputed `advanceAmount` (rejects "pricing changed" on a mismatch), then atomically claim it (`findOneAndUpdate({_id, consumedAt: null}, {consumedAt: new Date()})`).
+  2. If `advanceAmount` is 0 (a 0%-advance account): skip payment entirely, same shape as retail's COD path.
+  3. Create the `B2BOrder` (with `advancePercent`/`advanceAmount`/`remainingAmount`/`remainingDueDate`/`razorpayOrderId`/`razorpayPaymentId`) and, if `advanceAmount > 0`, write one `LedgerEntry` (`type: 'payment', credit: advanceAmount, method: 'razorpay', refModel: 'B2BOrder'`) — **inside one Mongo transaction**, the same "order + its money-entry commit together or not at all" rule §6.10's invoice issuance already follows. Rolls back the payment claim (`consumedAt: null`) if the transaction itself fails, so the buyer isn't locked out of retrying with the same payment.
+- `server/scripts/migrateB2BPaymentTerms.js` (`npm run b2b:migrate-payment-terms`, dry-run by default) backfills any account created before this change: `prepaid → advancePercent: 100`, `net7`/`net15`/`net30 → advancePercent: 0`.
+- **Known limitation, by design**: self-service order cancellation (`POST /orders/:id/cancel`, only while `placed`) does not auto-refund an already-collected advance — the ledger credit stays fully visible for admin to reconcile manually, same "manual" principle as the remainder payment itself. Automatic Razorpay refunds were out of scope.
+
+### 6.14 Shadowfax shipment for B2B (`b2bShippingController.js`)
+
+Reuses `services/shadowfaxService.js`'s `createWarehouseOrder` completely unmodified except one additive option (`{ locationType }`, defaulting to `'residential'`; B2B always passes `'commercial'`).
+
+- `POST /orders/:id/create-shipment` / `.../cancel-shipment` (admin-only, wired the same way as retail's equivalents in `routes/shipping.js`) — always admin-triggered via a "Create Shipment" button shown once an order is `dispatched` and has no AWB yet, never automatic on placement.
+- A small adapter (`toShadowfaxOrderShape`) maps `B2BOrder`'s field names onto the plain shape the retail-oriented service expects (`shippingAddress.contactName → name`, `items[].units → qty`, `totals.payable → total`). `paymentMethod` is always sent as `'ONLINE'` — B2B never uses Shadowfax's own COD cash-collection; the remainder is invoiced/collected by us directly, never by the courier.
+- No B2B-specific pre-flight weight cap (unlike retail's 7kg `SHADOWFAX_MAX_ORDER_WEIGHT_GRAMS`) — a wholesale order can legitimately weigh far more than a retail parcel, and there's no confirmed real Shadowfax per-shipment limit to encode without guessing. A genuine rejection from Shadowfax surfaces as a normal booking error, persisted to `courier.error`.
+- **One shared webhook, not two**: the existing Shadowfax Push Callback endpoint (`POST /api/shipping/webhook/shadowfax`) now tries a retail `Order` lookup first, then falls back to `B2BOrder` (by `order_id`, then by AWB) — rather than requiring a second registered webhook URL, whose availability on this Shadowfax account is unconfirmed. Courier tracking state/history updates identically for either order type; the **status effect** on the order's own `status` field deliberately differs — B2B's workflow is admin-driven, not auto-progressing through dispatch the way retail's status enum is, so only a real `delivered` event, and only from the one legitimate predecessor status `dispatched`, auto-advances `B2BOrder.status`.
 
 ---
 
@@ -280,8 +304,9 @@ New middleware `server/middleware/business.js`:
 | POST | `/apply` | protect | Create application (a `rejected` applicant may re-apply, resetting to `pending`) |
 | PUT | `/me` | loadBusiness | Update contact details and shipping addresses. `businessName`, `gstin`, `billingAddress` editable only while `pending`; afterwards via admin |
 | GET | `/catalog` | approved | Active catalog items with product name/img/Marathi name, size, unitsPerCase, moqCases, resolved unitPrice, inStock |
-| POST | `/orders/quote` | approved | Stateless pricing of `{ items, shippingAddressId }` → breakdown + errors + credit preview (`wouldHold`) |
-| POST | `/orders` | approved | Place order (server re-prices, checks region, sets `creditHold`, emails) |
+| POST | `/orders/quote` | approved | Stateless pricing of `{ items, shippingAddressId }` → breakdown + errors + credit preview (`wouldHold`) + `advancePercent`/`advanceAmount`/`remainingAmount` |
+| POST | `/orders/payment/create-order` | approved | Creates a Razorpay order for the advance only + a `VerifiedPayment` row (§6.13). `400` if the advance would round to 0 |
+| POST | `/orders` | approved | Place order (server re-prices, checks region, sets `creditHold` off `remainingAmount`, emails). Optional `razorpayOrderId` — required, checked in `utils/b2bOrderCreation.js`, whenever the advance is nonzero |
 | GET | `/orders` | loadBusiness | Paginated list, filter by status |
 | GET | `/orders/:id` | loadBusiness | Own order only |
 | POST | `/orders/:id/cancel` | loadBusiness | Only while `placed`, reason required |
@@ -300,7 +325,7 @@ New middleware `server/middleware/business.js`:
 | GET | `/accounts/:id` | Detail + credit summary + recent orders |
 | POST | `/accounts` | Create an account directly for an existing user by email (status `approved`) |
 | PUT | `/accounts/:id` | Edit details, tier, terms, credit limit, notes |
-| POST | `/accounts/:id/approve` | Body: tier, paymentTerms, creditLimit, note |
+| POST | `/accounts/:id/approve` | Body: tier, advancePercent (0 valid — a pure-credit account), creditLimit, note |
 | POST | `/accounts/:id/reject` | Body: reason |
 | POST | `/accounts/:id/suspend` / `/reactivate` | Body: note |
 | GET/POST/PUT/DELETE | `/tiers`, `/tiers/:id` | Tier CRUD (block delete if in use; deactivate instead) |
@@ -308,9 +333,11 @@ New middleware `server/middleware/business.js`:
 | GET | `/orders?status&business&from&to&page` | List |
 | GET | `/orders/:id` | Detail |
 | PUT | `/orders/:id/items` | Edit quantities while `placed` (reason required) |
-| POST | `/orders/:id/status` | Body: `{ status, note, reason, dispatch, force }` — validated by the state machine |
+| POST | `/orders/:id/status` | Body: `{ status, note, reason, dispatch }` — validated by the state machine |
 | POST | `/orders/:id/override-credit-hold` | Body: note |
 | POST | `/orders/:id/invoice` | Issue invoice |
+| POST | `/orders/:id/create-shipment` | Book a real Shadowfax AWB (§6.14). `502` with the real error persisted to `courier.error` on failure |
+| POST | `/orders/:id/cancel-shipment` | Cancel the Shadowfax shipment. Body: optional `remarks` |
 | GET | `/invoices?business&from&to` | List |
 | GET | `/invoices/:id/pdf` | Any invoice PDF |
 | POST | `/invoices/:id/credit-note` | Full cancellation credit note (reason required) |
@@ -445,7 +472,7 @@ Catalog CRUD + admin UI, `/catalog`, `/orders/quote`, `/orders` place/list/detai
 
 ### Phase 4 — Invoices, credit notes, ledger
 Counter numbering, invoice transaction, auto-invoice on dispatch, PDF service, credit notes, ledger (payments, adjustments, opening balance), statements, CSV, credit summary with overdue/aging, turnover watch, emails. Frontend: Invoices, Statement, dashboard credit widgets, `B2BLedgerTab`, GST threshold card, admin invoice/credit-note/payment actions.
-**Acceptance:** concurrent issuance never duplicates or skips numbers; PDF title is "INVOICE", shows the FSSAI number and the "not registered under GST" note, and has **no** GST/HSN columns; PDF totals match the order; cancelling an invoiced order creates a credit note and matching ledger credit; outstanding and running/closing balances correct across date ranges; prepaid dispatch with dues requires force; turnover card totals match a manual count.
+**Acceptance:** concurrent issuance never duplicates or skips numbers; PDF title is "INVOICE", shows the FSSAI number and the "not registered under GST" note, and has **no** GST/HSN columns; PDF totals match the order; cancelling an invoiced order creates a credit note and matching ledger credit; outstanding and running/closing balances correct across date ranges; turnover card totals match a manual count. Advance/Shadowfax acceptance (§6.13/§6.14): a nonzero-advance order cannot be placed without a verified Razorpay payment for exactly the recomputed advance amount; the same payment can never be consumed twice; `creditHold` reflects `remainingAmount`, not the full payable; a 0%-advance account places with no payment step at all; "Create Shipment" on a dispatched order books a real AWB and only a real Shadowfax `delivered` event (from `dispatched`) auto-advances the order's status.
 
 ### Phase 5 — Polish and docs
 Wholesale summary card, empty/loading/error states, mobile pass on every B2B screen, accessibility pass, final review of rate limits and validators on every new route, and a full `AGENT.md` update: new §31 "B2B Wholesale Portal" (models, routes, pricing/credit rules, tax mode, delivery region, state machine, env vars, traps), new routes in §7 and §13, and in §24 note that trap 8 (Order `size`/`weight`) appears already fixed in `models/Order.js` and `utils/orderCreation.js` (verify first).

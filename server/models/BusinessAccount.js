@@ -83,11 +83,11 @@ const businessAccountSchema = new mongoose.Schema({
   adminNotes: { type: String, trim: true },
 
   tier: { type: mongoose.Schema.Types.ObjectId, ref: 'PriceTier' },
-  paymentTerms: {
-    type: String,
-    enum: ['prepaid', 'net7', 'net15', 'net30'],
-    default: 'prepaid',
-  },
+  // % of each order's payable amount collected via Razorpay at placement
+  // time; the rest is tracked as due 14 days later (see
+  // utils/b2bInvoicing.js REMAINDER_DUE_DAYS) and recorded manually in
+  // the Ledger when it actually arrives. 100 = pay in full up front.
+  advancePercent: { type: Number, min: 0, max: 100, required: true, default: 100 },
   creditLimit: { type: Number, default: 0, min: 0 },
 
   approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

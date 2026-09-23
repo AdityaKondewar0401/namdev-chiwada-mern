@@ -24,7 +24,7 @@ const ledgerEntrySchema = new mongoose.Schema({
   debit: { type: Number, default: 0, min: 0 },
   credit: { type: Number, default: 0, min: 0 },
 
-  refModel: { type: String, enum: ['Invoice', 'CreditNote'] },
+  refModel: { type: String, enum: ['Invoice', 'CreditNote', 'B2BOrder'] },
   refId: { type: mongoose.Schema.Types.ObjectId },
 
   reference: { type: String, trim: true }, // UTR, cheque no., etc.

@@ -7,6 +7,7 @@
 
 const crypto = require('crypto');
 const Order = require('../models/Order');
+const B2BOrder = require('../models/B2BOrder');
 const shadowfaxService = require('../services/shadowfaxService');
 const { getShadowfaxConfig } = require('../config/shadowfax');
 const { calcTotalWeightGrams } = require('../utils/weight');
@@ -55,8 +56,13 @@ exports.checkPincode = async (req, res, next) => {
    verified against SHADOWFAX_WEBHOOK_TOKEN — see the Authorization header
    note in the API doc's "Push Callback API" section. `order_id` in the
    payload is the client_order_id we sent when creating the shipment,
-   which is always the Mongo Order._id (see
-   shadowfaxService.createWarehouseOrder).
+   which is either a retail Order._id or a B2BOrder._id (B2B shipments
+   are created by b2bShippingController.createB2BShipment, but land on
+   this SAME webhook URL — Shadowfax's client portal only has one
+   configurable Push Callback URL per account, so rather than needing a
+   second one, this handler tries Order first, then falls back to
+   B2BOrder). The two order types' STATUS EFFECTS differ (see below),
+   but courier tracking state/history is written identically either way.
 
    SECURITY: fails CLOSED if no token is configured. Without this,
    anyone could POST fake status updates for any order (e.g. force-mark
@@ -98,11 +104,11 @@ exports.handlePushCallback = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Missing awb_number/order_id' });
     }
 
-    // order_id is client_order_id from creation time — try the Order
-    // collection by id first, then fall back to an AWB lookup if the id
-    // lookup ever misses (e.g. a client_order_id that changed on
-    // Shadowfax's side).
+    // order_id is client_order_id from creation time — try the retail
+    // Order collection by id first, then by AWB, then the same two
+    // lookups against B2BOrder before giving up.
     let order = null;
+    let isB2B = false;
 
     if (order_id) {
       order = await Order.findById(order_id).catch(() => null);
@@ -110,29 +116,36 @@ exports.handlePushCallback = async (req, res) => {
     if (!order && awb_number) {
       order = await Order.findOne({ 'courier.awbNumber': awb_number });
     }
+    if (!order && order_id) {
+      order = await B2BOrder.findById(order_id).catch(() => null);
+      if (order) isB2B = true;
+    }
+    if (!order && awb_number) {
+      order = await B2BOrder.findOne({ 'courier.awbNumber': awb_number });
+      if (order) isB2B = true;
+    }
 
-    const target = order;
-    if (!target) {
+    if (!order) {
       // Still 200 — Shadowfax doesn't need to retry for a shipment we
       // simply don't recognize (e.g. stale test data).
       console.warn(`Shadowfax webhook: no matching order for order_id=${order_id} awb=${awb_number}`);
       return res.status(200).json({ success: true, ignored: true });
     }
 
-    target.courier.awbNumber = target.courier.awbNumber || awb_number;
-    target.courier.status = event;
-    target.courier.statusDisplay = status;
-    target.courier.lastSyncedAt = new Date();
+    order.courier.awbNumber = order.courier.awbNumber || awb_number;
+    order.courier.status = event;
+    order.courier.statusDisplay = status;
+    order.courier.lastSyncedAt = new Date();
 
     // Shadowfax retries push callbacks, so the same event can arrive more
     // than once — dedup on (statusId, eventTimestamp) so a retry doesn't
     // duplicate the history entry indefinitely.
     const eventTimestamp = event_timestamp ? new Date(event_timestamp) : new Date();
-    const alreadyRecorded = target.courier.history.some(
+    const alreadyRecorded = order.courier.history.some(
       (h) => h.statusId === event && h.eventTimestamp?.getTime() === eventTimestamp.getTime()
     );
     if (!alreadyRecorded) {
-      target.courier.history.push({
+      order.courier.history.push({
         statusId: event,
         status,
         location: current_location,
@@ -141,10 +154,22 @@ exports.handlePushCallback = async (req, res) => {
       });
     }
 
-    // Only forward-progress the ORDER's own status — never let a stray
-    // out-of-order webhook regress an order that's already delivered or
-    // cancelled back to something earlier.
-    if (order) {
+    if (isB2B) {
+      // B2B's own status enum/workflow (utils/b2bOrderStatus.js) doesn't
+      // map onto retail's placed/confirmed/processing/shipped states,
+      // and B2B is admin-driven rather than auto-progressing through
+      // dispatch — only a real "delivered" auto-advances it, and only
+      // from its one legitimate predecessor (dispatched). Every other
+      // event still updates courier.status/history above, just doesn't
+      // move B2BOrder.status.
+      if (event === 'delivered' && order.status === 'dispatched') {
+        order.status = 'delivered';
+        order.statusHistory.push({ status: 'delivered', note: 'Auto-updated from Shadowfax tracking' });
+      }
+    } else {
+      // Only forward-progress the ORDER's own status — never let a stray
+      // out-of-order webhook regress an order that's already delivered
+      // or cancelled back to something earlier.
       const mapped = shadowfaxService.mapShadowfaxStatusToOrderStatus(event);
       const terminal = ['delivered', 'cancelled'];
       if (mapped && !terminal.includes(order.status)) {
@@ -152,7 +177,7 @@ exports.handlePushCallback = async (req, res) => {
       }
     }
 
-    await target.save();
+    await order.save();
 
     res.status(200).json({ success: true });
   } catch (err) {

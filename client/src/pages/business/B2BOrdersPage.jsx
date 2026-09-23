@@ -1,6 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import SEO from '../../components/SEO';
+import PageWrapper from '../../components/PageWrapper';
+import FilterPills from '../../components/b2b/FilterPills';
+import OrderStatusPill from '../../components/b2b/OrderStatusPill';
+import Money from '../../components/b2b/Money';
+import { formatDate } from '../../utils/b2bFormat';
 import { useB2B } from '../../context/B2BContext';
 import { b2bAPI } from '../../services/api';
 
@@ -14,21 +20,6 @@ const STATUS_FILTERS = [
   { value: 'cancelled', label: 'Cancelled' },
   { value: 'rejected', label: 'Rejected' },
 ];
-
-const STATUS_COLORS = {
-  placed: { bg: '#fef3c7', color: '#b45309' },
-  confirmed: { bg: '#dbeafe', color: '#1d4ed8' },
-  packed: { bg: '#ede9fe', color: '#6d28d9' },
-  dispatched: { bg: '#cffafe', color: '#0e7490' },
-  delivered: { bg: '#dcfce7', color: '#15803d' },
-  cancelled: { bg: '#fee2e2', color: '#b91c1c' },
-  rejected: { bg: '#fee2e2', color: '#b91c1c' },
-};
-
-function formatDate(d) {
-  return d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
-}
-function Money({ value }) { return <span>₹{Number(value || 0).toLocaleString('en-IN')}</span>; }
 
 export default function B2BOrdersPage() {
   const { business } = useB2B();
@@ -51,26 +42,12 @@ export default function B2BOrdersPage() {
   if (business === undefined) return null;
 
   return (
-    <div>
+    <PageWrapper>
       <SEO title="Orders" canonical="/b2b/orders" robots="noindex,nofollow" />
       <h1 className="font-serif font-black text-brown-dark text-xl sm:text-2xl mb-4">Orders</h1>
 
-      <div className="flex gap-2 overflow-x-auto pb-1 mb-4">
-        {STATUS_FILTERS.map((f) => (
-          <button
-            key={f.value}
-            onClick={() => setStatusFilter(f.value)}
-            className="px-4 rounded-full text-sm font-semibold whitespace-nowrap flex-shrink-0"
-            style={{
-              height: 40,
-              ...(statusFilter === f.value
-                ? { background: 'linear-gradient(135deg,#e07000,#ff9010)', color: '#fff' }
-                : { background: '#fff', color: '#2d1a00', border: '1px solid rgba(224,112,0,0.15)' }),
-            }}
-          >
-            {f.label}
-          </button>
-        ))}
+      <div className="mb-4">
+        <FilterPills layoutId="b2b-orders-status-filter" options={STATUS_FILTERS} value={statusFilter} onChange={setStatusFilter} />
       </div>
 
       {loading ? (
@@ -81,25 +58,26 @@ export default function B2BOrdersPage() {
         <div className="py-12 text-center text-brown-mid/50 text-sm">No orders yet.</div>
       ) : (
         <div className="flex flex-col gap-3">
-          {orders.map((o) => {
-            const colors = STATUS_COLORS[o.status] || {};
-            return (
-              <Link key={o._id} to={`/b2b/orders/${o._id}`} className="card p-4 flex items-center justify-between gap-3">
+          {orders.map((o, i) => (
+            <motion.div
+              key={o._id}
+              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: Math.min(i, 10) * 0.04 }}
+            >
+              <Link to={`/b2b/orders/${o._id}`} className="card p-4 flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <div className="font-bold text-brown-dark text-sm">{o.orderNumber}</div>
                   <div className="text-xs text-brown-mid/50 mt-0.5">{formatDate(o.createdAt)} · {o.items?.length || 0} item{o.items?.length === 1 ? '' : 's'}</div>
                 </div>
-                <div className="text-right flex-shrink-0">
+                <div className="text-right flex-shrink-0 flex flex-col items-end gap-1">
                   <div className="font-bold text-brown-dark text-sm"><Money value={o.totals?.payable} /></div>
-                  <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold" style={{ background: colors.bg, color: colors.color }}>
-                    {o.status}
-                  </span>
+                  <OrderStatusPill status={o.status} />
                 </div>
               </Link>
-            );
-          })}
+            </motion.div>
+          ))}
         </div>
       )}
-    </div>
+    </PageWrapper>
   );
 }

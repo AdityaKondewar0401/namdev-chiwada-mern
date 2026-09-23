@@ -4,6 +4,7 @@ const router = express.Router();
 const b2bController = require('../controllers/b2bController');
 const b2bCatalogController = require('../controllers/b2bCatalogController');
 const b2bOrderController = require('../controllers/b2bOrderController');
+const b2bPaymentController = require('../controllers/b2bPaymentController');
 const b2bInvoiceController = require('../controllers/b2bInvoiceController');
 const { protect } = require('../middleware/auth');
 const { loadBusiness, requireApprovedBusiness, requireB2BEnabled } = require('../middleware/business');
@@ -48,6 +49,12 @@ router.post(
   loadBusiness, requireApprovedBusiness, b2bQuoteLimiter,
   b2bOrderValidators.quoteOrder, validate,
   b2bOrderController.quoteOrder
+);
+router.post(
+  '/orders/payment/create-order',
+  loadBusiness, requireApprovedBusiness, b2bQuoteLimiter,
+  b2bOrderValidators.createAdvancePaymentOrder, validate,
+  b2bPaymentController.createAdvancePaymentOrder
 );
 router.post(
   '/orders',

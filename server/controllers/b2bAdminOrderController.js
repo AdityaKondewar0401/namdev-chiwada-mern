@@ -9,7 +9,7 @@ const B2BOrder = require('../models/B2BOrder');
 const Invoice = require('../models/Invoice');
 const PriceTier = require('../models/PriceTier');
 const { priceB2BOrder } = require('../utils/b2bPricing');
-const { shouldHold, getOutstanding } = require('../utils/b2bCredit');
+const { shouldHold } = require('../utils/b2bCredit');
 const { round2 } = require('../utils/money');
 const {
   isTransitionAllowed, getAllowedNextStatuses, REASON_REQUIRED_FOR, CANCEL_REQUIRES_CREDIT_NOTE_IF_INVOICED,
@@ -101,7 +101,14 @@ exports.updateOrderItems = async (req, res, next) => {
       subtotal: result.subtotal, taxTotal: result.taxTotal, grandTotal: result.grandTotal,
       roundOff: result.roundOff, payable: result.payable,
     };
-    order.creditHold = await shouldHold(account, result.payable);
+    // advanceAmount was already collected via Razorpay at placement and
+    // never changes here - only what's still owed does. If the edit
+    // drops payable below what's already been paid, nothing further is
+    // due (the resulting credit is still fully visible in the Ledger's
+    // own derived balance, not lost - just not shown as a negative
+    // "remaining" here).
+    order.remainingAmount = Math.max(0, round2(result.payable - order.advanceAmount));
+    order.creditHold = await shouldHold(account, order.remainingAmount);
     order.editHistory.push({ by: req.user._id, reason, before, after: order.toObject() });
 
     await order.save();
@@ -151,12 +158,9 @@ exports.issueInvoice = async (req, res, next) => {
 
 // ──────────────────────────────────────────────────────
 // POST /api/b2b/admin/orders/:id/status
-// Body: { status, note, reason, dispatch, force }
+// Body: { status, note, reason, dispatch }
 //
-// dispatched: auto-issues an invoice if none exists yet. For a prepaid
-// account whose outstanding balance (after this invoice) would still be
-// > 0, this is blocked unless `force: true` is sent (the admin UI shows
-// a confirm dialog first) — spec §6.9.
+// dispatched: auto-issues an invoice if none exists yet.
 //
 // cancelled from confirmed/packed with an existing invoice: the order
 // status change and the credit note (+ its ledger credit) commit in one
@@ -170,7 +174,7 @@ exports.updateOrderStatus = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Order not found' });
     }
 
-    const { status, note, reason, dispatch, force } = req.body;
+    const { status, note, reason, dispatch } = req.body;
 
     if (!isTransitionAllowed(order.status, status)) {
       return res.status(400).json({
@@ -225,18 +229,6 @@ exports.updateOrderStatus = async (req, res, next) => {
       }
 
       if (!order.invoice) {
-        if (order.business.paymentTerms === 'prepaid') {
-          const currentOutstanding = await getOutstanding(order.business._id);
-          const projectedOutstanding = round2(currentOutstanding + order.totals.payable);
-          if (projectedOutstanding > 0 && !force) {
-            return res.status(400).json({
-              success: false,
-              requiresForce: true,
-              message: `This is a prepaid account with an outstanding balance of ₹${projectedOutstanding.toLocaleString('en-IN')} after this invoice. Confirm to dispatch anyway.`,
-            });
-          }
-        }
-
         const invoice = await issueInvoiceForOrder(order._id, req.user._id);
         order.invoice = invoice._id;
 

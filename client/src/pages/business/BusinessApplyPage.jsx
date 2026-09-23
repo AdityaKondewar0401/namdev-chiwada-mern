@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import SEO from '../../components/SEO';
+import PageWrapper from '../../components/PageWrapper';
 import B2BStatusBadge from '../../components/b2b/B2BStatusBadge';
 import { b2bAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
@@ -151,7 +152,7 @@ export default function BusinessApplyPage() {
   if (view === 'status-card') {
     const copy = STATUS_COPY(existingStatus?.status);
     return (
-      <div className="min-h-screen bg-cream flex items-center justify-center px-4 py-12">
+      <PageWrapper className="min-h-screen bg-cream flex items-center justify-center px-4 py-12">
         <SEO title="Wholesale Application" canonical="/business/apply" robots="noindex,nofollow" />
         <div className="card p-6 sm:p-8 max-w-md w-full text-center">
           <div className="flex justify-center mb-4">
@@ -168,7 +169,7 @@ export default function BusinessApplyPage() {
             Go to your dashboard
           </Link>
         </div>
-      </div>
+      </PageWrapper>
     );
   }
 
@@ -176,7 +177,7 @@ export default function BusinessApplyPage() {
   const err = (name) => errors[name] && <p className="mt-1 text-xs text-red-600">{errors[name]}</p>;
 
   return (
-    <div className="min-h-screen bg-cream pb-28 sm:pb-16">
+    <PageWrapper className="min-h-screen bg-cream pb-28 sm:pb-16">
       <SEO title="Apply for a Wholesale Account" canonical="/business/apply" robots="noindex,nofollow" />
 
       <div className="max-w-2xl mx-auto px-4 py-8 sm:py-12">
@@ -322,6 +323,6 @@ export default function BusinessApplyPage() {
           {submitting ? 'Submitting…' : 'Submit application'}
         </button>
       </div>
-    </div>
+    </PageWrapper>
   );
 }

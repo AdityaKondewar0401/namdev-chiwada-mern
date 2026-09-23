@@ -29,7 +29,7 @@ const CreditNote = require('../models/CreditNote');
 const LedgerEntry = require('../models/LedgerEntry');
 const Counter = require('../models/Counter');
 
-const { issueInvoiceForOrder } = require('../utils/b2bInvoicing');
+const { issueInvoiceForOrder, advanceNoteFor } = require('../utils/b2bInvoicing');
 const { issueCreditNoteForInvoice } = require('../utils/b2bCreditNote');
 const { buildStatement } = require('../utils/b2bStatement');
 const { getOutstanding } = require('../utils/b2bCredit');
@@ -63,6 +63,9 @@ function pdfBufferToText(doc) {
 }
 
 async function makeOrder({ business, isTest = false, status = 'confirmed', payable = 5000 }) {
+  const advancePercent = business.advancePercent ?? 100;
+  const advanceAmount = Math.round(payable * advancePercent / 100 * 100) / 100;
+  const remainingAmount = Math.round((payable - advanceAmount) * 100) / 100;
   return B2BOrder.create({
     orderNumber: `TST-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     business: business._id,
@@ -77,14 +80,17 @@ async function makeOrder({ business, isTest = false, status = 'confirmed', payab
     totals: { subtotal: payable, taxTotal: 0, grandTotal: payable, roundOff: 0, payable },
     status,
     statusHistory: [{ status, by: buyerUser._id }],
-    paymentTermsSnapshot: business.paymentTerms,
+    advancePercent,
+    advanceAmount,
+    remainingAmount,
+    remainingDueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
   });
 }
 
 test('issueInvoiceForOrder: creates Invoice + a debit LedgerEntry + links the order, and totals match', async () => {
   const business = await BusinessAccount.create({
     user: buyerUser._id, businessName: 'Invoice Test Business', businessType: 'retailer',
-    status: 'approved', paymentTerms: 'net15', creditLimit: 50000,
+    status: 'approved', advancePercent: 0, creditLimit: 50000,
   });
   const order = await makeOrder({ business, payable: 7654.5 });
 
@@ -109,7 +115,7 @@ test('issueInvoiceForOrder: creates Invoice + a debit LedgerEntry + links the or
 test('issueInvoiceForOrder: rejects a second invoice for the same order', async () => {
   const business = await BusinessAccount.create({
     user: buyerUser._id, businessName: 'Invoice Test Business 2', businessType: 'retailer',
-    status: 'approved', paymentTerms: 'prepaid', creditLimit: 0,
+    status: 'approved', advancePercent: 100, creditLimit: 0,
   });
   const order = await makeOrder({ business });
   await issueInvoiceForOrder(order._id, adminUser._id);
@@ -131,7 +137,7 @@ test('issueInvoiceForOrder: fails loudly (and writes nothing) when seller legal 
 
   const business = await BusinessAccount.create({
     user: buyerUser._id, businessName: 'Invoice Test Business 3', businessType: 'retailer',
-    status: 'approved', paymentTerms: 'prepaid', creditLimit: 0,
+    status: 'approved', advancePercent: 100, creditLimit: 0,
   });
   const order = await makeOrder({ business });
 
@@ -168,11 +174,11 @@ test('real and test invoice series are independent (test series starts at .../00
   try {
     realBusiness = await BusinessAccount.create({
       user: realUser._id, businessName: 'Series Real Biz', businessType: 'retailer',
-      status: 'approved', paymentTerms: 'prepaid', creditLimit: 0, isTest: false,
+      status: 'approved', advancePercent: 100, creditLimit: 0, isTest: false,
     });
     testBusiness = await BusinessAccount.create({
       user: testUser._id, businessName: 'Series Test Biz', businessType: 'retailer',
-      status: 'approved', paymentTerms: 'prepaid', creditLimit: 0, isTest: true,
+      status: 'approved', advancePercent: 100, creditLimit: 0, isTest: true,
     });
 
     const realOrder = await makeOrder({ business: realBusiness });
@@ -202,7 +208,7 @@ test('20 concurrent invoice issuances produce 20 unique, gapless numbers', async
   try {
     business = await BusinessAccount.create({
       user: user._id, businessName: 'Concurrency Test Biz', businessType: 'retailer',
-      status: 'approved', paymentTerms: 'prepaid', creditLimit: 0,
+      status: 'approved', advancePercent: 100, creditLimit: 0,
     });
     const orders = await Promise.all(Array.from({ length: 20 }, () => makeOrder({ business })));
 
@@ -225,7 +231,7 @@ test('cancelling an invoiced order (credit note) nets outstanding back to zero',
   try {
     business = await BusinessAccount.create({
       user: user._id, businessName: 'Credit Note Test Biz', businessType: 'retailer',
-      status: 'approved', paymentTerms: 'net15', creditLimit: 50000,
+      status: 'approved', advancePercent: 0, creditLimit: 50000,
     });
     const order = await makeOrder({ business, payable: 3000 });
     const invoice = await issueInvoiceForOrder(order._id, adminUser._id);
@@ -284,7 +290,7 @@ test('PDF data source: the issued invoice snapshot has the FSSAI number, the sup
   try {
     business = await BusinessAccount.create({
       user: user._id, businessName: 'PDF Test Biz', businessType: 'retailer',
-      status: 'approved', paymentTerms: 'prepaid', creditLimit: 0,
+      status: 'approved', advancePercent: 100, creditLimit: 0,
     });
     const order = await makeOrder({ business, payable: 1200 });
     const invoice = await issueInvoiceForOrder(order._id, adminUser._id);
@@ -296,7 +302,7 @@ test('PDF data source: the issued invoice snapshot has the FSSAI number, the sup
     assert.equal(invoice.totals.taxTotal, 0);
     assert.equal(JSON.stringify(invoice.toObject()).includes('hsnCode'), false);
 
-    const doc = renderInvoicePdf(invoice, { orderNumber: order.orderNumber, paymentTerms: 'prepaid' });
+    const doc = renderInvoicePdf(invoice, { orderNumber: order.orderNumber, advanceNote: advanceNoteFor(order) });
     const text = await pdfBufferToText(doc);
     assert.ok(text.startsWith('%PDF-'), 'expected a well-formed PDF header');
     assert.ok(text.length > 500, 'expected non-trivial PDF output');
@@ -311,7 +317,7 @@ let statementBusiness;
 beforeEach(async () => {
   statementBusiness = await BusinessAccount.create({
     user: statementUser._id, businessName: `Statement Test Biz ${Date.now()}`, businessType: 'retailer',
-    status: 'approved', paymentTerms: 'net15', creditLimit: 50000,
+    status: 'approved', advancePercent: 0, creditLimit: 50000,
   });
 });
 

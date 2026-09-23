@@ -4,6 +4,7 @@ const router = express.Router();
 const b2bAdminController = require('../controllers/b2bAdminController');
 const b2bAdminCatalogController = require('../controllers/b2bAdminCatalogController');
 const b2bAdminOrderController = require('../controllers/b2bAdminOrderController');
+const b2bShippingController = require('../controllers/b2bShippingController');
 const b2bAdminInvoiceController = require('../controllers/b2bAdminInvoiceController');
 const b2bAdminLedgerController = require('../controllers/b2bAdminLedgerController');
 const b2bAdminSummaryController = require('../controllers/b2bAdminSummaryController');
@@ -58,6 +59,8 @@ router.put('/orders/:id/items', [...vOrder.orderIdParam, ...vOrder.updateOrderIt
 router.post('/orders/:id/status', [...vOrder.orderIdParam, ...vOrder.updateOrderStatus], validate, b2bAdminOrderController.updateOrderStatus);
 router.post('/orders/:id/override-credit-hold', [...vOrder.orderIdParam, ...vOrder.overrideCreditHold], validate, b2bAdminOrderController.overrideCreditHold);
 router.post('/orders/:id/invoice', vInvoice.orderIdParam, validate, b2bAdminOrderController.issueInvoice);
+router.post('/orders/:id/create-shipment', vOrder.orderIdParam, validate, b2bShippingController.createB2BShipment);
+router.post('/orders/:id/cancel-shipment', [...vOrder.orderIdParam, ...vOrder.cancelShipment], validate, b2bShippingController.cancelB2BShipment);
 
 /* =========================================
    INVOICES + CREDIT NOTES (Phase 4)
