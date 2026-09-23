@@ -19,17 +19,8 @@ const itemsChain = [
 
 exports.quoteOrder = itemsChain;
 
-// Real requirement ("razorpayOrderId required IF this account has a
-// nonzero advance") depends on the business's own advancePercent, which
-// this shallow, DB-free validator layer can't see - enforced instead
-// inside utils/b2bOrderCreation.js, the same way retail's orderValidators
-// leaves "razorpayOrderId required when paymentMethod===ONLINE" to
-// utils/orderCreation.js rather than a conditional validator chain here.
-exports.createAdvancePaymentOrder = itemsChain;
-
 exports.placeOrder = [
   ...itemsChain,
-  body('razorpayOrderId').optional({ values: 'falsy' }).isString().matches(/^order_[A-Za-z0-9]+$/).withMessage('razorpayOrderId is not a valid Razorpay order id'),
   body('buyerNotes').optional({ values: 'falsy' }).isString().trim().isLength({ max: 1000 }),
 ];
 

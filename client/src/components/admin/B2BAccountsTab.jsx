@@ -1,14 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { b2bAdminAPI } from '../../services/api';
 import B2BStatusBadge from '../b2b/B2BStatusBadge';
 import B2BModal from '../b2b/B2BModal';
 import B2BDisabledNotice from './B2BDisabledNotice';
-import FilterPills from '../b2b/FilterPills';
-import StatGrid from '../b2b/StatGrid';
-import Money from '../b2b/Money';
-import { formatDate } from '../../utils/b2bFormat';
 
 const STATUS_FILTERS = [
   { value: '', label: 'All' },
@@ -27,6 +22,21 @@ const BUSINESS_TYPES = [
   { value: 'other', label: 'Other' },
 ];
 
+const PAYMENT_TERMS = [
+  { value: 'prepaid', label: 'Prepaid' },
+  { value: 'net7', label: 'Net 7' },
+  { value: 'net15', label: 'Net 15' },
+  { value: 'net30', label: 'Net 30' },
+];
+
+function formatDate(d) {
+  return d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+}
+
+function Money({ value }) {
+  return <span>₹{Number(value || 0).toLocaleString('en-IN')}</span>;
+}
+
 export default function B2BAccountsTab() {
   const [accounts, setAccounts] = useState([]);
   const [total, setTotal] = useState(0);
@@ -41,7 +51,7 @@ export default function B2BAccountsTab() {
   const [detailLoading, setDetailLoading] = useState(false);
 
   const [createOpen, setCreateOpen] = useState(false);
-  const [createForm, setCreateForm] = useState({ email: '', businessName: '', businessType: '', tier: '', advancePercent: 100, creditLimit: '' });
+  const [createForm, setCreateForm] = useState({ email: '', businessName: '', businessType: '', tier: '', paymentTerms: 'prepaid', creditLimit: '' });
   const [createErrors, setCreateErrors] = useState({});
   const [createSubmitting, setCreateSubmitting] = useState(false);
   const [duplicateInfo, setDuplicateInfo] = useState(null);
@@ -99,12 +109,11 @@ export default function B2BAccountsTab() {
       await b2bAdminAPI.createAccount({
         ...createForm,
         tier: createForm.tier || undefined,
-        advancePercent: createForm.advancePercent === '' ? undefined : Number(createForm.advancePercent),
         creditLimit: createForm.creditLimit === '' ? undefined : Number(createForm.creditLimit),
       });
       toast.success('Business account created');
       setCreateOpen(false);
-      setCreateForm({ email: '', businessName: '', businessType: '', tier: '', advancePercent: 100, creditLimit: '' });
+      setCreateForm({ email: '', businessName: '', businessType: '', tier: '', paymentTerms: 'prepaid', creditLimit: '' });
       fetchAccounts();
     } catch (err) {
       const status = err.response?.status;
@@ -129,7 +138,7 @@ export default function B2BAccountsTab() {
   const openAction = (type, account) => {
     setActionModal({ type, account });
     setActionForm(type === 'approve'
-      ? { tier: tiers.find((t) => t.isDefault)?._id || '', advancePercent: 100, creditLimit: '', note: '' }
+      ? { tier: tiers.find((t) => t.isDefault)?._id || '', paymentTerms: 'prepaid', creditLimit: '', note: '' }
       : { reason: '', note: '' });
   };
 
@@ -142,7 +151,7 @@ export default function B2BAccountsTab() {
       if (type === 'approve') {
         await b2bAdminAPI.approveAccount(account._id, {
           tier: actionForm.tier,
-          advancePercent: Number(actionForm.advancePercent),
+          paymentTerms: actionForm.paymentTerms,
           creditLimit: actionForm.creditLimit === '' ? 0 : Number(actionForm.creditLimit),
           note: actionForm.note || undefined,
         });
@@ -183,12 +192,23 @@ export default function B2BAccountsTab() {
 
       {/* Filters — stacked full-width on mobile */}
       <div className="flex flex-col sm:flex-row gap-2.5 mb-4">
-        <FilterPills
-          layoutId="b2b-accounts-status-filter"
-          options={STATUS_FILTERS}
-          value={statusFilter}
-          onChange={(v) => { setStatusFilter(v); setPage(1); }}
-        />
+        <div className="flex gap-2 overflow-x-auto pb-1 sm:pb-0">
+          {STATUS_FILTERS.map((f) => (
+            <button
+              key={f.value}
+              onClick={() => { setStatusFilter(f.value); setPage(1); }}
+              className="px-4 rounded-full text-sm font-semibold whitespace-nowrap flex-shrink-0"
+              style={{
+                height: 40,
+                ...(statusFilter === f.value
+                  ? { background: 'linear-gradient(135deg,#e07000,#ff9010)', color: '#fff' }
+                  : { background: '#fff', color: '#2d1a00', border: '1px solid rgba(224,112,0,0.15)' }),
+              }}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
         <input
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
@@ -205,12 +225,8 @@ export default function B2BAccountsTab() {
         <>
           {/* MOBILE: stacked cards */}
           <div className="flex flex-col gap-3 md:hidden">
-            {accounts.map((a, i) => (
-              <motion.div
-                key={a._id} className="card p-4"
-                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.25, delay: Math.min(i, 8) * 0.03 }}
-              >
+            {accounts.map((a) => (
+              <div key={a._id} className="card p-4">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <div className="font-bold text-brown-dark text-sm truncate">{a.businessName}</div>
@@ -233,7 +249,7 @@ export default function B2BAccountsTab() {
                     </button>
                   )}
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
 
@@ -251,7 +267,7 @@ export default function B2BAccountsTab() {
               </thead>
               <tbody>
                 {accounts.map((a) => (
-                  <tr key={a._id} className="border-t transition-colors hover:bg-saffron/5" style={{ borderColor: 'rgba(224,112,0,0.08)' }}>
+                  <tr key={a._id} className="border-t" style={{ borderColor: 'rgba(224,112,0,0.08)' }}>
                     <td className="py-3 pr-4 font-semibold text-brown-dark">{a.businessName}</td>
                     <td className="py-3 pr-4 text-brown-mid/70">{a.user?.email}</td>
                     <td className="py-3 pr-4"><B2BStatusBadge status={a.status} isTest={a.isTest} /></td>
@@ -304,7 +320,7 @@ export default function B2BAccountsTab() {
               <div><span className="text-brown-mid/50">Type</span><div className="font-semibold text-brown-dark">{detail.business.businessType}</div></div>
               <div><span className="text-brown-mid/50">GSTIN</span><div className="font-semibold text-brown-dark">{detail.business.gstin || '—'}</div></div>
               <div><span className="text-brown-mid/50">Tier</span><div className="font-semibold text-brown-dark">{detail.business.tier?.name || '—'}</div></div>
-              <div><span className="text-brown-mid/50">Advance</span><div className="font-semibold text-brown-dark">{detail.business.advancePercent}% at order, rest in 14 days</div></div>
+              <div><span className="text-brown-mid/50">Payment terms</span><div className="font-semibold text-brown-dark">{detail.business.paymentTerms}</div></div>
             </div>
 
             <button
@@ -322,11 +338,20 @@ export default function B2BAccountsTab() {
             )}
 
             {detail.creditSummary && (
-              <StatGrid compact tiles={[
-                { label: 'Outstanding', value: <Money value={detail.creditSummary.outstanding} /> },
-                { label: 'Available', value: <Money value={detail.creditSummary.availableCredit} /> },
-                { label: 'Limit', value: <Money value={detail.creditSummary.creditLimit} /> },
-              ]} />
+              <div className="grid grid-cols-3 gap-2">
+                <div className="card p-3 text-center">
+                  <div className="text-[10px] font-semibold uppercase text-brown-mid/50">Outstanding</div>
+                  <div className="font-bold text-brown-dark text-sm mt-1"><Money value={detail.creditSummary.outstanding} /></div>
+                </div>
+                <div className="card p-3 text-center">
+                  <div className="text-[10px] font-semibold uppercase text-brown-mid/50">Available</div>
+                  <div className="font-bold text-brown-dark text-sm mt-1"><Money value={detail.creditSummary.availableCredit} /></div>
+                </div>
+                <div className="card p-3 text-center">
+                  <div className="text-[10px] font-semibold uppercase text-brown-mid/50">Limit</div>
+                  <div className="font-bold text-brown-dark text-sm mt-1"><Money value={detail.creditSummary.creditLimit} /></div>
+                </div>
+              </div>
             )}
 
             <div>
@@ -406,9 +431,11 @@ export default function B2BAccountsTab() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-brown-dark mb-1.5">Advance %</label>
-              <input type="number" inputMode="numeric" min="0" max="100" className="form-input text-base"
-                value={createForm.advancePercent} onChange={(e) => setCreateForm((f) => ({ ...f, advancePercent: e.target.value }))} />
+              <label className="block text-sm font-semibold text-brown-dark mb-1.5">Payment terms</label>
+              <select className="form-input text-base"
+                value={createForm.paymentTerms} onChange={(e) => setCreateForm((f) => ({ ...f, paymentTerms: e.target.value }))}>
+                {PAYMENT_TERMS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+              </select>
             </div>
           </div>
           <div>
@@ -416,7 +443,6 @@ export default function B2BAccountsTab() {
             <input type="number" inputMode="numeric" min="0" className="form-input text-base"
               value={createForm.creditLimit} onChange={(e) => setCreateForm((f) => ({ ...f, creditLimit: e.target.value }))} />
           </div>
-          <p className="text-xs text-brown-mid/50 -mt-1">Advance % is collected via Razorpay when the order is placed. The rest is due 14 days later.</p>
           <button type="submit" disabled={createSubmitting} className="btn-saffron disabled:opacity-60" style={{ minHeight: 48 }}>
             {createSubmitting ? 'Creating…' : 'Create account'}
           </button>
@@ -460,10 +486,11 @@ export default function B2BAccountsTab() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-brown-dark mb-1.5">Advance % *</label>
-                  <input type="number" inputMode="numeric" min="0" max="100" required className="form-input text-base"
-                    value={actionForm.advancePercent} onChange={(e) => setActionForm((f) => ({ ...f, advancePercent: e.target.value }))} />
-                  <p className="text-xs text-brown-mid/50 mt-1">Collected via Razorpay at order placement. The rest is due 14 days later.</p>
+                  <label className="block text-sm font-semibold text-brown-dark mb-1.5">Payment terms *</label>
+                  <select className="form-input text-base" required
+                    value={actionForm.paymentTerms} onChange={(e) => setActionForm((f) => ({ ...f, paymentTerms: e.target.value }))}>
+                    {PAYMENT_TERMS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-brown-dark mb-1.5">Credit limit (₹)</label>

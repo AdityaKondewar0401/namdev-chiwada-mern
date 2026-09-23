@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { b2bAdminAPI, productAPI } from '../../services/api';
 import B2BModal from '../b2b/B2BModal';
@@ -32,8 +31,6 @@ export default function B2BCatalogTab() {
   const [itemForm, setItemForm] = useState(EMPTY_ITEM_FORM);
   const [itemErrors, setItemErrors] = useState({});
   const [itemSubmitting, setItemSubmitting] = useState(false);
-  const [confirmingDeleteTierId, setConfirmingDeleteTierId] = useState(null);
-  const [confirmingDeleteItemId, setConfirmingDeleteItemId] = useState(null);
 
   const fetchTiers = useCallback(() => {
     setLoading(true);
@@ -95,7 +92,7 @@ export default function B2BCatalogTab() {
   };
 
   const deleteTier = async (tier) => {
-    setConfirmingDeleteTierId(null);
+    if (!window.confirm(`Delete pricing tier "${tier.name}"? This cannot be undone.`)) return;
     try {
       await b2bAdminAPI.deleteTier(tier._id);
       toast.success('Tier deleted');
@@ -159,7 +156,7 @@ export default function B2BCatalogTab() {
   };
 
   const deleteItem = async (item) => {
-    setConfirmingDeleteItemId(null);
+    if (!window.confirm(`Delete "${item.product.name} (${item.size})" from the wholesale catalog?`)) return;
     try {
       await b2bAdminAPI.deleteCatalogItem(item._id);
       toast.success('Catalog item deleted');
@@ -201,12 +198,8 @@ export default function B2BCatalogTab() {
         <div className="py-12 text-center text-brown-mid/50 text-sm">No pricing tiers yet. Create your first one to start approving businesses.</div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {tiers.map((t, i) => (
-            <motion.div
-              key={t._id} className="card p-4 flex flex-col gap-2"
-              initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: Math.min(i, 8) * 0.04 }}
-            >
+          {tiers.map((t) => (
+            <div key={t._id} className="card p-4 flex flex-col gap-2">
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <div className="font-bold text-brown-dark text-sm">{t.name}</div>
@@ -223,30 +216,17 @@ export default function B2BCatalogTab() {
               </div>
               <div className="font-serif font-black text-saffron text-xl">{t.discountPercent}% off</div>
               {t.description && <p className="text-brown-mid/60 text-xs leading-relaxed">{t.description}</p>}
-              <div className="mt-2">
-                <AnimatePresence mode="wait">
-                  {confirmingDeleteTierId !== t._id ? (
-                    <motion.div key="actions" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-2">
-                      <button onClick={() => openEdit(t)} className="flex-1 rounded-xl text-sm font-semibold text-brown-dark"
-                        style={{ minHeight: 44, background: '#fef3e0' }}>
-                        Edit
-                      </button>
-                      <button onClick={() => setConfirmingDeleteTierId(t._id)} className="flex-1 rounded-xl text-sm font-semibold text-red-600"
-                        style={{ minHeight: 44, background: '#fef2f2' }}>
-                        Delete
-                      </button>
-                    </motion.div>
-                  ) : (
-                    <motion.div key="confirm" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.97 }}
-                      className="flex items-center gap-2 px-1 rounded-xl" style={{ minHeight: 44, background: '#fef2f2' }}>
-                      <span className="text-xs text-brown-dark font-medium flex-1">Delete this tier?</span>
-                      <button onClick={() => deleteTier(t)} className="text-xs font-bold px-3 py-2 rounded-lg text-white" style={{ background: '#dc2626' }}>Yes</button>
-                      <button onClick={() => setConfirmingDeleteTierId(null)} className="text-xs font-semibold px-3 py-2 rounded-lg text-brown-mid/70">Cancel</button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+              <div className="flex items-center gap-2 mt-2">
+                <button onClick={() => openEdit(t)} className="flex-1 rounded-xl text-sm font-semibold text-brown-dark"
+                  style={{ minHeight: 44, background: '#fef3e0' }}>
+                  Edit
+                </button>
+                <button onClick={() => deleteTier(t)} className="flex-1 rounded-xl text-sm font-semibold text-red-600"
+                  style={{ minHeight: 44, background: '#fef2f2' }}>
+                  Delete
+                </button>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       )}
@@ -267,12 +247,8 @@ export default function B2BCatalogTab() {
         <div className="py-12 text-center text-brown-mid/50 text-sm">No catalog items yet. Add your first wholesale item above.</div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {items.map((item, i) => (
-            <motion.div
-              key={item._id} className="card p-4 flex flex-col gap-2"
-              initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: Math.min(i, 8) * 0.04 }}
-            >
+          {items.map((item) => (
+            <div key={item._id} className="card p-4 flex flex-col gap-2">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-2.5 min-w-0">
                   {item.product?.img && <img src={item.product.img} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />}
@@ -289,30 +265,17 @@ export default function B2BCatalogTab() {
               {item.tierOverrides?.length > 0 && (
                 <div className="text-xs text-brown-mid/50">{item.tierOverrides.length} tier override{item.tierOverrides.length > 1 ? 's' : ''}</div>
               )}
-              <div className="mt-2">
-                <AnimatePresence mode="wait">
-                  {confirmingDeleteItemId !== item._id ? (
-                    <motion.div key="actions" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-2">
-                      <button onClick={() => openEditItem(item)} className="flex-1 rounded-xl text-sm font-semibold text-brown-dark"
-                        style={{ minHeight: 44, background: '#fef3e0' }}>
-                        Edit
-                      </button>
-                      <button onClick={() => setConfirmingDeleteItemId(item._id)} className="flex-1 rounded-xl text-sm font-semibold text-red-600"
-                        style={{ minHeight: 44, background: '#fef2f2' }}>
-                        Delete
-                      </button>
-                    </motion.div>
-                  ) : (
-                    <motion.div key="confirm" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.97 }}
-                      className="flex items-center gap-2 px-1 rounded-xl" style={{ minHeight: 44, background: '#fef2f2' }}>
-                      <span className="text-xs text-brown-dark font-medium flex-1">Delete this item?</span>
-                      <button onClick={() => deleteItem(item)} className="text-xs font-bold px-3 py-2 rounded-lg text-white" style={{ background: '#dc2626' }}>Yes</button>
-                      <button onClick={() => setConfirmingDeleteItemId(null)} className="text-xs font-semibold px-3 py-2 rounded-lg text-brown-mid/70">Cancel</button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+              <div className="flex items-center gap-2 mt-2">
+                <button onClick={() => openEditItem(item)} className="flex-1 rounded-xl text-sm font-semibold text-brown-dark"
+                  style={{ minHeight: 44, background: '#fef3e0' }}>
+                  Edit
+                </button>
+                <button onClick={() => deleteItem(item)} className="flex-1 rounded-xl text-sm font-semibold text-red-600"
+                  style={{ minHeight: 44, background: '#fef2f2' }}>
+                  Delete
+                </button>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       )}

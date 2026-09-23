@@ -1,8 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
-
-const MotionLink = motion(Link);
 
 // Sub-nav shell for every /b2b/* page (spec §8.3). Visually modeled on
 // AccountNav/AdminNav (pills on mobile, sidebar on desktop) but uses
@@ -40,27 +37,20 @@ export default function B2BLayout({ children }) {
               {NAV_ITEMS.map((item) => {
                 const active = isActive(item.to);
                 return (
-                  <MotionLink
+                  <Link
                     key={item.to}
                     to={item.to}
                     ref={active ? activeRef : null}
-                    className="relative isolate flex items-center px-4 rounded-full text-sm font-semibold whitespace-nowrap flex-shrink-0"
+                    className="flex items-center px-4 rounded-full text-sm font-semibold whitespace-nowrap transition-all flex-shrink-0"
                     style={{
                       height: 44,
-                      border: active ? 'none' : '1px solid rgba(224,112,0,0.15)',
-                      background: active ? 'transparent' : '#fff',
+                      ...(active
+                        ? { background: 'linear-gradient(135deg,#e07000,#ff9010)', color: '#fff', boxShadow: '0 4px 14px rgba(224,112,0,0.3)' }
+                        : { background: '#fff', color: '#2d1a00', border: '1px solid rgba(224,112,0,0.15)' }),
                     }}
                   >
-                    {active && (
-                      <motion.span
-                        layoutId="b2b-layout-nav-pill"
-                        className="absolute inset-0 rounded-full -z-10"
-                        style={{ background: 'linear-gradient(135deg,#e07000,#ff9010)', boxShadow: '0 4px 14px rgba(224,112,0,0.3)' }}
-                        transition={{ type: 'spring', stiffness: 380, damping: 32 }}
-                      />
-                    )}
-                    <span className={`relative z-10 ${active ? 'text-white' : 'text-brown-dark'}`}>{item.label}</span>
-                  </MotionLink>
+                    {item.label}
+                  </Link>
                 );
               })}
             </div>

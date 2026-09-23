@@ -376,23 +376,12 @@ async function sendB2BOrderPlaced(order, business, user) {
   const holdNote = order.creditHold
     ? '<div style="margin-top:10px; padding:10px 14px; background:#fef2f2; color:#991b1b; border-radius:10px; font-size:13px;"><strong>On credit hold</strong> — confirm requires an override.</div>'
     : '';
-  // Advance was a real, verified Razorpay payment collected before this
-  // order could even be created (see utils/b2bOrderCreation.js) - so
-  // "order placed" and "advance received" are the same instant, not two
-  // separate emails to send.
-  const paymentNote = order.advanceAmount > 0
-    ? `<div style="margin-top:10px; padding:10px 14px; background:#fef3e0; color:#7a3300; border-radius:10px; font-size:13px;">
-        Paid now: <strong>₹${order.advanceAmount.toLocaleString('en-IN')}</strong> (${order.advancePercent}% advance) ·
-        Balance due: <strong>₹${order.remainingAmount.toLocaleString('en-IN')}</strong> by ${new Date(order.remainingDueDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
-      </div>`
-    : '';
 
   const buyerHtml = b2bEmailShell({
     eyebrow: 'ORDER PLACED',
     heading: `Order ${order.orderNumber} received`,
     bodyHtml: `<table role="presentation" width="100%">${b2bOrderItemsHtml(order)}</table>
-      <div style="margin-top:12px; font-weight:800; font-size:15px; color:#2d1a00;">Total: ₹${order.totals.payable.toLocaleString('en-IN')}</div>
-      ${paymentNote}`,
+      <div style="margin-top:12px; font-weight:800; font-size:15px; color:#2d1a00;">Total: ₹${order.totals.payable.toLocaleString('en-IN')}</div>`,
     ctaText: 'View order',
     ctaUrl: `${B2B_CLIENT_URL}/b2b/orders/${order._id}`,
   });
@@ -402,7 +391,6 @@ async function sendB2BOrderPlaced(order, business, user) {
     heading: `${order.orderNumber} — ${business.businessName}${testTag}`,
     bodyHtml: `<table role="presentation" width="100%">${b2bOrderItemsHtml(order)}</table>
       <div style="margin-top:12px; font-weight:800; font-size:15px; color:#2d1a00;">Total: ₹${order.totals.payable.toLocaleString('en-IN')}</div>
-      ${paymentNote}
       ${holdNote}`,
     ctaText: 'Review in admin panel',
     ctaUrl: `${B2B_CLIENT_URL}/admin`,

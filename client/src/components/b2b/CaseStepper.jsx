@@ -1,12 +1,9 @@
-import { motion } from 'framer-motion';
-
 // Case-count +/- control for the Quick Order page. Deliberately separate
 // from client/src/components/QuantityStepper.jsx (spec §8.4 — that one
 // is bound to the retail cart's product+size identity and quantity
 // semantics; this one is just a plain controlled integer >= 0, unaware
 // of carts, MOQ enforcement (shown as an inline error by the caller
-// instead), or any retail state). Tap feedback (whileTap scale) mirrors
-// QuantityStepper's own convention so the two steppers feel related.
+// instead), or any retail state).
 export default function CaseStepper({ value, onChange, min = 0, disabled = false }) {
   const dec = () => !disabled && onChange(Math.max(min, value - 1));
   const inc = () => !disabled && onChange(value + 1);
@@ -16,9 +13,8 @@ export default function CaseStepper({ value, onChange, min = 0, disabled = false
       className="inline-flex items-center rounded-full overflow-hidden"
       style={{ border: '1px solid rgba(224,112,0,0.25)', opacity: disabled ? 0.5 : 1 }}
     >
-      <motion.button
+      <button
         type="button"
-        whileTap={disabled || value <= min ? undefined : { scale: 0.96 }}
         onClick={dec}
         disabled={disabled || value <= min}
         aria-label="Decrease cases"
@@ -26,7 +22,7 @@ export default function CaseStepper({ value, onChange, min = 0, disabled = false
         style={{ width: 44, height: 44, background: '#fef3e0' }}
       >
         −
-      </motion.button>
+      </button>
       <input
         type="text"
         inputMode="numeric"
@@ -40,9 +36,8 @@ export default function CaseStepper({ value, onChange, min = 0, disabled = false
         className="text-center font-bold text-brown-dark bg-white"
         style={{ width: 44, height: 44 }}
       />
-      <motion.button
+      <button
         type="button"
-        whileTap={disabled ? undefined : { scale: 0.96 }}
         onClick={inc}
         disabled={disabled}
         aria-label="Increase cases"
@@ -50,7 +45,7 @@ export default function CaseStepper({ value, onChange, min = 0, disabled = false
         style={{ width: 44, height: 44, background: 'linear-gradient(135deg,#e07000,#ff9010)' }}
       >
         +
-      </motion.button>
+      </button>
     </div>
   );
 }

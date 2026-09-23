@@ -11,9 +11,9 @@ const B2BOrder = require('../models/B2BOrder');
 const PriceTier = require('../models/PriceTier');
 const { priceB2BOrder } = require('../utils/b2bPricing');
 const { shouldHold } = require('../utils/b2bCredit');
-const { round2 } = require('../utils/money');
-const { createB2BOrderForUser } = require('../utils/b2bOrderCreation');
-const { sendB2BOrderStatusUpdate } = require('../services/emailService');
+const { nextB2BOrderNumber } = require('../utils/b2bNumbering');
+const { getTaxMode } = require('../utils/taxMode');
+const { sendB2BOrderPlaced, sendB2BOrderStatusUpdate } = require('../services/emailService');
 
 // Picks the shipping address for an order: by id if given and found,
 // else the account's default, else its first, else billing address as
@@ -47,14 +47,9 @@ exports.quoteOrder = async (req, res, next) => {
       return res.status(400).json({ success: false, errors: result.errors });
     }
 
-    const advanceAmount = round2(result.payable * account.advancePercent / 100);
-    const remainingAmount = round2(result.payable - advanceAmount);
-    const wouldHold = await shouldHold(account, remainingAmount);
+    const wouldHold = await shouldHold(account, result.payable);
 
-    res.json({
-      success: true,
-      quote: { ...result, wouldHold, shippingAddress, advancePercent: account.advancePercent, advanceAmount, remainingAmount },
-    });
+    res.json({ success: true, quote: { ...result, wouldHold, shippingAddress } });
   } catch (err) {
     next(err);
   }
@@ -62,30 +57,59 @@ exports.quoteOrder = async (req, res, next) => {
 
 // ──────────────────────────────────────────────────────
 // POST /api/b2b/orders  (approved only)
-//
-// Thin wrapper around utils/b2bOrderCreation.js, which does the actual
-// re-pricing, advance-payment verification, and transactional write -
-// see that file for the security invariants (same shape as
-// orderController.placeOrder -> utils/orderCreation.js for retail).
 // ──────────────────────────────────────────────────────
 exports.placeOrder = async (req, res, next) => {
   try {
-    const result = await createB2BOrderForUser({
-      businessId: req.business._id,
-      userId: req.user._id,
+    const account = req.business;
+    const tier = account.tier ? await PriceTier.findById(account.tier) : null;
+    const shippingAddress = resolveShippingAddress(account, req.body.shippingAddressId);
+
+    const result = await priceB2BOrder({
       items: req.body.items,
-      shippingAddressId: req.body.shippingAddressId,
-      razorpayOrderId: req.body.razorpayOrderId,
-      buyerNotes: req.body.buyerNotes,
+      account: { _id: account._id, tier },
+      shippingAddress,
     });
 
     if (!result.success) {
-      return res.status(result.statusCode).json(
-        result.errors ? { success: false, errors: result.errors } : { success: false, message: result.message }
-      );
+      return res.status(400).json({ success: false, errors: result.errors });
     }
 
-    res.status(201).json({ success: true, order: result.order });
+    const creditHold = await shouldHold(account, result.payable);
+    const orderNumber = await nextB2BOrderNumber(account.isTest);
+
+    const order = await B2BOrder.create({
+      orderNumber,
+      business: account._id,
+      placedBy: req.user._id,
+      items: result.lines.map((l) => ({
+        catalogItem: l.catalogItem, product: l.product, name: l.name, size: l.size,
+        unitsPerCase: l.unitsPerCase, cases: l.cases, units: l.units, unitPrice: l.unitPrice, lineTotal: l.lineTotal,
+      })),
+      billing: {
+        businessName: account.businessName,
+        gstin: account.gstin,
+        address: account.billingAddress,
+      },
+      shippingAddress,
+      taxMode: getTaxMode(),
+      totals: {
+        subtotal: result.subtotal, taxTotal: result.taxTotal, grandTotal: result.grandTotal,
+        roundOff: result.roundOff, payable: result.payable,
+      },
+      status: 'placed',
+      statusHistory: [{ status: 'placed', by: req.user._id }],
+      creditHold,
+      paymentTermsSnapshot: account.paymentTerms,
+      buyerNotes: req.body.buyerNotes,
+    });
+
+    try {
+      await sendB2BOrderPlaced(order, account, req.user);
+    } catch (emailErr) {
+      console.error('B2B order-placed email failed to send:', emailErr.message);
+    }
+
+    res.status(201).json({ success: true, order });
   } catch (err) {
     next(err);
   }

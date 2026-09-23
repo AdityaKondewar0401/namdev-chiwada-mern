@@ -1,13 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { b2bAdminAPI } from '../../services/api';
 import B2BModal from '../b2b/B2BModal';
 import B2BDisabledNotice from './B2BDisabledNotice';
-import StatGrid from '../b2b/StatGrid';
-import InvoiceStatusPill from '../b2b/InvoiceStatusPill';
-import Money from '../b2b/Money';
-import { formatDate } from '../../utils/b2bFormat';
 import { downloadBlobResponse } from '../../utils/downloadBlob';
 
 const TYPE_LABELS = {
@@ -17,6 +12,16 @@ const TYPE_LABELS = {
   credit_note: 'Credit note',
   adjustment: 'Adjustment',
 };
+
+const INVOICE_STATUS_COLORS = {
+  issued: { bg: '#dcfce7', color: '#15803d' },
+  cancelled: { bg: '#fee2e2', color: '#b91c1c' },
+};
+
+function formatDate(d) {
+  return d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+}
+function Money({ value }) { return <span>₹{Number(value || 0).toLocaleString('en-IN')}</span>; }
 
 export default function B2BLedgerTab() {
   /* ── Summary ─────────────────────────────────────────────── */
@@ -212,12 +217,26 @@ export default function B2BLedgerTab() {
         <div className="py-8 text-center text-red-600 text-sm">Couldn't load the summary. Please refresh.</div>
       ) : summary && (
         <div className="flex flex-col gap-4 mb-6">
-          <StatGrid cols={4} tiles={[
-            { label: 'Pending applications', value: summary.pendingApplications },
-            { label: 'Total outstanding', value: <Money value={summary.totalOutstanding} /> },
-            { label: 'Test accounts', value: summary.testAccountCount },
-            { label: 'Orders (all-time)', value: Object.values(summary.ordersByStatus || {}).reduce((a, b) => a + b, 0) },
-          ]} />
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="card p-4">
+              <div className="text-xs font-semibold uppercase tracking-wide text-brown-mid/50">Pending applications</div>
+              <div className="font-serif font-black text-brown-dark text-lg mt-1">{summary.pendingApplications}</div>
+            </div>
+            <div className="card p-4">
+              <div className="text-xs font-semibold uppercase tracking-wide text-brown-mid/50">Total outstanding</div>
+              <div className="font-serif font-black text-brown-dark text-lg mt-1"><Money value={summary.totalOutstanding} /></div>
+            </div>
+            <div className="card p-4">
+              <div className="text-xs font-semibold uppercase tracking-wide text-brown-mid/50">Test accounts</div>
+              <div className="font-serif font-black text-brown-dark text-lg mt-1">{summary.testAccountCount}</div>
+            </div>
+            <div className="card p-4">
+              <div className="text-xs font-semibold uppercase tracking-wide text-brown-mid/50">Orders (all-time)</div>
+              <div className="font-serif font-black text-brown-dark text-lg mt-1">
+                {Object.values(summary.ordersByStatus || {}).reduce((a, b) => a + b, 0)}
+              </div>
+            </div>
+          </div>
 
           {/* GST registration threshold watch */}
           {turnover && (
@@ -399,34 +418,36 @@ export default function B2BLedgerTab() {
           <p className="text-brown-mid/50 text-sm py-4 text-center">No invoices yet.</p>
         ) : (
           <div className="flex flex-col divide-y divide-brown-dark/5">
-            {invoices.map((inv, i) => (
-              <motion.div
-                key={inv._id} className="py-3 flex items-center justify-between gap-3 flex-wrap"
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2, delay: Math.min(i, 10) * 0.02 }}
-              >
-                <div className="min-w-0">
-                  <div className="font-semibold text-brown-dark text-sm flex items-center gap-2">
-                    {inv.invoiceNumber}
-                    {inv.business?.isTest && <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full" style={{ background: '#f3e8ff', color: '#7e22ce' }}>TEST</span>}
+            {invoices.map((inv) => {
+              const colors = INVOICE_STATUS_COLORS[inv.status] || {};
+              return (
+                <div key={inv._id} className="py-3 flex items-center justify-between gap-3 flex-wrap">
+                  <div className="min-w-0">
+                    <div className="font-semibold text-brown-dark text-sm flex items-center gap-2">
+                      {inv.invoiceNumber}
+                      {inv.business?.isTest && <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full" style={{ background: '#f3e8ff', color: '#7e22ce' }}>TEST</span>}
+                    </div>
+                    <div className="text-xs text-brown-mid/50 mt-0.5">
+                      {inv.business?.businessName} · {formatDate(inv.issuedAt)}
+                    </div>
+                    <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold capitalize" style={{ background: colors.bg, color: colors.color }}>
+                      {inv.status === 'cancelled' ? 'Credited' : inv.status}
+                    </span>
                   </div>
-                  <div className="text-xs text-brown-mid/50 mt-0.5">
-                    {inv.business?.businessName} · {formatDate(inv.issuedAt)}
-                  </div>
-                  <InvoiceStatusPill status={inv.status} className="mt-1" />
-                </div>
-                <div className="flex items-center gap-3 flex-shrink-0">
-                  <span className="font-bold text-brown-dark text-sm"><Money value={inv.totals?.payable} /></span>
-                  <button onClick={() => downloadInvoicePdf(inv)} disabled={downloadingDocId === inv._id} className="text-saffron font-semibold text-xs disabled:opacity-60">
-                    {downloadingDocId === inv._id ? '…' : 'PDF ↓'}
-                  </button>
-                  {inv.status === 'issued' && (
-                    <button onClick={() => setCreditNoteModal(inv)} className="text-red-600 font-semibold text-xs">
-                      Credit note
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    <span className="font-bold text-brown-dark text-sm"><Money value={inv.totals?.payable} /></span>
+                    <button onClick={() => downloadInvoicePdf(inv)} disabled={downloadingDocId === inv._id} className="text-saffron font-semibold text-xs disabled:opacity-60">
+                      {downloadingDocId === inv._id ? '…' : 'PDF ↓'}
                     </button>
-                  )}
+                    {inv.status === 'issued' && (
+                      <button onClick={() => setCreditNoteModal(inv)} className="text-red-600 font-semibold text-xs">
+                        Credit note
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </motion.div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

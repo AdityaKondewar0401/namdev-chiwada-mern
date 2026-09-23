@@ -81,7 +81,7 @@ exports.getAccountDetail = async (req, res, next) => {
 // ──────────────────────────────────────────────────────
 exports.createAccountForUser = async (req, res, next) => {
   try {
-    const { email, businessName, businessType, gstin, tier, advancePercent, creditLimit } = req.body;
+    const { email, businessName, businessType, gstin, tier, paymentTerms, creditLimit } = req.body;
 
     const user = await User.findOne({ email: email.toLowerCase().trim() });
     if (!user) {
@@ -108,7 +108,7 @@ exports.createAccountForUser = async (req, res, next) => {
       businessType,
       status: 'approved',
       tier: tier || undefined,
-      advancePercent: advancePercent ?? 100,
+      paymentTerms: paymentTerms || 'prepaid',
       creditLimit: creditLimit || 0,
       approvedBy: req.user._id,
       approvedAt: new Date(),
@@ -144,7 +144,7 @@ exports.updateAccount = async (req, res, next) => {
 
     const fields = [
       'businessName', 'legalName', 'businessType', 'gstin', 'fssaiLicenseNo',
-      'contactName', 'phone', 'email', 'tier', 'advancePercent', 'creditLimit', 'adminNotes',
+      'contactName', 'phone', 'email', 'tier', 'paymentTerms', 'creditLimit', 'adminNotes',
       'isTest',
     ];
     for (const field of fields) {
@@ -173,7 +173,7 @@ exports.approveAccount = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Only pending applications can be approved.' });
     }
 
-    const { tier, advancePercent, creditLimit, note } = req.body;
+    const { tier, paymentTerms, creditLimit, note } = req.body;
 
     const tierDoc = await PriceTier.findById(tier);
     if (!tierDoc || !tierDoc.active) {
@@ -182,7 +182,7 @@ exports.approveAccount = async (req, res, next) => {
 
     business.status = 'approved';
     business.tier = tier;
-    business.advancePercent = advancePercent;
+    business.paymentTerms = paymentTerms;
     business.creditLimit = creditLimit || 0;
     business.approvedBy = req.user._id;
     business.approvedAt = new Date();

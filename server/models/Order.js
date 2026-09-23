@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const courierSchema = require('./schemas/courierSchema');
 
 const orderItemSchema = new mongoose.Schema({
   product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
@@ -22,6 +21,34 @@ const shippingAddressSchema = new mongoose.Schema({
   state:    { type: String },
   pincode:  { type: String },
   zip:      { type: String }, // fallback
+}, { _id: false });
+
+// ── Courier (Shadowfax) tracking history — one entry per Push Callback
+// webhook event received, so the full journey is auditable even though
+// `courier.status` only ever holds the latest state. ──
+const courierHistorySchema = new mongoose.Schema({
+  statusId:       { type: String },   // Shadowfax status_id, e.g. "ofd"
+  status:         { type: String },   // Shadowfax human label, e.g. "Out For Delivery"
+  location:       { type: String },
+  remarks:        { type: String },
+  eventTimestamp: { type: Date },
+}, { _id: false });
+
+// ── Courier (Shadowfax) shipment state for this order. Populated after
+// `createWarehouseOrder()` succeeds in orderController.placeOrder, then
+// kept current by the Push Callback webhook (see routes/shipping.js). ──
+const courierSchema = new mongoose.Schema({
+  provider:         { type: String, default: 'shadowfax' },
+  awbNumber:        { type: String, index: true },
+  shadowfaxOrderId: { type: String },
+  status:           { type: String },   // latest Shadowfax status_id
+  statusDisplay:    { type: String },   // latest Shadowfax human label
+  trackingUrl:      { type: String },
+  actualWeightGrams:{ type: Number },
+  cancelReason:     { type: String },
+  error:            { type: String },   // set if shipment creation/cancel failed
+  lastSyncedAt:     { type: Date },
+  history:          [courierHistorySchema],
 }, { _id: false });
 
 // ── Attribution — how this order came in. Set for every order (default

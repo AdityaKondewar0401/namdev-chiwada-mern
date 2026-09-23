@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import { TABS } from './adminConstants';
 
 // ─────────────────────────────────────────────
@@ -29,26 +28,19 @@ function TabButton({ tab, activeTab, onTabChange, productsCount, variant }) {
     return (
       <button
         onClick={() => onTabChange(tab.id)}
-        className="relative isolate flex items-center gap-1.5 px-4 rounded-full text-sm font-semibold whitespace-nowrap flex-shrink-0"
+        className="flex items-center gap-1.5 px-4 rounded-full text-sm font-semibold whitespace-nowrap transition-all flex-shrink-0"
         style={{
           height: 44,
-          border: isActive ? 'none' : '1px solid rgba(224,112,0,0.15)',
-          background: isActive ? 'transparent' : '#fff',
+          ...(isActive
+            ? { background: 'linear-gradient(135deg,#e07000,#ff9010)', color: '#fff', boxShadow: '0 4px 14px rgba(224,112,0,0.3)' }
+            : { background: '#fff', color: '#2d1a00', border: '1px solid rgba(224,112,0,0.15)' }),
         }}
       >
-        {isActive && (
-          <motion.span
-            layoutId="admin-nav-pill"
-            className="absolute inset-0 rounded-full -z-10"
-            style={{ background: 'linear-gradient(135deg,#e07000,#ff9010)', boxShadow: '0 4px 14px rgba(224,112,0,0.3)' }}
-            transition={{ type: 'spring', stiffness: 380, damping: 32 }}
-          />
-        )}
-        <Icon size={16} strokeWidth={2} className={`relative z-10 ${isActive ? 'text-white' : ''}`} />
-        <span className={`relative z-10 ${isActive ? 'text-white' : 'text-brown-dark'}`}>{tab.label}</span>
+        <Icon size={16} strokeWidth={2} />
+        {tab.label}
         {tab.id === 'products' && (
           <span
-            className="relative z-10 text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+            className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
             style={{ background: isActive ? 'rgba(255,255,255,0.25)' : '#fef3e0', color: isActive ? '#fff' : '#e07000' }}
           >
             {productsCount}
@@ -87,14 +79,6 @@ export default function AdminNav({ activeTab, onTabChange, productsCount }) {
           {storeTabs.map((tab) => (
             <TabButton key={tab.id} tab={tab} activeTab={activeTab} onTabChange={onTabChange} productsCount={productsCount} variant="pill" />
           ))}
-          {/* Matches the desktop sidebar's "Store"/"Wholesale" section
-              labels — the mobile pill row previously ran both groups
-              together with no indication where one ends and the other
-              begins. */}
-          <div className="flex items-center gap-1.5 px-1 flex-shrink-0 self-stretch" aria-hidden="true">
-            <div className="w-px h-5 self-center" style={{ background: 'rgba(224,112,0,0.2)' }} />
-            <span className="text-[10px] font-bold uppercase tracking-wider text-brown-mid/40 whitespace-nowrap">Wholesale</span>
-          </div>
           {b2bTabs.map((tab) => (
             <TabButton key={tab.id} tab={tab} activeTab={activeTab} onTabChange={onTabChange} productsCount={productsCount} variant="pill" />
           ))}

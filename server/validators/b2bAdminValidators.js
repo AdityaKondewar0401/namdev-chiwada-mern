@@ -7,6 +7,7 @@ const { mongoIdParam, paginationQuery } = require('./common');
 const { validateGstin } = require('../utils/gstin');
 
 const BUSINESS_TYPES = ['retailer', 'sweet_shop', 'distributor', 'supermarket', 'caterer', 'other'];
+const PAYMENT_TERMS = ['prepaid', 'net7', 'net15', 'net30'];
 const ACCOUNT_STATUSES = ['pending', 'approved', 'rejected', 'suspended'];
 
 const gstinOptional = (chain) =>
@@ -37,7 +38,7 @@ exports.createAccount = [
     .isIn(BUSINESS_TYPES).withMessage('Invalid business type'),
   gstinOptional(body('gstin')),
   body('tier').optional({ values: 'falsy' }).isMongoId().withMessage('tier must be a valid id'),
-  body('advancePercent').optional({ values: 'falsy' }).isFloat({ min: 0, max: 100 }).withMessage('Advance % must be between 0 and 100'),
+  body('paymentTerms').optional({ values: 'falsy' }).isIn(PAYMENT_TERMS).withMessage('Invalid payment terms'),
   body('creditLimit').optional({ values: 'falsy' }).isFloat({ min: 0 }).withMessage('Credit limit must be >= 0'),
 ];
 
@@ -51,7 +52,7 @@ exports.updateAccount = [
   body('phone').optional({ values: 'falsy' }).isString().trim(),
   body('email').optional({ values: 'falsy' }).isEmail().withMessage('Invalid email').bail().normalizeEmail(),
   body('tier').optional({ values: 'falsy' }).isMongoId().withMessage('tier must be a valid id'),
-  body('advancePercent').optional({ values: 'falsy' }).isFloat({ min: 0, max: 100 }).withMessage('Advance % must be between 0 and 100'),
+  body('paymentTerms').optional({ values: 'falsy' }).isIn(PAYMENT_TERMS).withMessage('Invalid payment terms'),
   body('creditLimit').optional({ values: 'falsy' }).isFloat({ min: 0 }).withMessage('Credit limit must be >= 0'),
   body('adminNotes').optional({ values: 'falsy' }).isString().trim().isLength({ max: 2000 }),
   body('isTest').optional().isBoolean().withMessage('isTest must be a boolean'),
@@ -59,9 +60,7 @@ exports.updateAccount = [
 
 exports.approveAccount = [
   body('tier').exists({ checkFalsy: true }).withMessage('tier is required').bail().isMongoId().withMessage('tier must be a valid id'),
-  // checkFalsy would reject a legitimate 0% advance (pure credit) — use
-  // exists() alone and let isFloat's min:0 do the real validation.
-  body('advancePercent').exists().withMessage('advancePercent is required').bail().isFloat({ min: 0, max: 100 }).withMessage('Advance % must be between 0 and 100'),
+  body('paymentTerms').exists({ checkFalsy: true }).withMessage('paymentTerms is required').bail().isIn(PAYMENT_TERMS).withMessage('Invalid payment terms'),
   body('creditLimit').optional({ values: 'falsy' }).isFloat({ min: 0 }).withMessage('Credit limit must be >= 0'),
   body('note').optional({ values: 'falsy' }).isString().trim().isLength({ max: 500 }),
 ];

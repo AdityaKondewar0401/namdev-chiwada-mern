@@ -93,12 +93,15 @@ async function getCreditSummary(businessId) {
 }
 
 /**
- * @param {{ _id: any, creditLimit: number }} account
- * @param {number} amountAtRisk - the portion of the order NOT already
- *   guaranteed paid (full payable pre-order-creation; payable minus the
- *   already-collected advance once an order exists - see callers)
+ * @param {{ _id: any, paymentTerms: string, creditLimit: number }} account
+ * @param {number} orderPayable
  */
-async function shouldHold(account, amountAtRisk) {
+async function shouldHold(account, orderPayable) {
+  // Prepaid never holds at placement - checked instead at dispatch time
+  // (spec §6.9), since a prepaid order should already be paid before it
+  // ships, not before it's even confirmed.
+  if (account.paymentTerms === 'prepaid') return false;
+
   const [outstanding, openOrderValue, overdue] = await Promise.all([
     getOutstanding(account._id),
     getOpenOrderValue(account._id),
@@ -106,7 +109,7 @@ async function shouldHold(account, amountAtRisk) {
   ]);
 
   if (overdue.oldestOverdueDays > 30) return true;
-  return round2ish(outstanding + openOrderValue + amountAtRisk) > (account.creditLimit || 0);
+  return round2ish(outstanding + openOrderValue + orderPayable) > (account.creditLimit || 0);
 }
 
 module.exports = { getCreditSummary, shouldHold, getOutstanding, getOpenOrderValue, getOverdueSummary };

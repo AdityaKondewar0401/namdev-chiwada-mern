@@ -1,11 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import SEO from '../../components/SEO';
-import PageWrapper from '../../components/PageWrapper';
-import StatGrid from '../../components/b2b/StatGrid';
-import Money from '../../components/b2b/Money';
-import { formatDate } from '../../utils/b2bFormat';
 import { b2bAPI } from '../../services/api';
 import { downloadBlobResponse } from '../../utils/downloadBlob';
 
@@ -16,6 +11,11 @@ const TYPE_LABELS = {
   credit_note: 'Credit note',
   adjustment: 'Adjustment',
 };
+
+function formatDate(d) {
+  return d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+}
+function Money({ value }) { return <span>₹{Number(value || 0).toLocaleString('en-IN')}</span>; }
 
 export default function B2BStatementPage() {
   const [statement, setStatement] = useState(null);
@@ -58,17 +58,24 @@ export default function B2BStatementPage() {
   };
 
   return (
-    <PageWrapper>
+    <div>
       <SEO title="Statement" canonical="/b2b/statement" robots="noindex,nofollow" />
       <h1 className="font-serif font-black text-brown-dark text-xl sm:text-2xl mb-4">Statement</h1>
 
       {creditSummary && (
-        <div className="mb-4">
-          <StatGrid tiles={[
-            { label: 'Outstanding', value: <Money value={creditSummary.outstanding} /> },
-            { label: 'Available credit', value: <Money value={creditSummary.availableCredit} /> },
-            { label: 'Credit limit', value: <Money value={creditSummary.creditLimit} /> },
-          ]} />
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
+          <div className="card p-4">
+            <div className="text-xs font-semibold uppercase tracking-wide text-brown-mid/50">Outstanding</div>
+            <div className="font-serif font-black text-brown-dark text-lg mt-1"><Money value={creditSummary.outstanding} /></div>
+          </div>
+          <div className="card p-4">
+            <div className="text-xs font-semibold uppercase tracking-wide text-brown-mid/50">Available credit</div>
+            <div className="font-serif font-black text-brown-dark text-lg mt-1"><Money value={creditSummary.availableCredit} /></div>
+          </div>
+          <div className="card p-4 col-span-2 sm:col-span-1">
+            <div className="text-xs font-semibold uppercase tracking-wide text-brown-mid/50">Credit limit</div>
+            <div className="font-serif font-black text-brown-dark text-lg mt-1"><Money value={creditSummary.creditLimit} /></div>
+          </div>
         </div>
       )}
 
@@ -81,7 +88,7 @@ export default function B2BStatementPage() {
           <label htmlFor="statement-to" className="block text-xs font-semibold text-brown-dark mb-1.5">To</label>
           <input id="statement-to" type="date" className="form-input text-base" value={range.to} onChange={(e) => setRange((r) => ({ ...r, to: e.target.value }))} />
         </div>
-        <button type="submit" className="rounded-xl text-sm font-semibold text-brown-dark flex-shrink-0 transition-transform active:scale-95" style={{ minHeight: 48, background: '#fef3e0', padding: '0 20px' }}>
+        <button type="submit" className="rounded-xl text-sm font-semibold text-brown-dark flex-shrink-0" style={{ minHeight: 48, background: '#fef3e0', padding: '0 20px' }}>
           Apply
         </button>
         <button type="button" onClick={downloadCsv} disabled={downloading || loading} className="btn-saffron text-sm flex-shrink-0 disabled:opacity-60" style={{ minHeight: 48, padding: '0 20px' }}>
@@ -104,12 +111,8 @@ export default function B2BStatementPage() {
             <p className="text-brown-mid/50 text-sm py-6 text-center">No entries in this period.</p>
           ) : (
             <div className="flex flex-col divide-y divide-brown-dark/5">
-              {statement.entries.map((e, i) => (
-                <motion.div
-                  key={e._id} className="py-3"
-                  initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.25, delay: Math.min(i, 10) * 0.03 }}
-                >
+              {statement.entries.map((e) => (
+                <div key={e._id} className="py-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="font-semibold text-brown-dark text-sm">{TYPE_LABELS[e.type] || e.type}</div>
@@ -124,7 +127,7 @@ export default function B2BStatementPage() {
                       <div className="text-xs text-brown-mid/50 mt-0.5">Bal: <Money value={e.runningBalance} /></div>
                     </div>
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
           )}
@@ -135,6 +138,6 @@ export default function B2BStatementPage() {
           </div>
         </div>
       )}
-    </PageWrapper>
+    </div>
   );
 }

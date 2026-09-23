@@ -173,11 +173,8 @@ async function checkPincodeServiceability(pincode, service = 'customer_delivery'
  *
  * @param {Object} order  Mongoose Order document (or plain object) with
  *   `_id`, `items`, `shippingAddress`, `subtotal`, `total`, `paymentMethod`.
- * @param {Object} [options]
- * @param {string} [options.locationType] 'residential' (default) or
- *   'commercial' - B2B ships to businesses, not homes.
  */
-async function createWarehouseOrder(order, { locationType = 'residential' } = {}) {
+async function createWarehouseOrder(order) {
   const cfg = getShadowfaxConfig();
   const addr = order.shippingAddress || {};
 
@@ -210,7 +207,7 @@ async function createWarehouseOrder(order, { locationType = 'residential' } = {}
       city: addr.city || '',
       state: addr.state || '',
       pincode,
-      location_type: locationType,
+      location_type: 'residential',
     },
     pickup_details: { ...cfg.pickup },
     rto_details: { ...cfg.rto },
