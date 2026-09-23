@@ -1,11 +1,17 @@
 import { useState, useEffect, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { b2bAdminAPI } from '../../services/api';
 import B2BModal from '../b2b/B2BModal';
 import B2BDisabledNotice from './B2BDisabledNotice';
+import FilterPills from '../b2b/FilterPills';
+import OrderStatusPill from '../b2b/OrderStatusPill';
+import Money from '../b2b/Money';
+import { formatDate } from '../../utils/b2bFormat';
 import { downloadBlobResponse } from '../../utils/downloadBlob';
 
-const STATUS_FILTERS = ['', 'placed', 'confirmed', 'packed', 'dispatched', 'delivered', 'cancelled', 'rejected'];
+const STATUS_FILTER_OPTIONS = ['', 'placed', 'confirmed', 'packed', 'dispatched', 'delivered', 'cancelled', 'rejected']
+  .map((s) => ({ value: s, label: s ? s[0].toUpperCase() + s.slice(1) : 'All' }));
 const NEXT_STATUSES = {
   placed: ['confirmed', 'rejected', 'cancelled'],
   confirmed: ['packed', 'cancelled'],
@@ -19,19 +25,6 @@ const DISPATCH_MODES = [
   { value: 'courier', label: 'Courier' },
   { value: 'pickup', label: 'Buyer pickup' },
 ];
-const STATUS_COLORS = {
-  placed: { bg: '#fef3c7', color: '#b45309' }, confirmed: { bg: '#dbeafe', color: '#1d4ed8' },
-  packed: { bg: '#ede9fe', color: '#6d28d9' }, dispatched: { bg: '#cffafe', color: '#0e7490' },
-  delivered: { bg: '#dcfce7', color: '#15803d' }, cancelled: { bg: '#fee2e2', color: '#b91c1c' },
-  rejected: { bg: '#fee2e2', color: '#b91c1c' },
-};
-
-function formatDate(d) { return d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'; }
-function Money({ value }) { return <span>₹{Number(value || 0).toLocaleString('en-IN')}</span>; }
-function StatusPill({ status }) {
-  const c = STATUS_COLORS[status] || {};
-  return <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold capitalize" style={{ background: c.bg, color: c.color }}>{status}</span>;
-}
 
 export default function B2BOrdersTab() {
   const [orders, setOrders] = useState([]);
@@ -172,14 +165,8 @@ export default function B2BOrdersTab() {
         <p className="text-brown-mid/60 text-sm mt-0.5">{total} order{total === 1 ? '' : 's'}</p>
       </div>
 
-      <div className="flex gap-2 overflow-x-auto pb-1 mb-4">
-        {STATUS_FILTERS.map((s) => (
-          <button key={s} onClick={() => setStatusFilter(s)}
-            className="px-4 rounded-full text-sm font-semibold whitespace-nowrap flex-shrink-0 capitalize"
-            style={{ height: 40, ...(statusFilter === s ? { background: 'linear-gradient(135deg,#e07000,#ff9010)', color: '#fff' } : { background: '#fff', color: '#2d1a00', border: '1px solid rgba(224,112,0,0.15)' }) }}>
-            {s || 'All'}
-          </button>
-        ))}
+      <div className="mb-4">
+        <FilterPills layoutId="b2b-admin-orders-status-filter" options={STATUS_FILTER_OPTIONS} value={statusFilter} onChange={setStatusFilter} />
       </div>
 
       {loading ? (
@@ -188,8 +175,12 @@ export default function B2BOrdersTab() {
         <div className="py-12 text-center text-brown-mid/50 text-sm">No orders match this filter.</div>
       ) : (
         <div className="flex flex-col gap-3">
-          {orders.map((o) => (
-            <button key={o._id} onClick={() => openDetail(o._id)} className="card p-4 flex items-center justify-between gap-3 text-left w-full">
+          {orders.map((o, i) => (
+            <motion.button
+              key={o._id} onClick={() => openDetail(o._id)} className="card p-4 flex items-center justify-between gap-3 text-left w-full"
+              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.25, delay: Math.min(i, 10) * 0.03 }}
+            >
               <div className="min-w-0">
                 <div className="font-bold text-brown-dark text-sm flex items-center gap-2">
                   {o.orderNumber}
@@ -199,10 +190,10 @@ export default function B2BOrdersTab() {
               </div>
               <div className="text-right flex-shrink-0 flex flex-col items-end gap-1">
                 <div className="font-bold text-brown-dark text-sm"><Money value={o.totals?.payable} /></div>
-                <StatusPill status={o.status} />
+                <OrderStatusPill status={o.status} />
                 {o.creditHold && <span className="text-[10px] font-bold text-red-600">ON HOLD</span>}
               </div>
-            </button>
+            </motion.button>
           ))}
         </div>
       )}
@@ -219,7 +210,7 @@ export default function B2BOrdersTab() {
                 <div className="font-serif font-black text-brown-dark text-lg">{detail.orderNumber}</div>
                 <div className="text-sm text-brown-mid/60">{detail.business?.businessName}</div>
               </div>
-              <StatusPill status={detail.status} />
+              <OrderStatusPill status={detail.status} />
             </div>
 
             {detail.creditHold && (

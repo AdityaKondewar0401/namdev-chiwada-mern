@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import SEO from '../../components/SEO';
+import PageWrapper from '../../components/PageWrapper';
 import { buildFAQSchema } from '../../utils/structuredData';
 import { SITE_NAME } from '../../config/seo.config';
 import { b2bAPI } from '../../services/api';
@@ -46,7 +47,7 @@ export default function BusinessLandingPage() {
     : null;
 
   return (
-    <div className="min-h-screen bg-cream">
+    <PageWrapper className="min-h-screen bg-cream">
       <SEO
         title={`Wholesale &amp; Bulk Orders | ${SITE_NAME}`}
         description="Apply for a Namdev Chiwda wholesale account. Bulk pricing on our Solapur chiwda and bakarwadi for retailers, distributors, and caterers, since 1873."
@@ -98,12 +99,17 @@ export default function BusinessLandingPage() {
             Why businesses partner with us
           </h2>
           <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {WHY_POINTS.map((p) => (
-              <div key={p.title} className="card p-5 text-center">
+            {WHY_POINTS.map((p, i) => (
+              <motion.div
+                key={p.title} className="card p-5 text-center"
+                initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: i * 0.07 }}
+                whileHover={{ y: -4 }}
+              >
                 <div className="text-3xl mb-3" aria-hidden="true">{p.icon}</div>
                 <div className="font-serif font-bold text-brown-dark text-base mb-1.5">{p.title}</div>
                 <p className="text-brown-mid/70 text-sm leading-relaxed">{p.text}</p>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -116,12 +122,17 @@ export default function BusinessLandingPage() {
             How it works
           </h2>
           <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {HOW_STEPS.map((s) => (
-              <div key={s.num} className="bg-white rounded-2xl p-5" style={{ border: '1px solid rgba(224,112,0,0.1)' }}>
+            {HOW_STEPS.map((s, i) => (
+              <motion.div
+                key={s.num} className="card p-5"
+                initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: i * 0.07 }}
+                whileHover={{ y: -4 }}
+              >
                 <div className="font-serif font-black text-saffron text-2xl mb-2">{s.num}</div>
                 <div className="font-bold text-brown-dark text-sm mb-1.5">{s.title}</div>
                 <p className="text-brown-mid/70 text-sm leading-relaxed">{s.text}</p>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -134,11 +145,15 @@ export default function BusinessLandingPage() {
             Frequently asked questions
           </h2>
           <div className="mt-8 flex flex-col gap-3">
-            {FAQS.map((f) => (
-              <div key={f.question} className="card p-5">
+            {FAQS.map((f, i) => (
+              <motion.div
+                key={f.question} className="card p-5"
+                initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                transition={{ duration: 0.35, delay: i * 0.06 }}
+              >
                 <div className="font-bold text-brown-dark text-sm mb-1.5">{f.question}</div>
                 <p className="text-brown-mid/70 text-sm leading-relaxed">{f.answer}</p>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -156,6 +171,6 @@ export default function BusinessLandingPage() {
           Apply for a wholesale account
         </Link>
       </section>
-    </div>
+    </PageWrapper>
   );
 }

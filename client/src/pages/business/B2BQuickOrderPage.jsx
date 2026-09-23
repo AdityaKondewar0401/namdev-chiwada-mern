@@ -1,17 +1,19 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import SEO from '../../components/SEO';
+import PageWrapper from '../../components/PageWrapper';
 import CaseStepper from '../../components/b2b/CaseStepper';
 import B2BModal from '../../components/b2b/B2BModal';
 import B2BStatusBadge from '../../components/b2b/B2BStatusBadge';
+import Money from '../../components/b2b/Money';
 import { useAuth } from '../../context/AuthContext';
 import { useB2B } from '../../context/B2BContext';
 import api, { b2bAPI } from '../../services/api';
 import { SITE_NAME } from '../../config/seo.config';
 
 function draftKey(userId) { return `nc_b2b_draft_${userId}`; }
-function Money({ value }) { return <span>₹{Number(value || 0).toLocaleString('en-IN')}</span>; }
 
 // Same idempotent loader as CheckoutPage.jsx's own local copy - small
 // enough (and framework-loading, not business logic) that duplicating it
@@ -229,17 +231,19 @@ export default function B2BQuickOrderPage() {
   if (business === undefined) return null;
   if (business === null || business.status !== 'approved') {
     return (
-      <div className="card p-6 sm:p-8 text-center max-w-md mx-auto">
-        <SEO title="Quick Order" canonical="/b2b/order" robots="noindex,nofollow" />
-        <div className="flex justify-center mb-3">{business && <B2BStatusBadge status={business.status} />}</div>
-        <h1 className="font-serif font-black text-brown-dark text-lg">Quick Order needs an approved account</h1>
-        <p className="mt-2 text-brown-mid/70 text-sm">Once your wholesale account is approved, Quick Order opens up here.</p>
-      </div>
+      <PageWrapper>
+        <div className="card p-6 sm:p-8 text-center max-w-md mx-auto">
+          <SEO title="Quick Order" canonical="/b2b/order" robots="noindex,nofollow" />
+          <div className="flex justify-center mb-3">{business && <B2BStatusBadge status={business.status} />}</div>
+          <h1 className="font-serif font-black text-brown-dark text-lg">Quick Order needs an approved account</h1>
+          <p className="mt-2 text-brown-mid/70 text-sm">Once your wholesale account is approved, Quick Order opens up here.</p>
+        </div>
+      </PageWrapper>
     );
   }
 
   return (
-    <div className="pb-32 lg:pb-6">
+    <PageWrapper className="pb-32 lg:pb-6">
       <SEO title="Quick Order" canonical="/b2b/order" robots="noindex,nofollow" />
 
       <h1 className="font-serif font-black text-brown-dark text-xl sm:text-2xl mb-4">Quick Order</h1>
@@ -260,8 +264,12 @@ export default function B2BQuickOrderPage() {
           ) : grouped.length === 0 ? (
             <div className="py-12 text-center text-brown-mid/50 text-sm">No wholesale items are available yet.</div>
           ) : (
-            grouped.map((group) => (
-              <div key={group.product._id} className="card p-4">
+            grouped.map((group, i) => (
+              <motion.div
+                key={group.product._id} className="card p-4"
+                initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, delay: Math.min(i, 8) * 0.04 }}
+              >
                 <div className="flex items-center gap-3 mb-3">
                   <img src={group.product.img} alt="" className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
                   <div>
@@ -294,7 +302,7 @@ export default function B2BQuickOrderPage() {
                     );
                   })}
                 </div>
-              </div>
+              </motion.div>
             ))
           )}
 
@@ -396,7 +404,7 @@ export default function B2BQuickOrderPage() {
           </button>
         </div>
       </B2BModal>
-    </div>
+    </PageWrapper>
   );
 }
 
@@ -418,7 +426,10 @@ function SummaryPanel({ quoting, quote, totalCases, totalUnits, minOrderValue, p
       {minOrderValue > 0 && (
         <div>
           <div className="h-2 rounded-full overflow-hidden" style={{ background: '#fef3e0' }}>
-            <div className="h-full rounded-full" style={{ width: `${progress}%`, background: 'linear-gradient(90deg,#e07000,#ff9010)' }} />
+            <motion.div
+              className="h-full rounded-full" style={{ background: 'linear-gradient(135deg,#e07000,#ff9010)' }}
+              initial={{ width: 0 }} animate={{ width: `${progress}%` }} transition={{ duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
+            />
           </div>
           <div className="text-[11px] text-brown-mid/50 mt-1">Min. order ₹{minOrderValue.toLocaleString('en-IN')}</div>
         </div>

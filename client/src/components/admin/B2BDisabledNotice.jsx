@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion';
 import { useB2BEnabled } from '../../hooks/useB2BEnabled';
 
 // Shown at the top of every admin B2B tab while B2B_ENABLED is false
@@ -8,12 +9,13 @@ export default function B2BDisabledNotice() {
   if (loading || enabled) return null;
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
       className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold mb-4"
       style={{ background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a' }}
     >
       <span aria-hidden="true">👁️‍🗨️</span>
       Wholesale is hidden from customers (B2B_ENABLED is off). You can still set everything up here.
-    </div>
+    </motion.div>
   );
 }

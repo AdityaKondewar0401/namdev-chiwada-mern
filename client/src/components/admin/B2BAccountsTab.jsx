@@ -1,9 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { b2bAdminAPI } from '../../services/api';
 import B2BStatusBadge from '../b2b/B2BStatusBadge';
 import B2BModal from '../b2b/B2BModal';
 import B2BDisabledNotice from './B2BDisabledNotice';
+import FilterPills from '../b2b/FilterPills';
+import StatGrid from '../b2b/StatGrid';
+import Money from '../b2b/Money';
+import { formatDate } from '../../utils/b2bFormat';
 
 const STATUS_FILTERS = [
   { value: '', label: 'All' },
@@ -21,14 +26,6 @@ const BUSINESS_TYPES = [
   { value: 'caterer', label: 'Caterer' },
   { value: 'other', label: 'Other' },
 ];
-
-function formatDate(d) {
-  return d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
-}
-
-function Money({ value }) {
-  return <span>₹{Number(value || 0).toLocaleString('en-IN')}</span>;
-}
 
 export default function B2BAccountsTab() {
   const [accounts, setAccounts] = useState([]);
@@ -186,23 +183,12 @@ export default function B2BAccountsTab() {
 
       {/* Filters — stacked full-width on mobile */}
       <div className="flex flex-col sm:flex-row gap-2.5 mb-4">
-        <div className="flex gap-2 overflow-x-auto pb-1 sm:pb-0">
-          {STATUS_FILTERS.map((f) => (
-            <button
-              key={f.value}
-              onClick={() => { setStatusFilter(f.value); setPage(1); }}
-              className="px-4 rounded-full text-sm font-semibold whitespace-nowrap flex-shrink-0"
-              style={{
-                height: 40,
-                ...(statusFilter === f.value
-                  ? { background: 'linear-gradient(135deg,#e07000,#ff9010)', color: '#fff' }
-                  : { background: '#fff', color: '#2d1a00', border: '1px solid rgba(224,112,0,0.15)' }),
-              }}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
+        <FilterPills
+          layoutId="b2b-accounts-status-filter"
+          options={STATUS_FILTERS}
+          value={statusFilter}
+          onChange={(v) => { setStatusFilter(v); setPage(1); }}
+        />
         <input
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
@@ -219,8 +205,12 @@ export default function B2BAccountsTab() {
         <>
           {/* MOBILE: stacked cards */}
           <div className="flex flex-col gap-3 md:hidden">
-            {accounts.map((a) => (
-              <div key={a._id} className="card p-4">
+            {accounts.map((a, i) => (
+              <motion.div
+                key={a._id} className="card p-4"
+                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25, delay: Math.min(i, 8) * 0.03 }}
+              >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <div className="font-bold text-brown-dark text-sm truncate">{a.businessName}</div>
@@ -243,7 +233,7 @@ export default function B2BAccountsTab() {
                     </button>
                   )}
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
 
@@ -261,7 +251,7 @@ export default function B2BAccountsTab() {
               </thead>
               <tbody>
                 {accounts.map((a) => (
-                  <tr key={a._id} className="border-t" style={{ borderColor: 'rgba(224,112,0,0.08)' }}>
+                  <tr key={a._id} className="border-t transition-colors hover:bg-saffron/5" style={{ borderColor: 'rgba(224,112,0,0.08)' }}>
                     <td className="py-3 pr-4 font-semibold text-brown-dark">{a.businessName}</td>
                     <td className="py-3 pr-4 text-brown-mid/70">{a.user?.email}</td>
                     <td className="py-3 pr-4"><B2BStatusBadge status={a.status} isTest={a.isTest} /></td>
@@ -332,20 +322,11 @@ export default function B2BAccountsTab() {
             )}
 
             {detail.creditSummary && (
-              <div className="grid grid-cols-3 gap-2">
-                <div className="card p-3 text-center">
-                  <div className="text-[10px] font-semibold uppercase text-brown-mid/50">Outstanding</div>
-                  <div className="font-bold text-brown-dark text-sm mt-1"><Money value={detail.creditSummary.outstanding} /></div>
-                </div>
-                <div className="card p-3 text-center">
-                  <div className="text-[10px] font-semibold uppercase text-brown-mid/50">Available</div>
-                  <div className="font-bold text-brown-dark text-sm mt-1"><Money value={detail.creditSummary.availableCredit} /></div>
-                </div>
-                <div className="card p-3 text-center">
-                  <div className="text-[10px] font-semibold uppercase text-brown-mid/50">Limit</div>
-                  <div className="font-bold text-brown-dark text-sm mt-1"><Money value={detail.creditSummary.creditLimit} /></div>
-                </div>
-              </div>
+              <StatGrid compact tiles={[
+                { label: 'Outstanding', value: <Money value={detail.creditSummary.outstanding} /> },
+                { label: 'Available', value: <Money value={detail.creditSummary.availableCredit} /> },
+                { label: 'Limit', value: <Money value={detail.creditSummary.creditLimit} /> },
+              ]} />
             )}
 
             <div>
