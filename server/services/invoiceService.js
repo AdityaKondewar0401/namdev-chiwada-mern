@@ -347,22 +347,32 @@ async function offlineSummary() {
   };
 }
 
+// One suggestion per customer (by phone, else by name), latest details first.
+// A phoneless entry is dropped when the same name also appears with a phone.
 async function recentOfflineCustomers(q) {
   const rx = new RegExp(escapeRegex(q.trim()), 'i');
-  return Invoice.aggregate([
+  const customers = await Invoice.aggregate([
     { $match: { source: 'offline', $or: [{ 'customer.name': rx }, { 'customer.phone': rx }] } },
     { $sort: { issuedAt: -1 } },
     {
       $group: {
-        _id: { $cond: [{ $gt: [{ $strLenCP: '$customer.phone' }, 0] }, '$customer.phone', { $toLower: '$customer.name' }] },
+        _id: {
+          $cond: [
+            { $gt: [{ $strLenCP: { $ifNull: ['$customer.phone', ''] } }, 0] },
+            '$customer.phone',
+            { $toLower: '$customer.name' },
+          ],
+        },
         customer: { $first: '$customer' },
         lastAt: { $first: '$issuedAt' },
       },
     },
     { $sort: { lastAt: -1 } },
-    { $limit: 8 },
+    { $limit: 20 },
     { $replaceRoot: { newRoot: '$customer' } },
   ]);
+  const namesWithPhone = new Set(customers.filter((c) => c.phone).map((c) => c.name.toLowerCase()));
+  return customers.filter((c) => c.phone || !namesWithPhone.has(c.name.toLowerCase())).slice(0, 8);
 }
 
 module.exports = {

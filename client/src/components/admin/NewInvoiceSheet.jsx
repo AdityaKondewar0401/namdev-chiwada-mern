@@ -256,19 +256,28 @@ export default function NewInvoiceSheet({ products, onClose, onCreated }) {
                 )}
 
                 <div className="grid grid-cols-3 gap-2">
-                  {product?.sizes?.length > 1 ? (
-                    <select aria-label={`Item ${index + 1} pack`} className="form-input" value={line.size}
-                      onChange={(e) => chooseSize(line, e.target.value)}>
-                      {product.sizes.map((s) => <option key={s.weight} value={s.weight}>{s.weight}</option>)}
-                    </select>
-                  ) : (
-                    <input aria-label={`Item ${index + 1} pack`} className="form-input" value={line.size} maxLength={30}
-                      placeholder="Pack" onChange={(e) => updateLine(line.key, { size: e.target.value })} />
-                  )}
-                  <input aria-label={`Item ${index + 1} price`} className="form-input" inputMode="decimal" value={line.price}
-                    placeholder="Price ₹" onChange={(e) => updateLine(line.key, { price: e.target.value })} />
-                  <input aria-label={`Item ${index + 1} quantity`} className="form-input" inputMode="numeric" value={line.qty}
-                    placeholder="Qty" onChange={(e) => updateLine(line.key, { qty: e.target.value })} />
+                  <label className="block min-w-0">
+                    <span className="block text-[11px] font-semibold text-brown-mid/70 mb-1">Pack</span>
+                    {product?.sizes?.length > 1 ? (
+                      <select aria-label={`Item ${index + 1} pack`} className="form-input w-full" value={line.size}
+                        onChange={(e) => chooseSize(line, e.target.value)}>
+                        {product.sizes.map((s) => <option key={s.weight} value={s.weight}>{s.weight}</option>)}
+                      </select>
+                    ) : (
+                      <input aria-label={`Item ${index + 1} pack`} className="form-input w-full" value={line.size} maxLength={30}
+                        placeholder="e.g. 200g" onChange={(e) => updateLine(line.key, { size: e.target.value })} />
+                    )}
+                  </label>
+                  <label className="block min-w-0">
+                    <span className="block text-[11px] font-semibold text-brown-mid/70 mb-1">Price (₹)</span>
+                    <input aria-label={`Item ${index + 1} price`} className="form-input w-full" inputMode="decimal" value={line.price}
+                      placeholder="0" onChange={(e) => updateLine(line.key, { price: e.target.value })} />
+                  </label>
+                  <label className="block min-w-0">
+                    <span className="block text-[11px] font-semibold text-brown-mid/70 mb-1">Quantity</span>
+                    <input aria-label={`Item ${index + 1} quantity`} className="form-input w-full" inputMode="numeric" value={line.qty}
+                      placeholder="1" onChange={(e) => updateLine(line.key, { qty: e.target.value })} />
+                  </label>
                 </div>
                 <div className="text-right text-sm text-brown-mid/80">
                   Amount <span className="font-bold text-brown-dark tabular-nums">{formatINR((Number(line.price) || 0) * (Number(line.qty) || 0))}</span>

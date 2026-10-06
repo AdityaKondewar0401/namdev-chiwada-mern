@@ -228,7 +228,8 @@ async function sendOrderConfirmation(order, userEmail, invoiceAttachment) {
  *   `view` is the invoice view model from invoiceService.presentInvoice().
  */
 async function sendInvoiceEmail({ to, view, pdf, fileName, message }) {
-  const firstName = escapeHtml((view.customer.name || 'there').split(' ')[0]);
+  // Full name: invoices often go to businesses ("Hi Hotel," reads badly).
+  const greetingName = escapeHtml(view.customer.name || 'there');
   const note = message && message.trim()
     ? `<div style="margin:0 0 20px; padding:14px 16px; background:#fef8ec; border-left:3px solid #e07000; font-size:14px; color:#5a4326; line-height:1.6; white-space:pre-line;">${escapeHtml(message.trim())}</div>`
     : '';
@@ -266,7 +267,7 @@ async function sendInvoiceEmail({ to, view, pdf, fileName, message }) {
   </tr>
   <tr>
     <td class="pad" style="padding:32px 28px 8px;">
-      <div style="font-size:20px; font-weight:700; color:#2d1a00; margin-bottom:8px;">Hi ${firstName},</div>
+      <div style="font-size:20px; font-weight:700; color:#2d1a00; margin-bottom:8px;">Hello ${greetingName},</div>
       <div style="font-size:14px; color:#5a4326; line-height:1.7; margin-bottom:20px;">
         Thank you for buying from ${escapeHtml(BUSINESS.brandName)}. Your invoice <strong>${escapeHtml(view.number)}</strong> is attached to this email as a PDF.
       </div>

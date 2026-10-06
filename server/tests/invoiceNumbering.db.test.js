@@ -8,7 +8,7 @@ const mongoose = require('mongoose');
 const Invoice = require('../models/Invoice');
 const Order = require('../models/Order');
 const { createInvoiceWithNumber } = require('../utils/invoiceNumber');
-const { getOrCreateInvoiceForOrder } = require('../services/invoiceService');
+const { getOrCreateInvoiceForOrder, recentOfflineCustomers } = require('../services/invoiceService');
 
 const isLocalDb = /mongodb:\/\/(127\.0\.0\.1|localhost)/.test(process.env.MONGO_URI || '');
 const TEST_FY = '99-00';
@@ -70,5 +70,24 @@ test('invoice numbering against a local database', { skip: !isLocalDb && 'MONGO_
     assert.equal(a.fy, TEST_FY);
     assert.equal(a.total, 316);
     assert.equal(a.shipping, 49);
+  });
+
+  await t.test('customer suggestions merge a name with and without a phone', async () => {
+    const offline = (customer) => createInvoiceWithNumber({
+      source: 'offline',
+      issuedAt: ISSUED_AT,
+      customer,
+      items: [{ name: 'Test item', price: 1, qty: 1, amount: 1 }],
+      subtotal: 1,
+      total: 1,
+      payment: { method: 'cash', status: 'paid' },
+    });
+    await offline({ name: 'Zqx Suggestion Test' });
+    await offline({ name: 'Zqx Suggestion Test', phone: '9822000001', email: 'zqx@example.com' });
+    await offline({ name: 'Zqx Other Customer', phone: '9822000002' });
+    const found = await recentOfflineCustomers('zqx');
+    assert.equal(found.filter((c) => c.name === 'Zqx Suggestion Test').length, 1);
+    assert.equal(found.find((c) => c.name === 'Zqx Suggestion Test').phone, '9822000001');
+    assert.ok(found.some((c) => c.name === 'Zqx Other Customer'));
   });
 });
