@@ -1,10 +1,12 @@
 const Invoice = require('../models/Invoice');
 const Order = require('../models/Order');
 const User = require('../models/User');
+const Product = require('../models/Product');
 const { createInvoiceWithNumber } = require('../utils/invoiceNumber');
 const {
   round2, amountInWords, formatDateIST, invoiceFileName, computeTotals, istDateKey,
 } = require('../utils/invoiceUtils');
+const { mergeUnitsSold } = require('../utils/unitsSold');
 const { renderInvoicePdf } = require('./invoicePdf');
 const { sendInvoiceEmail, isDeliverableEmail } = require('./emailService');
 
@@ -347,6 +349,24 @@ async function offlineSummary() {
   };
 }
 
+const unitLines = (match, size) => [
+  { $match: match },
+  { $unwind: '$items' },
+  { $group: { _id: { product: '$items.product', name: '$items.name', size }, qty: { $sum: '$items.qty' } } },
+  { $project: { _id: 0, product: '$_id.product', name: '$_id.name', size: '$_id.size', qty: 1 } },
+];
+
+// Counts the same sales as the dashboard's Total Sales: delivered website and
+// WhatsApp orders plus issued (not cancelled) offline invoices, credit included.
+async function unitsSoldByProduct() {
+  const [online, offline, products] = await Promise.all([
+    Order.aggregate(unitLines({ status: 'delivered' }, { $ifNull: ['$items.size', '$items.weight'] })),
+    Invoice.aggregate(unitLines({ source: 'offline', status: 'issued' }, '$items.size')),
+    Product.find({}).select('name').lean(),
+  ]);
+  return mergeUnitsSold({ online, offline, products });
+}
+
 // One suggestion per customer (by phone, else by name), latest details first.
 // A phoneless entry is dropped when the same name also appears with a phone.
 async function recentOfflineCustomers(q) {
@@ -388,5 +408,6 @@ module.exports = {
   cancelInvoice,
   listInvoices,
   offlineSummary,
+  unitsSoldByProduct,
   recentOfflineCustomers,
 };

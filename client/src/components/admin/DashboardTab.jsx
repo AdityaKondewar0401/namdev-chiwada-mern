@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Wallet, Package, BarChart3, Clock, ShoppingBag, Star, AlertTriangle, LayoutGrid, CheckCircle2,
   IndianRupee, Store, Globe,
@@ -25,8 +25,8 @@ import { StatTile as KpiCard, Panel as PanelCard } from './AdminUI';
 //  - 7-day order trend (bar chart)
 //  - Order status breakdown (segmented bar, reuses the same status
 //    colors as the Orders tab)
-//  - Best sellers by units sold — aggregated from actual order line
-//    items, not just "recently added products"
+//  - Units sold by product — delivered online orders plus offline
+//    invoices, aggregated server-side (`unitsSold` on the invoice summary)
 //  - Products-by-category breakdown
 //  - Out-of-stock alert list (actionable — tells you exactly what
 //    needs restocking)
@@ -85,23 +85,99 @@ function useDashboardAnalytics(products, orders) {
       color: CATEGORY_COLORS[c] || '#7a5a38',
     }));
 
-    const salesByName = {};
-    orders.forEach((o) => {
-      (o.items || []).forEach((item) => {
-        const name = item.name || item.product?.name || 'Unknown';
-        salesByName[name] = (salesByName[name] || 0) + (item.qty || 0);
-      });
-    });
-    const bestSellers = Object.entries(salesByName)
-      .map(([name, qty]) => ({ name, qty }))
-      .sort((a, b) => b.qty - a.qty)
-      .slice(0, 5);
-    const maxSold = bestSellers[0]?.qty || 1;
-
     const outOfStock = products.filter((p) => !p.inStock);
 
-    return { orderTrend, deliveredRevenue, avgOrderValue, pendingCount, statusBreakdown, categoryBreakdown, bestSellers, maxSold, outOfStock };
+    return { orderTrend, deliveredRevenue, avgOrderValue, pendingCount, statusBreakdown, categoryBreakdown, outOfStock };
   }, [products, orders]);
+}
+
+// "200g × 12 · 1kg × 3"; lines without a pack size are grouped as "other".
+function packBreakdown(sizes = []) {
+  const labelled = sizes.filter((s) => s.size && s.total > 0);
+  if (!labelled.length) return '';
+  const other = sizes.find((s) => !s.size && s.total > 0);
+  return [...labelled.map((s) => `${s.size} × ${s.total}`), other && `other × ${other.total}`].filter(Boolean).join(' · ');
+}
+
+const UNITS_PREVIEW = 8;
+const unitsCell = (n) => `text-right py-2.5 ${n ? 'text-brown-mid' : 'text-brown-mid/30'}`;
+
+function UnitsSoldPanel({ rows }) {
+  const [showAll, setShowAll] = useState(false);
+  const visible = rows && (showAll ? rows : rows.slice(0, UNITS_PREVIEW));
+  const max = rows?.[0]?.total || 0;
+  const totals = (rows || []).reduce(
+    (t, r) => ({ online: t.online + r.online, offline: t.offline + r.offline, total: t.total + r.total }),
+    { online: 0, offline: 0, total: 0 }
+  );
+
+  return (
+    <PanelCard title="Units Sold by Product">
+      <p className="text-[11px] text-brown-mid/50 -mt-2 mb-3">
+        Delivered online orders (website and WhatsApp) plus offline invoices. Cancelled sales are not counted.
+      </p>
+      {!rows ? (
+        <div className="text-center py-6 text-brown-mid/40 text-sm">Loading…</div>
+      ) : rows.length === 0 ? (
+        <div className="text-center py-6 text-brown-mid/40 text-sm">No sales data yet</div>
+      ) : (
+        <>
+          <table className="w-full table-fixed text-sm tabular-nums">
+            <thead>
+              <tr className="text-[10px] uppercase tracking-wider">
+                <th scope="col" className="text-left font-bold pb-2 text-brown-mid/50">Product</th>
+                <th scope="col" className="text-right font-bold pb-2 w-14 sm:w-24" style={{ color: '#1d4ed8' }}>Online</th>
+                <th scope="col" className="text-right font-bold pb-2 w-14 sm:w-24" style={{ color: '#e07000' }}>Offline</th>
+                <th scope="col" className="text-right font-bold pb-2 w-14 sm:w-24 text-brown-dark">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {visible.map((r) => {
+                const packs = packBreakdown(r.sizes);
+                return (
+                  <tr key={r.key} className="border-t align-top" style={{ borderColor: '#f3ede2' }}>
+                    <td className="py-2.5 pr-3">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <span className="font-semibold text-brown-dark break-words">{r.name}</span>
+                        {!r.inCatalog && (
+                          <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full whitespace-nowrap bg-amber-50 text-amber-700">Custom item</span>
+                        )}
+                      </div>
+                      {packs && <div className="text-[11px] text-brown-mid/50 mt-0.5">{packs}</div>}
+                      {max > 0 && (
+                        <div className="h-1 rounded-full mt-1.5 max-w-[14rem]" style={{ background: '#f3ede2' }}>
+                          <div className="h-1 rounded-full" style={{ width: `${(r.total / max) * 100}%`, background: 'linear-gradient(90deg,#e07000,#ff9010)' }} />
+                        </div>
+                      )}
+                    </td>
+                    <td className={unitsCell(r.online)}>{r.online}</td>
+                    <td className={unitsCell(r.offline)}>{r.offline}</td>
+                    <td className={`text-right py-2.5 font-bold ${r.total ? 'text-brown-dark' : 'text-brown-mid/30'}`}>{r.total}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+            {rows.length > 1 && (
+              <tfoot>
+                <tr className="border-t-2" style={{ borderColor: '#eadfcc' }}>
+                  <th scope="row" className="text-left py-2.5 text-xs font-bold text-brown-dark whitespace-nowrap">All products</th>
+                  <td className="text-right py-2.5 font-semibold text-brown-dark">{totals.online}</td>
+                  <td className="text-right py-2.5 font-semibold text-brown-dark">{totals.offline}</td>
+                  <td className="text-right py-2.5 font-black text-brown-dark">{totals.total}</td>
+                </tr>
+              </tfoot>
+            )}
+          </table>
+          {rows.length > UNITS_PREVIEW && (
+            <button type="button" onClick={() => setShowAll((v) => !v)}
+              className="mt-2 text-xs font-bold text-saffron hover:underline">
+              {showAll ? `Show top ${UNITS_PREVIEW}` : `Show all ${rows.length} products`}
+            </button>
+          )}
+        </>
+      )}
+    </PanelCard>
+  );
 }
 
 const rupees = (n) => `₹${(Number(n) || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
@@ -132,6 +208,8 @@ export default function DashboardTab({ products, orders, invoiceSummary }) {
           />
         </div>
       </div>
+
+      <UnitsSoldPanel rows={invoiceSummary?.unitsSold} />
 
       {/* KPI row 1 — Orders */}
       <div>
@@ -174,29 +252,8 @@ export default function DashboardTab({ products, orders, invoiceSummary }) {
         </PanelCard>
       </div>
 
-      {/* Best sellers + category + stock alerts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <PanelCard title="Best Sellers · Units Sold">
-          {a.bestSellers.length === 0 ? (
-            <div className="text-center py-6 text-brown-mid/40 text-sm">No sales data yet</div>
-          ) : (
-            <div className="space-y-3">
-              {a.bestSellers.map((p, i) => (
-                <div key={p.name} className="flex items-center gap-3">
-                  <span className="text-xs font-bold text-brown-mid/40 w-4 flex-shrink-0">{i + 1}</span>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-semibold text-brown-dark truncate mb-1">{p.name}</div>
-                    <div className="h-1.5 rounded-full" style={{ background: '#f3ede2' }}>
-                      <div className="h-1.5 rounded-full" style={{ width: `${(p.qty / a.maxSold) * 100}%`, background: 'linear-gradient(90deg,#e07000,#ff9010)' }} />
-                    </div>
-                  </div>
-                  <span className="text-xs font-bold text-brown-dark flex-shrink-0">{p.qty} sold</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </PanelCard>
-
+      {/* Category + stock alerts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <PanelCard title="Products by Category">
           <SegmentedBar segments={a.categoryBreakdown} />
         </PanelCard>

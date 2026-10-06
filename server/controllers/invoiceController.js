@@ -67,7 +67,11 @@ exports.listInvoices = async (req, res, next) => {
 
 exports.getSummary = async (req, res, next) => {
   try {
-    res.json({ success: true, summary: await invoiceService.offlineSummary() });
+    const [summary, unitsSold] = await Promise.all([
+      invoiceService.offlineSummary(),
+      invoiceService.unitsSoldByProduct(),
+    ]);
+    res.json({ success: true, summary: { ...summary, unitsSold } });
   } catch (err) {
     next(err);
   }
