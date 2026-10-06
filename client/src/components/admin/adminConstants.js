@@ -1,5 +1,5 @@
 import {
-  LayoutDashboard, ShoppingBag, Plus, Package, Tag, Users,
+  LayoutDashboard, ShoppingBag, Plus, Package, Tag, Users, Receipt,
   Clock, CheckCircle2, Settings2, Truck, PackageCheck, XCircle, CreditCard, Banknote,
 } from 'lucide-react';
 
@@ -18,6 +18,7 @@ export const TABS = [
   { id: 'products', icon: ShoppingBag, label: 'Products', group: 'store' },
   { id: 'add', icon: Plus, label: 'Add Product', group: 'store' },
   { id: 'orders', icon: Package, label: 'Customer Orders', group: 'store' },
+  { id: 'invoices', icon: Receipt, label: 'Invoices', group: 'store' },
   { id: 'promos', icon: Tag, label: 'Promo Codes', group: 'store' },
   { id: 'users', icon: Users, label: 'Users', group: 'store' },
 ];

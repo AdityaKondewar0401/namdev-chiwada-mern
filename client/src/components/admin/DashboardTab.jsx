@@ -1,5 +1,8 @@
 import { useMemo } from 'react';
-import { Wallet, Package, BarChart3, Clock, ShoppingBag, Star, AlertTriangle, LayoutGrid, CheckCircle2 } from 'lucide-react';
+import {
+  Wallet, Package, BarChart3, Clock, ShoppingBag, Star, AlertTriangle, LayoutGrid, CheckCircle2,
+  IndianRupee, Store, Globe,
+} from 'lucide-react';
 import { CATEGORIES, CATEGORY_COLORS, STATUS_OPTIONS, STATUS_CONFIG } from './adminConstants';
 import { MiniBarChart, SegmentedBar } from './charts';
 // KpiCard/PanelCard used to be declared locally in this file; they're now
@@ -101,8 +104,12 @@ function useDashboardAnalytics(products, orders) {
   }, [products, orders]);
 }
 
-export default function DashboardTab({ products, orders }) {
+const rupees = (n) => `₹${(Number(n) || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
+
+export default function DashboardTab({ products, orders, invoiceSummary }) {
   const a = useDashboardAnalytics(products, orders);
+  const offlineSales = invoiceSummary?.offlineSales || 0;
+  const offlineDue = invoiceSummary?.offlineDue || 0;
 
   return (
     <div className="space-y-5">
@@ -111,11 +118,25 @@ export default function DashboardTab({ products, orders }) {
         <p className="text-xs text-brown-mid/50">A quick snapshot of orders, revenue, and catalog health.</p>
       </div>
 
-      {/* KPI row 1 — Orders & Revenue */}
+      {/* KPI row 0 — Sales: delivered website orders plus issued offline invoices */}
       <div>
-        <div className="text-[10px] font-bold uppercase tracking-widest text-brown-mid/40 mb-2">Orders &amp; Revenue</div>
+        <div className="text-[10px] font-bold uppercase tracking-widest text-brown-mid/40 mb-2">Sales</div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          <KpiCard icon={<Wallet size={19} />} label="Delivered Revenue" value={`₹${a.deliveredRevenue.toLocaleString()}`} color="#2d5a1b" />
+          <KpiCard icon={<IndianRupee size={19} />} label="Total Sales" value={rupees(a.deliveredRevenue + offlineSales)} color="#2d5a1b" />
+          <KpiCard icon={<Globe size={19} />} label="Website (delivered)" value={rupees(a.deliveredRevenue)} color="#1d4ed8" />
+          <KpiCard icon={<Store size={19} />} label="Offline" value={rupees(offlineSales)} color="#e07000" />
+          <KpiCard
+            icon={<Wallet size={19} />} label="Offline Amount Due" value={rupees(offlineDue)}
+            color={offlineDue > 0 ? '#b45309' : '#2d5a1b'}
+            sub={invoiceSummary?.offlineDueCount ? `${invoiceSummary.offlineDueCount} unpaid` : undefined}
+          />
+        </div>
+      </div>
+
+      {/* KPI row 1 — Orders */}
+      <div>
+        <div className="text-[10px] font-bold uppercase tracking-widest text-brown-mid/40 mb-2">Website Orders</div>
+        <div className="grid grid-cols-3 gap-3 sm:gap-4">
           <KpiCard icon={<Package size={19} />} label="Total Orders" value={orders.length} color="#d4af37" />
           <KpiCard icon={<BarChart3 size={19} />} label="Avg Order Value" value={`₹${a.avgOrderValue.toLocaleString()}`} color="#7c3aed" />
           <KpiCard

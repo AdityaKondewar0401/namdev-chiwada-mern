@@ -93,6 +93,8 @@ app.use(cors({
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization'],
+  // Lets the site read the invoice PDF's file name (cross-origin otherwise hides it).
+  exposedHeaders: ['Content-Disposition'],
 }));
 
 // Handle preflight requests for all routes
@@ -125,6 +127,7 @@ app.use('/api/upload',   require('./routes/upload'));
 app.use('/api/products', require('./routes/products'));
 app.use('/api/cart',     require('./routes/cart'));
 app.use('/api/orders',   require('./routes/orders'));
+app.use('/api/invoices', require('./routes/invoices'));
 app.use('/api/wishlist', require('./routes/wishlist'));
 app.use('/api/payment', require('./routes/payment'));
 app.use('/api/shipping', require('./routes/shipping'));

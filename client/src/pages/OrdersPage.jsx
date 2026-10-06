@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { orderAPI } from '../services/api';
+import { downloadPdf, apiErrorMessage } from '../utils/pdfDownload';
 import PageWrapper from '../components/PageWrapper';
 import SEO from '../components/SEO';
 import { SITE_NAME } from '../config/seo.config';
@@ -184,6 +185,18 @@ function WhatsAppSupportBox({ order }) {
 function OrderDetail({ id }) {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [downloadingInvoice, setDownloadingInvoice] = useState(false);
+
+  const downloadInvoice = async () => {
+    setDownloadingInvoice(true);
+    try {
+      await downloadPdf(() => orderAPI.downloadInvoice(id), 'Namdev-Chiwda-Invoice.pdf');
+    } catch (err) {
+      toast.error(await apiErrorMessage(err, "Your invoice couldn't be downloaded. Please try again."));
+    } finally {
+      setDownloadingInvoice(false);
+    }
+  };
 
   useEffect(() => {
     orderAPI.getOne(id)
@@ -271,6 +284,12 @@ function OrderDetail({ id }) {
               }`}>
                 {order.paymentStatus === 'paid' ? '✅' : '⏳'} Payment {order.paymentStatus}
               </div>
+            )}
+            {!isCancelled && order.paymentStatus !== 'failed' && (
+              <button type="button" onClick={downloadInvoice} disabled={downloadingInvoice}
+                className="sm:ml-auto inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold text-saffron bg-white border border-saffron/40 transition-colors hover:bg-saffron-pale disabled:opacity-60">
+                🧾 {downloadingInvoice ? 'Preparing invoice…' : 'Download invoice'}
+              </button>
             )}
           </div>
         </div>

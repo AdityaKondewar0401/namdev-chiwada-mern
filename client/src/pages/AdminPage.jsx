@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
-import { productAPI } from '../services/api';
+import { productAPI, invoiceAPI } from '../services/api';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 
@@ -13,6 +13,7 @@ import ProductFormTab from '../components/admin/ProductFormTab';
 import OrdersTab from '../components/admin/OrdersTab';
 import PromoCodesTab from '../components/admin/PromoCodesTab';
 import UsersTab from '../components/admin/UsersTab';
+import InvoicesTab from '../components/admin/InvoicesTab';
 import SEO from '../components/SEO';
 import { SITE_NAME } from '../config/seo.config';
 
@@ -39,11 +40,18 @@ export default function AdminPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editProduct, setEditProduct] = useState(null);
+  const [invoiceSummary, setInvoiceSummary] = useState(null);
 
   useEffect(() => {
     if (!user) { navigate('/login'); return; }
     if (user.role !== 'admin') { navigate('/'); return; }
   }, [user, navigate]);
+
+  const loadInvoiceSummary = () => {
+    invoiceAPI.summary()
+      .then((res) => setInvoiceSummary(res.data.summary))
+      .catch(() => {});
+  };
 
   useEffect(() => {
     productAPI.getAll({ limit: 100 })
@@ -53,6 +61,7 @@ export default function AdminPage() {
     api.get('/api/orders/admin')
       .then((res) => setOrders(res.data.orders || []))
       .catch(() => {});
+    loadInvoiceSummary();
   }, []);
 
   const handleDelete = async (id, name) => {
@@ -113,10 +122,11 @@ export default function AdminPage() {
             style={{ boxShadow: '0 4px 20px rgba(45,26,0,0.06)', border: '1px solid rgba(224,112,0,0.08)', minHeight: '500px' }}>
             <motion.div key={activeTab}
               initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
-              {activeTab === 'dashboard' && <DashboardTab products={products} orders={orders} />}
+              {activeTab === 'dashboard' && <DashboardTab products={products} orders={orders} invoiceSummary={invoiceSummary} />}
               {activeTab === 'products' && <ProductsTab products={products} onDelete={handleDelete} onEdit={handleEdit} loading={loading} />}
               {activeTab === 'add' && <ProductFormTab editProduct={editProduct} onSave={handleSave} onCancel={() => { setEditProduct(null); setActiveTab('products'); }} />}
               {activeTab === 'orders' && <OrdersTab />}
+              {activeTab === 'invoices' && <InvoicesTab products={products} summary={invoiceSummary} onChanged={loadInvoiceSummary} />}
               {activeTab === 'promos' && <PromoCodesTab />}
               {activeTab === 'users' && <UsersTab />}
             </motion.div>

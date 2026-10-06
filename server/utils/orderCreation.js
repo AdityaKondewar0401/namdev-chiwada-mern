@@ -25,6 +25,7 @@ const Promo = require('../models/Promo');
 const Product = require('../models/Product');
 const VerifiedPayment = require('../models/VerifiedPayment');
 const { sendOrderConfirmation } = require('../services/emailService');
+const { invoiceForNewOrder, logInvoiceEmail } = require('../services/invoiceService');
 const { calculateCartTotals } = require('./pricing');
 const shadowfaxService = require('../services/shadowfaxService');
 const { getShadowfaxConfig } = require('../config/shadowfax');
@@ -304,17 +305,26 @@ async function createOrderForUser({
   // Shipment creation is a deliberate admin action (see orderController) —
   // nothing to do here for Shadowfax.
 
+  // Issue the order's invoice so its PDF rides along with the confirmation.
+  // invoiceForNewOrder never throws: if invoicing fails, the confirmation
+  // still goes out, just without the attachment.
+  const issued = await invoiceForNewOrder(order);
+
   // Send order confirmation email — TRANSACTIONAL, so it always sends
   // regardless of marketingConsent. Wrapped so an email failure never
-  // breaks the actual order. A WhatsApp customer may have no email (their
-  // User record is created phone-first — see whatsappBotService); that's
-  // just an empty `to`, which sendOrderConfirmation already has to
-  // tolerate for any account created without one.
+  // breaks the actual order. A WhatsApp customer has only a placeholder
+  // email (their User record is created phone-first — see
+  // whatsappBotService), which sendOrderConfirmation skips.
+  let userEmail;
   try {
-    const userForEmail = await User.findById(userId).select('email');
-    await sendOrderConfirmation(order, userForEmail?.email);
+    userEmail = (await User.findById(userId).select('email'))?.email;
+    const sent = await sendOrderConfirmation(order, userEmail, issued?.attachment);
+    if (sent && issued) await logInvoiceEmail(issued.invoice, { to: userEmail, kind: 'order-confirmation', ok: true });
   } catch (emailErr) {
     console.error('Order confirmation email failed to send:', emailErr.message);
+    if (issued) {
+      await logInvoiceEmail(issued.invoice, { to: userEmail, kind: 'order-confirmation', ok: false, error: emailErr.message.slice(0, 300) });
+    }
   }
 
   return { success: true, order };

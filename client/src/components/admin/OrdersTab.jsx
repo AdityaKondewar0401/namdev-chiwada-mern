@@ -2,12 +2,22 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Calendar, Package, MapPin, Wallet, Truck, AlertTriangle, X, ChevronDown, ChevronUp,
-  Phone, Tag, Key, RefreshCw, Inbox, Banknote,
+  Phone, Tag, Key, RefreshCw, Inbox, Banknote, FileText, Send,
 } from 'lucide-react';
 import api from '../../services/api';
-import { shippingAPI } from '../../services/api';
+import { shippingAPI, orderAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 import { STATUS_OPTIONS, STATUS_CONFIG, PAYMENT_ICONS } from './adminConstants';
+import SendInvoiceDialog from './SendInvoiceDialog';
+import { downloadPdf, apiErrorMessage } from '../../utils/pdfDownload';
+import { usableEmail } from '../../utils/invoiceFormat';
+
+const invoiceBtnStyle = {
+  display: 'inline-flex', alignItems: 'center', gap: 6,
+  fontSize: 11, fontWeight: 700, color: '#3d2800',
+  background: '#fffaf0', border: '1px solid rgba(45,26,0,0.15)',
+  borderRadius: 8, padding: '8px 12px', minHeight: 40, cursor: 'pointer',
+};
 
 // ─────────────────────────────────────────────
 // OrderCard — same structure as before, with touch-target sizing
@@ -18,8 +28,23 @@ import { STATUS_OPTIONS, STATUS_CONFIG, PAYMENT_ICONS } from './adminConstants';
 function OrderCard({ order, onUpdateStatus, onOrderUpdated }) {
   const [expanded, setExpanded] = useState(false);
   const [courierBusy, setCourierBusy] = useState(false);
+  const [invoiceBusy, setInvoiceBusy] = useState(false);
+  const [sendingInvoice, setSendingInvoice] = useState(false);
   const status = order.status?.toLowerCase() || 'pending';
   const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
+  const hasInvoice = status !== 'cancelled' && order.paymentStatus !== 'failed';
+  const shortId = order._id.slice(-8).toUpperCase();
+
+  async function downloadInvoice() {
+    setInvoiceBusy(true);
+    try {
+      await downloadPdf(() => orderAPI.downloadInvoice(order._id), `Invoice-${shortId}.pdf`);
+    } catch (err) {
+      toast.error(await apiErrorMessage(err, "The invoice couldn't be downloaded."));
+    } finally {
+      setInvoiceBusy(false);
+    }
+  }
 
   async function runCourierAction(action, successMsg) {
     setCourierBusy(true);
@@ -150,7 +175,18 @@ function OrderCard({ order, onUpdateStatus, onOrderUpdated }) {
                 "Create Shipment" only appears until an AWB exists (it's a
                 one-time action); "Cancel Order" is hidden once the order
                 is already cancelled or delivered. ── */}
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+              {hasInvoice && (
+                <>
+                  <button type="button" onClick={downloadInvoice} disabled={invoiceBusy}
+                    style={{ ...invoiceBtnStyle, opacity: invoiceBusy ? 0.6 : 1 }}>
+                    <FileText size={13} /> {invoiceBusy ? 'Preparing…' : 'Invoice PDF'}
+                  </button>
+                  <button type="button" onClick={() => setSendingInvoice(true)} style={invoiceBtnStyle}>
+                    <Send size={13} /> Send invoice
+                  </button>
+                </>
+              )}
               {!order.courier?.awbNumber && status !== 'cancelled' && (
                 <button
                   disabled={courierBusy}
@@ -319,6 +355,17 @@ function OrderCard({ order, onUpdateStatus, onOrderUpdated }) {
               </div>
             </div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {sendingInvoice && (
+          <SendInvoiceDialog
+            label={`The invoice for order #${shortId}`}
+            defaultEmail={usableEmail(order.user?.email)}
+            onSend={(data) => orderAPI.sendInvoice(order._id, data)}
+            onClose={() => setSendingInvoice(false)}
+          />
         )}
       </AnimatePresence>
     </div>

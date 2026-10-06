@@ -116,6 +116,46 @@ export const orderAPI = {
       '/api/orders/validate-promo',
       data
     ),
+
+  // Order owner or admin
+  downloadInvoice: (id) =>
+    api.get(`/api/orders/${id}/invoice/pdf`, { responseType: 'blob' }),
+
+  // Admin only
+  sendInvoice: (id, data) =>
+    api.post(`/api/orders/${id}/invoice/send`, data),
+};
+
+/* ===============================
+   Invoices (admin)
+================================= */
+export const invoiceAPI = {
+  list: (params) =>
+    api.get('/api/invoices', { params }),
+
+  summary: () =>
+    api.get('/api/invoices/summary'),
+
+  searchCustomers: (q) =>
+    api.get('/api/invoices/customers', { params: { q } }),
+
+  create: (data) =>
+    api.post('/api/invoices', data),
+
+  get: (id) =>
+    api.get(`/api/invoices/${id}`),
+
+  downloadPdf: (id) =>
+    api.get(`/api/invoices/${id}/pdf`, { responseType: 'blob' }),
+
+  send: (id, data) =>
+    api.post(`/api/invoices/${id}/send`, data),
+
+  markPaid: (id, data) =>
+    api.patch(`/api/invoices/${id}/payment`, data),
+
+  cancel: (id, reason) =>
+    api.post(`/api/invoices/${id}/cancel`, { reason }),
 };
 
 /* ===============================

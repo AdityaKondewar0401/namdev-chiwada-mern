@@ -34,7 +34,7 @@ if (!RESEND_API_KEY) {
   Throws on failure so callers can catch and log it without crashing
   the request that triggered the email (e.g. placing an order).
 */
-async function sendViaResend({ to, subject, html }) {
+async function sendViaResend({ to, subject, html, attachments, replyTo }) {
   const res = await fetch(RESEND_API_URL, {
     method: 'POST',
     headers: {
@@ -46,6 +46,13 @@ async function sendViaResend({ to, subject, html }) {
       to: [to],
       subject,
       html,
+      ...(replyTo && { reply_to: replyTo }),
+      ...(attachments?.length && {
+        attachments: attachments.map(({ filename, content }) => ({
+          filename,
+          content: Buffer.isBuffer(content) ? content.toString('base64') : content,
+        })),
+      }),
     }),
   });
 

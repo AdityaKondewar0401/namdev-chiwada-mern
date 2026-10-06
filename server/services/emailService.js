@@ -1,17 +1,34 @@
 const { sendViaResend } = require('../config/email');
+const BUSINESS = require('../config/business');
+const { formatINR } = require('../utils/invoiceUtils');
 
 const LOGO_URL = `${process.env.CLIENT_URL || 'https://namdev-chiwada-mern.vercel.app'}/images/logo.png`;
+
+// WhatsApp-bot customers get a placeholder address on the `.local` TLD
+// (see whatsappBotService) because User.email is required; it can never
+// receive mail, so it is treated like a missing address.
+function isDeliverableEmail(email) {
+  return typeof email === 'string'
+    && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+    && !/\.local$/i.test(email.trim());
+}
+
+const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => (
+  { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+));
 
 /*
   Order confirmation is a TRANSACTIONAL email — it always sends regardless
   of marketingConsent, since the user needs this to know their order went
   through. marketingConsent only gates promotional/marketing sends, which
   is a separate function to build later (e.g. sendPromoEmail).
+
+  Returns true when an email was actually sent.
 */
-async function sendOrderConfirmation(order, userEmail) {
-  if (!userEmail) {
-    console.warn('sendOrderConfirmation: no email provided, skipping');
-    return;
+async function sendOrderConfirmation(order, userEmail, invoiceAttachment) {
+  if (!isDeliverableEmail(userEmail)) {
+    console.warn('sendOrderConfirmation: no deliverable email, skipping');
+    return false;
   }
 
   const itemsHtml = (order.items || [])
@@ -114,7 +131,7 @@ async function sendOrderConfirmation(order, userEmail) {
           <td style="padding:18px 20px;">
             <table role="presentation" width="100%">
               <tr>
-                <td style="font-size:14px; font-weight:700; color:#2d1a00;">Total paid</td>
+                <td style="font-size:14px; font-weight:700; color:#2d1a00;">${order.paymentMethod === 'ONLINE' ? 'Total paid' : 'Amount payable on delivery'}</td>
                 <td class="total-num" align="right" style="font-size:27px; font-weight:800; color:#e07000; letter-spacing:-0.01em;">
                   ₹${(order.total || 0).toLocaleString()}
                 </td>
@@ -123,6 +140,10 @@ async function sendOrderConfirmation(order, userEmail) {
             ${freeShip ? `
             <div class="pill" style="display:inline-block; background:#1ea064; color:#fff; font-size:11px; font-weight:800; padding:6px 14px; margin-top:10px;">
               🚚 FREE SHIPPING
+            </div>` : ''}
+            ${invoiceAttachment ? `
+            <div style="font-size:12px; color:#5a4326; margin-top:12px;">
+              🧾 Your invoice is attached to this email as a PDF.
             </div>` : ''}
           </td>
         </tr>
@@ -196,9 +217,105 @@ async function sendOrderConfirmation(order, userEmail) {
     to: userEmail,
     subject: `🎉 Order Confirmed — ₹${(order.total || 0).toLocaleString()} · Namdev Chiwda`,
     html,
+    attachments: invoiceAttachment ? [invoiceAttachment] : undefined,
+  });
+  return true;
+}
+
+/**
+ * Emails one invoice with its PDF attached.
+ * @param {{ to: string, view: object, pdf: Buffer, fileName: string, message?: string }} args
+ *   `view` is the invoice view model from invoiceService.presentInvoice().
+ */
+async function sendInvoiceEmail({ to, view, pdf, fileName, message }) {
+  const firstName = escapeHtml((view.customer.name || 'there').split(' ')[0]);
+  const note = message && message.trim()
+    ? `<div style="margin:0 0 20px; padding:14px 16px; background:#fef8ec; border-left:3px solid #e07000; font-size:14px; color:#5a4326; line-height:1.6; white-space:pre-line;">${escapeHtml(message.trim())}</div>`
+    : '';
+  const statusColor = view.statusTone === 'paid' ? '#1e7a3c' : view.statusTone === 'cancelled' ? '#b8080e' : '#a14d00';
+  const row = (label, value, extra = '') => `
+    <tr>
+      <td style="padding:9px 0; font-size:13px; color:#9a7c5a; border-top:1px solid rgba(224,112,0,0.1);">${label}</td>
+      <td align="right" style="padding:9px 0; font-size:13px; font-weight:600; color:#2d1a00; border-top:1px solid rgba(224,112,0,0.1); ${extra}">${value}</td>
+    </tr>`;
+
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Invoice ${escapeHtml(view.number)}</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  body { margin:0; padding:0; background:#f2e4c8; font-family:'Poppins', Arial, Helvetica, sans-serif; }
+  table { border-collapse:collapse; }
+  img { border:0; display:block; }
+  div, td, span { font-family:'Poppins', Arial, Helvetica, sans-serif; }
+  @media only screen and (max-width:480px) { .pad { padding-left:18px !important; padding-right:18px !important; } }
+</style>
+</head>
+<body>
+<div style="width:100%; background:#f2e4c8; padding:32px 16px; box-sizing:border-box;">
+<table role="presentation" width="100%"><tr><td align="center">
+<table role="presentation" width="560" style="width:100%; max-width:560px; background:#fffdf7; border-radius:24px; overflow:hidden;">
+  <tr>
+    <td style="background:#2d1a00; padding:22px 24px; text-align:center;">
+      <img src="${LOGO_URL}" alt="Namdev Chiwda" width="120" style="display:inline-block; vertical-align:middle; border-radius:14px;" />
+      <span style="color:#f0cc5a; font-size:21px; font-weight:700; letter-spacing:0.12em; vertical-align:middle; margin-left:12px;">NAMDEV CHIWDA</span>
+    </td>
+  </tr>
+  <tr>
+    <td class="pad" style="padding:32px 28px 8px;">
+      <div style="font-size:20px; font-weight:700; color:#2d1a00; margin-bottom:8px;">Hi ${firstName},</div>
+      <div style="font-size:14px; color:#5a4326; line-height:1.7; margin-bottom:20px;">
+        Thank you for buying from ${escapeHtml(BUSINESS.brandName)}. Your invoice <strong>${escapeHtml(view.number)}</strong> is attached to this email as a PDF.
+      </div>
+      ${note}
+      <table role="presentation" width="100%" style="margin-bottom:8px;">
+        ${row('Invoice no.', escapeHtml(view.number))}
+        ${row('Date', escapeHtml(view.issuedOn))}
+        ${row(escapeHtml(view.totalLabel), escapeHtml(formatINR(view.total)), 'font-size:15px; color:#e07000;')}
+        ${row('Status', escapeHtml(view.statusLabel), `color:${statusColor};`)}
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td class="pad" style="padding:8px 28px 30px;">
+      <div style="font-size:12px; color:#9a7c5a; line-height:1.6;">
+        Bank: ${escapeHtml(BUSINESS.bank.name)} · A/c ${escapeHtml(BUSINESS.bank.accountNumber)} · IFSC ${escapeHtml(BUSINESS.bank.ifsc)}<br/>
+        UPI: ${escapeHtml(BUSINESS.upiId)}
+      </div>
+    </td>
+  </tr>
+  <tr>
+    <td style="background:#2d1a00; padding:24px; text-align:center;">
+      <div style="color:#f0cc5a; font-size:13px; font-weight:700; margin-bottom:8px;">Since 1873. Still crunchy. Still Solapur.</div>
+      <div style="color:rgba(255,255,255,0.6); font-size:11px; line-height:1.6;">
+        Questions about this invoice? Reply to this email or WhatsApp
+        <a href="https://wa.me/919130160491" style="color:#ff9010; font-weight:700; text-decoration:none;">${escapeHtml(BUSINESS.phone)}</a>
+      </div>
+      <div style="color:rgba(255,255,255,0.35); font-size:10px; margin-top:10px;">
+        ${escapeHtml(BUSINESS.legalName)} · FSSAI Lic. No: ${escapeHtml(BUSINESS.fssai)}
+      </div>
+    </td>
+  </tr>
+</table>
+</td></tr></table>
+</div>
+</body>
+</html>`;
+
+  return sendViaResend({
+    to: to.trim(),
+    subject: `Your invoice ${view.number} from ${BUSINESS.brandName}`,
+    html,
+    replyTo: BUSINESS.email,
+    attachments: [{ filename: fileName, content: pdf }],
   });
 }
 
 module.exports = {
   sendOrderConfirmation,
+  sendInvoiceEmail,
+  isDeliverableEmail,
 };
